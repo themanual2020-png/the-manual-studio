@@ -39,7 +39,7 @@ class SupabaseClient {
 
   // Get single project by project_id
   async getProject(projectId) {
-    const data = await this.request(`/projects?project_id=eq.${projectId}`);
+    const data = await this.request(`/projects?project_id=eq.${encodeURIComponent(projectId)}`);
     return data[0] || null;
   }
 

@@ -383,7 +383,7 @@
   // Card click → project page
   document.getElementById('tms-grid').addEventListener('click', e => {
     const card = e.target.closest('[data-project-id]');
-    if (card) window.location.href = `project.html?id=${card.getAttribute('data-project-id')}`;
+    if (card) window.location.href = `project.html?id=${encodeURIComponent(card.getAttribute('data-project-id'))}`;
   });
 
   // Load projects on page load (wait for Supabase to initialize)
