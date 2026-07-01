@@ -95,18 +95,6 @@ a:not(nav a):hover {
 nav a {
   transition: color 0.3s ease !important;
   text-decoration: none !important;
-  color: inherit !important;
-}
-
-/* Force all nav links to have same color */
-nav a[href="#work"],
-nav a[href="about.html"],
-nav a[href="#contact"] {
-  color: rgba(245, 244, 241, 0.6) !important;
-  font-family: 'Archivo', sans-serif !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em !important;
 }
 
 /* ========== REVEAL ANIMATIONS ========== */
