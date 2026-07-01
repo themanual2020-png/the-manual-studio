@@ -1,5 +1,5 @@
 [build]
-  command = "sed -i '' 's|{{ VITE_SUPABASE_URL }}|'$VITE_SUPABASE_URL'|g; s|{{ VITE_SUPABASE_KEY }}|'$VITE_SUPABASE_KEY'|g' index.html"
+  command = "node scripts/inject-env.js"
   publish = "."
 
 [[redirects]]
