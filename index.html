@@ -389,8 +389,14 @@
     if (card) window.location.href = `project.html?id=${card.getAttribute('data-project-id')}`;
   });
 
-  // Load projects on page load
-  loadProjects();
+  // Load projects on page load (wait for Supabase to initialize)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadProjects, 100);
+    });
+  } else {
+    setTimeout(loadProjects, 100);
+  }
 
   // Hero video — drag/drop or click to load; persisted in IndexedDB
   const video = document.getElementById('tms-hero-video');
