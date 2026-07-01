@@ -114,6 +114,10 @@
         <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">CATEGORY</div>
         <div id="project-category" style="font-size: 16px;">—</div>
       </div>
+      <div id="client-section" style="display:none;">
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">CLIENT</div>
+        <div id="project-client" style="font-size: 16px;">—</div>
+      </div>
     </div>
   </section>
 
@@ -121,7 +125,6 @@
   <section style="padding: 60px 40px;">
     <div style="max-width: 800px; margin: 0 auto;">
       <p id="project-body" data-reveal style="font-size: clamp(20px, 3vw, 28px); line-height: 1.6; font-weight: 300; margin: 0;">—</p>
-      <p id="project-body-detail" data-reveal style="font-size: 16px; line-height: 1.8; color: #15140f; margin: 32px 0 0; font-weight: 300;">—</p>
     </div>
   </section>
 
@@ -203,7 +206,10 @@
         document.getElementById('project-type').textContent = project.type_label || '—';
         document.getElementById('project-category').textContent = project.cat_label || '—';
         document.getElementById('project-body').textContent = project.body || '—';
-        document.getElementById('project-body-detail').textContent = project.body_detail || '—';
+        if (project.client) {
+          document.getElementById('project-client').textContent = project.client;
+          document.getElementById('client-section').style.display = '';
+        }
 
         if (project.hero_placeholder) {
           const heroImg = document.getElementById('hero-image');
