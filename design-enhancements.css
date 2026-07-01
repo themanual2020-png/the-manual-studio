@@ -83,6 +83,10 @@ button:active, a[role="button"]:active {
 }
 
 /* Link hover effects (exclude navigation) */
+a:not(nav a) {
+  color: inherit !important;
+}
+
 a:not(nav a):not([href*="#"]) {
   transition: all 0.3s ease !important;
 }
