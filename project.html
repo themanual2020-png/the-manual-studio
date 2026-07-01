@@ -9,9 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./design-enhancements.css">
 <script>
+  // Convert Google Drive link to direct download URL
   function convertGDriveLink(url) {
-    if (url.includes("drive.google.com")) {
-      return url.replace(//view?.*$/, "/preview");
+    if (url.includes('drive.google.com')) {
+      // Extract file ID from Google Drive URL
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
     }
     return url;
   }
@@ -145,15 +150,25 @@
 </div>
 
 <script>
+  // Convert Google Drive link to direct download URL
   function convertGDriveLink(url) {
-    if (url.includes("drive.google.com")) {
-      return url.replace(//view?.*$/, "/preview");
+    if (url.includes('drive.google.com')) {
+      // Extract file ID from Google Drive URL
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
     }
     return url;
   }
+  // Convert Google Drive link to direct download URL
   function convertGDriveLink(url) {
     if (url.includes('drive.google.com')) {
-      return url.replace(/\/view\?.*$/, '/preview');
+      // Extract file ID from Google Drive URL
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
     }
     return url;
   }
