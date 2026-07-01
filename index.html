@@ -78,12 +78,7 @@
   <!-- Hero -->
   <section id="top" style="position: relative; height: 100svh; min-height: 620px; width: 100%; overflow: hidden; background: #15140f;">
     <div id="tms-hero-media" style="position: absolute; inset: 0; background: #15140f; transform: scale(1.04);">
-      <video id="tms-hero-video" muted loop playsinline autoplay preload="auto" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;"></video>
-      <div id="tms-hero-drop" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; cursor: pointer; color: rgba(245,244,241,.65); text-align: center; padding: 24px;">
-        <div style="width: 58px; height: 58px; border: 1.5px solid rgba(245,244,241,.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; padding-left: 4px;">▶</div>
-        <div style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .18em;">ลากไฟล์วิดีโอมาวาง · หรือคลิกเพื่อเลือก</div>
-      </div>
-      <input id="tms-hero-file" type="file" accept="video/*" style="display: none;">
+      <video id="tms-hero-video" muted loop playsinline autoplay preload="auto" src="https://pzrjboiioplhijzyfdmf.supabase.co/storage/v1/object/public/images/Untitled%20(1).mp4" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;"></video>
     </div>
     <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.18) 38%, rgba(10,9,7,.55) 100%); pointer-events: none;"></div>
     <div id="tms-hero-content" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 40px 64px; pointer-events: none;">
@@ -400,67 +395,8 @@
     setTimeout(loadProjects, 100);
   }
 
-  // Hero video — drag/drop or click to load; persisted in IndexedDB
-  const video = document.getElementById('tms-hero-video');
-  const drop = document.getElementById('tms-hero-drop');
-  const fileInput = document.getElementById('tms-hero-file');
   const heroMedia = document.getElementById('tms-hero-media');
   const heroContent = document.getElementById('tms-hero-content');
-
-  function idb(mode, val) {
-    return new Promise(resolve => {
-      try {
-        const req = indexedDB.open('tms-media', 1);
-        req.onupgradeneeded = () => req.result.createObjectStore('kv');
-        req.onsuccess = () => {
-          const db = req.result;
-          const tx = db.transaction('kv', mode);
-          const store = tx.objectStore('kv');
-          const op = mode === 'readwrite' ? store.put(val, 'heroVideo') : store.get('heroVideo');
-          op.onsuccess = () => resolve(mode === 'readwrite' ? true : op.result);
-          op.onerror = () => resolve(null);
-        };
-        req.onerror = () => resolve(null);
-      } catch { resolve(null); }
-    });
-  }
-
-  function playSafe() {
-    const p = video.play();
-    if (p && p.catch) p.catch(() => {});
-  }
-  function showVideo(url) {
-    video.muted = true;
-    video.src = url;
-    video.style.opacity = '1';
-    drop.style.display = 'none';
-    video.addEventListener('canplay', playSafe, { once: false });
-    video.addEventListener('loadeddata', playSafe, { once: false });
-    playSafe();
-  }
-  function showPrompt() {
-    video.style.opacity = '0';
-    drop.style.display = 'flex';
-  }
-  function loadFile(file) {
-    if (!file || !file.type || !file.type.startsWith('video/')) return;
-    showVideo(URL.createObjectURL(file));
-    idb('readwrite', file);
-  }
-
-  idb('readonly').then(blob => {
-    if (blob) showVideo(URL.createObjectURL(blob));
-    else showPrompt();
-  });
-
-  drop.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
-  const heroSection = document.getElementById('top');
-  ['dragenter', 'dragover'].forEach(ev => heroSection.addEventListener(ev, e => e.preventDefault()));
-  heroSection.addEventListener('drop', e => {
-    e.preventDefault();
-    if (e.dataTransfer && e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
-  });
 
   // Parallax
   if (heroMedia) heroMedia.style.transform = 'scale(1.04)';
