@@ -9,6 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./design-enhancements.css">
 <script>
+  function convertGDriveLink(url) {
+    if (url.includes("drive.google.com")) {
+      return url.replace(//view?.*$/, "/preview");
+    }
+    return url;
+  }
   window.SUPABASE_URL = '{{ VITE_SUPABASE_URL }}';
   window.SUPABASE_KEY = '{{ VITE_SUPABASE_KEY }}';
 </script>
@@ -139,6 +145,19 @@
 </div>
 
 <script>
+  function convertGDriveLink(url) {
+    if (url.includes("drive.google.com")) {
+      return url.replace(//view?.*$/, "/preview");
+    }
+    return url;
+  }
+  function convertGDriveLink(url) {
+    if (url.includes('drive.google.com')) {
+      return url.replace(/\/view\?.*$/, '/preview');
+    }
+    return url;
+  }
+
   async function loadProjectDetail() {
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get('id');
@@ -173,7 +192,7 @@
 
         if (project.hero_placeholder) {
           const heroImg = document.getElementById('hero-image');
-          heroImg.src = project.hero_placeholder;
+          heroImg.src = convertGDriveLink(project.hero_placeholder);
           heroImg.style.display = 'block';
           document.getElementById('hero-placeholder').style.display = 'none';
         }
@@ -183,7 +202,7 @@
           const galleryGrid = document.getElementById('gallery-grid');
           galleryGrid.innerHTML = gallery.map(img => `
             <div class="gallery-item">
-              <img src="${escapeHtml(img.url || img)}" alt="">
+              <img src="${escapeHtml(convertGDriveLink(convertGDriveLink(img.url || img)))}" alt="">
             </div>
           `).join('');
           document.getElementById('gallery-section').style.display = 'block';
@@ -198,7 +217,7 @@
                 <div class="section-block">
                   <h3 data-reveal>${escapeHtml(s.title || '')}</h3>
                   <p data-reveal>${escapeHtml(s.body || '')}</p>
-                  ${s.image_url ? `<img src="${escapeHtml(s.image_url)}" alt="">` : ''}
+                  ${s.image_url ? `<img src=${escapeHtml(convertGDriveLink(s.image_url))}` : '' ? `<img src="${escapeHtml(s.image_url)}" alt="">` : ''}
                 </div>
               </div>
             </section>
