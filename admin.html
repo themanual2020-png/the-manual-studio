@@ -25,7 +25,6 @@
   }
 
   .admin-header h1 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 32px; }
-
   .admin-actions { display: flex; gap: 12px; }
 
   button {
@@ -145,7 +144,6 @@
   /* ====== TABS ====== */
   .tabs {
     display: flex;
-    gap: 0;
     padding: 16px 32px 0;
     border-bottom: 1px solid #e2dfd8;
     margin-top: 16px;
@@ -166,10 +164,7 @@
     transition: all .2s;
   }
 
-  .tab-btn.active {
-    color: #15140f;
-    border-bottom-color: #15140f;
-  }
+  .tab-btn.active { color: #15140f; border-bottom-color: #15140f; }
 
   .tab-pane { display: none; padding: 24px 32px; }
   .tab-pane.active { display: block; }
@@ -222,6 +217,76 @@
     margin-top: 8px;
   }
 
+  /* ====== UPLOAD ====== */
+  .upload-zone {
+    border: 2px dashed #d2cec5;
+    border-radius: 10px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: #fafaf8;
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: #15140f;
+    background: #f0efeb;
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-zone-icon { font-size: 32px; margin-bottom: 10px; }
+  .upload-zone-label { font-size: 14px; font-weight: 600; color: #15140f; margin-bottom: 4px; }
+  .upload-zone-sub { font-size: 12px; color: #9a958a; }
+
+  /* ====== PROGRESS ====== */
+  .upload-progress-wrap {
+    display: none;
+    margin-top: 12px;
+  }
+
+  .upload-progress-wrap.show { display: block; }
+
+  .upload-progress-bar-bg {
+    height: 4px;
+    background: #e2dfd8;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .upload-progress-bar {
+    height: 100%;
+    background: #15140f;
+    border-radius: 99px;
+    transition: width .3s ease;
+    width: 0%;
+  }
+
+  .upload-progress-label {
+    font-size: 12px;
+    color: #9a958a;
+    margin-top: 6px;
+  }
+
+  /* ====== HERO PREVIEW ====== */
+  .hero-preview-wrap { margin-top: 12px; display: none; }
+  .hero-preview-wrap.show { display: block; }
+  .hero-preview-wrap img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e2dfd8;
+  }
+
   /* ====== GALLERY ====== */
   .gallery-grid {
     display: grid;
@@ -249,13 +314,13 @@
     position: absolute;
     top: 6px;
     right: 6px;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: rgba(179,38,30,.9);
     color: #fff;
     border: none;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -263,6 +328,18 @@
     justify-content: center;
     padding: 0;
     letter-spacing: 0;
+  }
+
+  .gallery-item-uploading {
+    position: absolute;
+    inset: 0;
+    background: rgba(21,20,15,.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
   }
 
   .gallery-item-error {
@@ -275,19 +352,11 @@
     color: #9a958a;
   }
 
-  .gallery-add-row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-  }
-
-  .gallery-add-row .form-group { flex: 1; margin: 0; }
-
   .gallery-empty {
     text-align: center;
     color: #9a958a;
     font-size: 13px;
-    padding: 32px;
+    padding: 24px;
     border: 2px dashed #e2dfd8;
     border-radius: 8px;
     margin-bottom: 16px;
@@ -327,6 +396,26 @@
     border-radius: 8px;
     margin-bottom: 16px;
   }
+
+  /* Section image upload row */
+  .section-img-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .section-img-row input { flex: 1; }
+
+  .section-img-preview {
+    width: 52px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e2dfd8;
+    display: none;
+  }
+
+  .section-img-preview.show { display: block; }
 
   /* ====== STATUS / ALERTS ====== */
   .api-status {
@@ -410,7 +499,6 @@
       <button class="close-modal" onclick="closeModal()">&times;</button>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('details')">Details</button>
       <button class="tab-btn" onclick="switchTab('gallery')">Gallery</button>
@@ -419,7 +507,7 @@
 
     <!-- Tab: Details -->
     <div id="tab-details" class="tab-pane active">
-      <form id="project-form">
+      <form id="project-form" onsubmit="return false;">
         <div class="form-row">
           <div class="form-group">
             <label>Project ID (kebab-case)</label>
@@ -475,33 +563,64 @@
         </div>
 
         <div class="form-group">
-          <label>Hero Image URL</label>
-          <input type="text" id="hero_placeholder" placeholder="https://... or leave blank">
+          <label>Hero Image</label>
+          <!-- Upload zone -->
+          <div class="upload-zone" id="hero-upload-zone">
+            <input type="file" id="hero-file-input" accept="image/*" onchange="uploadHeroImage(this.files[0])">
+            <div class="upload-zone-icon">🖼️</div>
+            <div class="upload-zone-label">Click or drag to upload hero image</div>
+            <div class="upload-zone-sub">JPG, PNG, WEBP — max 10MB</div>
+          </div>
+          <div class="upload-progress-wrap" id="hero-progress-wrap">
+            <div class="upload-progress-bar-bg">
+              <div class="upload-progress-bar" id="hero-progress-bar"></div>
+            </div>
+            <div class="upload-progress-label" id="hero-progress-label">Uploading...</div>
+          </div>
+          <div class="hero-preview-wrap" id="hero-preview-wrap">
+            <img id="hero-preview-img" src="" alt="">
+          </div>
+          <!-- URL fallback -->
+          <input type="text" id="hero_placeholder" placeholder="Or paste image URL directly" style="margin-top:10px;">
         </div>
       </form>
     </div>
 
     <!-- Tab: Gallery -->
     <div id="tab-gallery" class="tab-pane">
-      <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">เพิ่มรูปภาพหลายรูปสำหรับ project นี้</p>
+      <p style="font-size:13px;color:#9a958a;margin:0 0 16px;">เพิ่มรูปภาพหลายรูปสำหรับ project นี้</p>
 
       <div id="gallery-grid" class="gallery-grid"></div>
 
-      <div class="gallery-add-row">
-        <div class="form-group">
-          <label>Image URL</label>
+      <!-- Upload zone for gallery -->
+      <div class="upload-zone" id="gallery-upload-zone" style="margin-bottom:16px;">
+        <input type="file" id="gallery-file-input" accept="image/*" multiple onchange="uploadGalleryFiles(this.files)">
+        <div class="upload-zone-icon">📁</div>
+        <div class="upload-zone-label">Click or drag images to upload</div>
+        <div class="upload-zone-sub">รองรับหลายรูปพร้อมกัน · JPG, PNG, WEBP</div>
+      </div>
+
+      <div class="upload-progress-wrap" id="gallery-progress-wrap">
+        <div class="upload-progress-bar-bg">
+          <div class="upload-progress-bar" id="gallery-progress-bar"></div>
+        </div>
+        <div class="upload-progress-label" id="gallery-progress-label">Uploading...</div>
+      </div>
+
+      <!-- URL fallback -->
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="form-group" style="flex:1;margin:0;">
+          <label>Or paste URL directly</label>
           <input type="text" id="gallery-url-input" placeholder="https://...">
         </div>
-        <button type="button" class="btn-primary btn-sm" style="white-space:nowrap;padding:10px 16px;" onclick="addGalleryImage()">+ Add</button>
+        <button type="button" class="btn-secondary btn-sm" style="padding:10px 16px;white-space:nowrap;" onclick="addGalleryUrl()">+ Add URL</button>
       </div>
     </div>
 
     <!-- Tab: Sections -->
     <div id="tab-sections" class="tab-pane">
-      <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">เพิ่ม sections/articles ใน project นี้</p>
-
+      <p style="font-size:13px;color:#9a958a;margin:0 0 16px;">เพิ่ม sections/articles ใน project นี้</p>
       <div id="sections-list"></div>
-
       <button type="button" class="btn-secondary" onclick="addSection()" style="width:100%;">+ Add Section</button>
     </div>
 
@@ -515,13 +634,14 @@
 <script>
 const CONFIG = {
   SUPABASE_URL: 'https://pzrjboiioplhijzyfdmf.supabase.co',
-  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw'
+  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw',
+  STORAGE_BUCKET: 'project-images',
 };
 
 let projects = [];
 let currentEditId = null;
-let galleryImages = [];   // [{url: '...'}]
-let projectSections = []; // [{title:'', body:'', image_url:''}]
+let galleryImages = [];
+let projectSections = [];
 
 // ===== API =====
 async function apiFetch(path, opts = {}) {
@@ -542,6 +662,330 @@ async function apiFetch(path, opts = {}) {
   return res.json();
 }
 
+// ===== STORAGE UPLOAD =====
+async function uploadToStorage(file, folder) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const res = await fetch(
+    `${CONFIG.SUPABASE_URL}/storage/v1/object/${CONFIG.STORAGE_BUCKET}/${filename}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+        'apikey': CONFIG.SUPABASE_KEY,
+        'Content-Type': file.type || 'image/jpeg',
+        'x-upsert': 'true',
+      },
+      body: file,
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Upload failed: ' + err);
+  }
+
+  return `${CONFIG.SUPABASE_URL}/storage/v1/object/public/${CONFIG.STORAGE_BUCKET}/${filename}`;
+}
+
+// ===== HERO UPLOAD =====
+async function uploadHeroImage(file) {
+  if (!file) return;
+  const progressWrap = document.getElementById('hero-progress-wrap');
+  const progressBar = document.getElementById('hero-progress-bar');
+  const progressLabel = document.getElementById('hero-progress-label');
+  const previewWrap = document.getElementById('hero-preview-wrap');
+  const previewImg = document.getElementById('hero-preview-img');
+
+  progressWrap.classList.add('show');
+  progressBar.style.width = '30%';
+  progressLabel.textContent = 'Uploading hero image...';
+
+  try {
+    const projectId = document.getElementById('project_id').value.trim() || 'project';
+    const url = await uploadToStorage(file, projectId);
+
+    progressBar.style.width = '100%';
+    progressLabel.textContent = 'Upload complete ✓';
+
+    document.getElementById('hero_placeholder').value = url;
+    previewImg.src = url;
+    previewWrap.classList.add('show');
+
+    setTimeout(() => progressWrap.classList.remove('show'), 2000);
+  } catch (e) {
+    progressLabel.textContent = '✗ ' + e.message;
+    progressBar.style.background = '#b3261e';
+    setTimeout(() => {
+      progressWrap.classList.remove('show');
+      progressBar.style.background = '';
+    }, 3000);
+  }
+}
+
+// ===== GALLERY UPLOAD =====
+async function uploadGalleryFiles(files) {
+  if (!files || !files.length) return;
+  const progressWrap = document.getElementById('gallery-progress-wrap');
+  const progressBar = document.getElementById('gallery-progress-bar');
+  const progressLabel = document.getElementById('gallery-progress-label');
+
+  progressWrap.classList.add('show');
+  const total = files.length;
+
+  // Add placeholder items
+  const startIdx = galleryImages.length;
+  for (let i = 0; i < total; i++) {
+    galleryImages.push({ url: '', uploading: true });
+  }
+  renderGallery();
+
+  let done = 0;
+  const projectId = document.getElementById('project_id').value.trim() || 'project';
+
+  for (let i = 0; i < total; i++) {
+    progressBar.style.width = `${Math.round((i / total) * 100)}%`;
+    progressLabel.textContent = `Uploading ${i + 1} of ${total}...`;
+    try {
+      const url = await uploadToStorage(files[i], projectId);
+      galleryImages[startIdx + i] = { url };
+      done++;
+    } catch (e) {
+      galleryImages.splice(startIdx + i, 1);
+      showAlert('Failed to upload ' + files[i].name, 'error');
+    }
+    renderGallery();
+  }
+
+  progressBar.style.width = '100%';
+  progressLabel.textContent = `Done — ${done} of ${total} uploaded ✓`;
+  setTimeout(() => progressWrap.classList.remove('show'), 2000);
+
+  // Reset file input so same files can be re-added
+  document.getElementById('gallery-file-input').value = '';
+}
+
+// ===== GALLERY URL =====
+function addGalleryUrl() {
+  const input = document.getElementById('gallery-url-input');
+  const url = input.value.trim();
+  if (!url) return;
+  galleryImages.push({ url });
+  input.value = '';
+  renderGallery();
+}
+
+function removeGalleryImage(i) {
+  galleryImages.splice(i, 1);
+  renderGallery();
+}
+
+function renderGallery() {
+  const grid = document.getElementById('gallery-grid');
+  if (!galleryImages.length) {
+    grid.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1">ยังไม่มีรูปภาพ — อัพโหลดหรือเพิ่ม URL ด้านล่าง</div>';
+    return;
+  }
+  grid.innerHTML = galleryImages.map((img, i) => {
+    if (img.uploading) {
+      return `<div class="gallery-item">
+        <div class="gallery-item-uploading"><span class="spinner" style="border-top-color:#fff"></span></div>
+      </div>`;
+    }
+    return `<div class="gallery-item">
+      <img src="${escHtml(img.url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="gallery-item-error" style="display:none">🖼️</div>
+      <button class="gallery-item-remove" onclick="removeGalleryImage(${i})" title="Remove">×</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== SECTIONS =====
+function renderSections() {
+  const list = document.getElementById('sections-list');
+  if (!projectSections.length) {
+    list.innerHTML = '<div class="sections-empty">ยังไม่มี sections — click "+ Add Section" เพื่อเพิ่ม</div>';
+    return;
+  }
+  list.innerHTML = projectSections.map((s, i) => `
+    <div class="section-item">
+      <div class="section-item-header">
+        <span>Section ${i + 1}</span>
+        <button class="btn-danger btn-sm" onclick="removeSection(${i})">Remove</button>
+      </div>
+      <div class="form-group">
+        <label>Section Title</label>
+        <input type="text" value="${escHtml(s.title || '')}" oninput="projectSections[${i}].title=this.value" placeholder="e.g. The Challenge">
+      </div>
+      <div class="form-group">
+        <label>Body Text</label>
+        <textarea oninput="projectSections[${i}].body=this.value" placeholder="Write section content here...">${escHtml(s.body || '')}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Section Image (optional)</label>
+        <div class="section-img-row">
+          <input type="text" id="sec-img-url-${i}" value="${escHtml(s.image_url || '')}" oninput="projectSections[${i}].image_url=this.value;updateSectionPreview(${i})" placeholder="URL หรืออัพโหลด →">
+          <img id="sec-img-preview-${i}" class="section-img-preview ${s.image_url ? 'show' : ''}" src="${escHtml(s.image_url || '')}" alt="">
+          <label style="cursor:pointer;padding:8px 12px;background:#15140f;color:#f5f4f1;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;display:flex;align-items:center;gap:4px;">
+            📤 Upload
+            <input type="file" accept="image/*" style="display:none;" onchange="uploadSectionImage(${i}, this.files[0])">
+          </label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateSectionPreview(i) {
+  const url = projectSections[i].image_url;
+  const img = document.getElementById(`sec-img-preview-${i}`);
+  if (img) {
+    img.src = url;
+    img.classList.toggle('show', !!url);
+  }
+}
+
+async function uploadSectionImage(i, file) {
+  if (!file) return;
+  const projectId = document.getElementById('project_id').value.trim() || 'project';
+  const urlInput = document.getElementById(`sec-img-url-${i}`);
+  if (urlInput) urlInput.value = 'Uploading...';
+
+  try {
+    const url = await uploadToStorage(file, projectId);
+    projectSections[i].image_url = url;
+    renderSections();
+  } catch (e) {
+    showAlert('Upload failed: ' + e.message, 'error');
+    if (urlInput) urlInput.value = '';
+  }
+}
+
+function addSection() {
+  projectSections.push({ title: '', body: '', image_url: '' });
+  renderSections();
+}
+
+function removeSection(i) {
+  projectSections.splice(i, 1);
+  renderSections();
+}
+
+// ===== TABS =====
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// ===== MODAL =====
+function openAddModal() {
+  currentEditId = null;
+  galleryImages = [];
+  projectSections = [];
+  document.getElementById('modal-title').textContent = 'Add New Project';
+  document.getElementById('project-form').reset();
+  document.getElementById('project_id').disabled = false;
+  document.getElementById('hero-preview-wrap').classList.remove('show');
+  document.getElementById('hero_placeholder').value = '';
+  switchTab('details');
+  renderGallery();
+  renderSections();
+  document.getElementById('project-modal').classList.add('active');
+}
+
+async function editProject(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  currentEditId = id;
+  document.getElementById('modal-title').textContent = 'Edit Project';
+  document.getElementById('project_id').disabled = true;
+
+  ['project_id','title','subtitle','type_label','year','location','body','body_detail'].forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = p[k] || '';
+  });
+  document.getElementById('cat_label').value = p.cat_label || '';
+  document.getElementById('hero_placeholder').value = p.hero_placeholder || '';
+
+  // Show hero preview if exists
+  const heroUrl = p.hero_placeholder || '';
+  const previewWrap = document.getElementById('hero-preview-wrap');
+  const previewImg = document.getElementById('hero-preview-img');
+  if (heroUrl) {
+    previewImg.src = heroUrl;
+    previewWrap.classList.add('show');
+  } else {
+    previewWrap.classList.remove('show');
+  }
+
+  galleryImages = Array.isArray(p.gallery_images) ? JSON.parse(JSON.stringify(p.gallery_images)) : [];
+  projectSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
+
+  switchTab('details');
+  renderGallery();
+  renderSections();
+  document.getElementById('project-modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('project-modal').classList.remove('active');
+  currentEditId = null;
+}
+
+// ===== SAVE =====
+async function saveProject() {
+  const required = ['project_id','title','subtitle','type_label','cat_label','year','location','body','body_detail'];
+  for (const f of required) {
+    if (!document.getElementById(f).value.trim()) {
+      switchTab('details');
+      document.getElementById(f).focus();
+      showAlert('กรุณากรอกข้อมูลให้ครบ', 'error');
+      return;
+    }
+  }
+
+  const formData = {
+    project_id: document.getElementById('project_id').value.trim(),
+    title: document.getElementById('title').value.trim(),
+    subtitle: document.getElementById('subtitle').value.trim(),
+    type_label: document.getElementById('type_label').value.trim(),
+    cat_label: document.getElementById('cat_label').value,
+    year: document.getElementById('year').value.trim(),
+    location: document.getElementById('location').value.trim(),
+    body: document.getElementById('body').value.trim(),
+    body_detail: document.getElementById('body_detail').value.trim(),
+    hero_placeholder: document.getElementById('hero_placeholder').value.trim(),
+    gallery_images: galleryImages.filter(img => img.url),
+    project_sections: projectSections,
+  };
+
+  try {
+    if (currentEditId) {
+      await apiFetch(`/projects?id=eq.${currentEditId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(formData),
+      });
+      showAlert('Project updated! ✓', 'success');
+    } else {
+      await apiFetch('/projects', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify(formData),
+      });
+      showAlert('Project created! ✓', 'success');
+    }
+    closeModal();
+    loadProjects();
+  } catch (e) {
+    showAlert('Error: ' + e.message, 'error');
+  }
+}
+
+// ===== API STATUS / LOAD =====
 async function checkApiStatus() {
   const el = document.getElementById('api-status');
   try {
@@ -564,6 +1008,18 @@ async function loadProjects() {
   }
 }
 
+// ===== DELETE =====
+async function deleteProject(id, title) {
+  if (!confirm(`Delete "${title}"?`)) return;
+  try {
+    await apiFetch(`/projects?id=eq.${id}`, { method: 'DELETE' });
+    showAlert('Project deleted', 'success');
+    loadProjects();
+  } catch (e) {
+    showAlert('Error: ' + e.message, 'error');
+  }
+}
+
 // ===== RENDER PROJECTS =====
 function renderProjects() {
   const c = document.getElementById('projects-container');
@@ -576,10 +1032,8 @@ function renderProjects() {
     const imgs = Array.isArray(p.gallery_images) ? p.gallery_images : [];
     const firstImg = p.hero_placeholder || (imgs[0] && imgs[0].url) || '';
     const thumbHtml = firstImg
-      ? `<img class="project-card-thumb" src="${escHtml(firstImg)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-        + `<div class="project-card-thumb-placeholder" style="display:none">📷</div>`
+      ? `<img class="project-card-thumb" src="${escHtml(firstImg)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="project-card-thumb-placeholder" style="display:none">📷</div>`
       : `<div class="project-card-thumb-placeholder">📷</div>`;
-
     const sects = Array.isArray(p.project_sections) ? p.project_sections : [];
 
     return `<div class="project-card">
@@ -590,8 +1044,8 @@ function renderProjects() {
         <div class="project-meta-tags">
           ${p.cat_label ? `<span class="meta-tag">${escHtml(p.cat_label)}</span>` : ''}
           ${p.year ? `<span class="meta-tag">${escHtml(p.year)}</span>` : ''}
-          ${imgs.length ? `<span class="meta-tag">📷 ${imgs.length} image${imgs.length > 1 ? 's' : ''}</span>` : ''}
-          ${sects.length ? `<span class="meta-tag">📄 ${sects.length} section${sects.length > 1 ? 's' : ''}</span>` : ''}
+          ${imgs.length ? `<span class="meta-tag">📷 ${imgs.length}</span>` : ''}
+          ${sects.length ? `<span class="meta-tag">📄 ${sects.length}</span>` : ''}
         </div>
         <div class="project-actions">
           <button class="btn-secondary" onclick="editProject('${p.id}')">Edit</button>
@@ -600,187 +1054,6 @@ function renderProjects() {
       </div>
     </div>`;
   }).join('');
-}
-
-// ===== TABS =====
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
-}
-
-// ===== GALLERY =====
-function renderGallery() {
-  const grid = document.getElementById('gallery-grid');
-  if (!galleryImages.length) {
-    grid.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1">No images yet — add image URLs below</div>';
-    return;
-  }
-  grid.innerHTML = galleryImages.map((img, i) => `
-    <div class="gallery-item">
-      <img src="${escHtml(img.url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="gallery-item-error" style="display:none">🖼️</div>
-      <button class="gallery-item-remove" onclick="removeGalleryImage(${i})" title="Remove">×</button>
-    </div>
-  `).join('');
-}
-
-function addGalleryImage() {
-  const input = document.getElementById('gallery-url-input');
-  const url = input.value.trim();
-  if (!url) return;
-  galleryImages.push({ url });
-  input.value = '';
-  renderGallery();
-}
-
-function removeGalleryImage(i) {
-  galleryImages.splice(i, 1);
-  renderGallery();
-}
-
-// ===== SECTIONS =====
-function renderSections() {
-  const list = document.getElementById('sections-list');
-  if (!projectSections.length) {
-    list.innerHTML = '<div class="sections-empty">No sections yet — click "+ Add Section" to add</div>';
-    return;
-  }
-  list.innerHTML = projectSections.map((s, i) => `
-    <div class="section-item">
-      <div class="section-item-header">
-        <span>Section ${i + 1}</span>
-        <button class="btn-danger btn-sm" onclick="removeSection(${i})">Remove</button>
-      </div>
-      <div class="form-group">
-        <label>Section Title</label>
-        <input type="text" value="${escHtml(s.title || '')}" oninput="projectSections[${i}].title=this.value" placeholder="e.g. The Challenge">
-      </div>
-      <div class="form-group">
-        <label>Body Text</label>
-        <textarea oninput="projectSections[${i}].body=this.value" placeholder="Write section content here...">${escHtml(s.body || '')}</textarea>
-      </div>
-      <div class="form-group">
-        <label>Image URL (optional)</label>
-        <input type="text" value="${escHtml(s.image_url || '')}" oninput="projectSections[${i}].image_url=this.value" placeholder="https://...">
-      </div>
-    </div>
-  `).join('');
-}
-
-function addSection() {
-  projectSections.push({ title: '', body: '', image_url: '' });
-  renderSections();
-}
-
-function removeSection(i) {
-  projectSections.splice(i, 1);
-  renderSections();
-}
-
-// ===== MODAL =====
-function openAddModal() {
-  currentEditId = null;
-  galleryImages = [];
-  projectSections = [];
-  document.getElementById('modal-title').textContent = 'Add New Project';
-  document.getElementById('project-form').reset();
-  document.getElementById('project_id').disabled = false;
-  switchTab('details');
-  renderGallery();
-  renderSections();
-  document.getElementById('project-modal').classList.add('active');
-}
-
-async function editProject(id) {
-  const p = projects.find(x => x.id === id);
-  if (!p) return;
-
-  currentEditId = id;
-  document.getElementById('modal-title').textContent = 'Edit Project';
-  document.getElementById('project_id').disabled = true;
-
-  const fields = ['project_id','title','subtitle','type_label','year','location','body','body_detail','hero_placeholder'];
-  fields.forEach(k => {
-    const el = document.getElementById(k);
-    if (el) el.value = p[k] || '';
-  });
-  document.getElementById('cat_label').value = p.cat_label || '';
-
-  galleryImages = Array.isArray(p.gallery_images) ? JSON.parse(JSON.stringify(p.gallery_images)) : [];
-  projectSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
-
-  switchTab('details');
-  renderGallery();
-  renderSections();
-  document.getElementById('project-modal').classList.add('active');
-}
-
-function closeModal() {
-  document.getElementById('project-modal').classList.remove('active');
-  currentEditId = null;
-}
-
-// ===== SAVE =====
-async function saveProject() {
-  const form = document.getElementById('project-form');
-  const fields = ['project_id','title','subtitle','type_label','cat_label','year','location','body','body_detail'];
-  for (const f of fields) {
-    if (!document.getElementById(f).value.trim()) {
-      switchTab('details');
-      document.getElementById(f).focus();
-      showAlert('Please fill in all required fields', 'error');
-      return;
-    }
-  }
-
-  const formData = {
-    project_id: document.getElementById('project_id').value.trim(),
-    title: document.getElementById('title').value.trim(),
-    subtitle: document.getElementById('subtitle').value.trim(),
-    type_label: document.getElementById('type_label').value.trim(),
-    cat_label: document.getElementById('cat_label').value,
-    year: document.getElementById('year').value.trim(),
-    location: document.getElementById('location').value.trim(),
-    body: document.getElementById('body').value.trim(),
-    body_detail: document.getElementById('body_detail').value.trim(),
-    hero_placeholder: document.getElementById('hero_placeholder').value.trim(),
-    gallery_images: galleryImages,
-    project_sections: projectSections,
-  };
-
-  try {
-    if (currentEditId) {
-      await apiFetch(`/projects?id=eq.${currentEditId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(formData),
-      });
-      showAlert('Project updated!', 'success');
-    } else {
-      await apiFetch('/projects', {
-        method: 'POST',
-        headers: { 'Prefer': 'return=representation' },
-        body: JSON.stringify(formData),
-      });
-      showAlert('Project created!', 'success');
-    }
-    closeModal();
-    loadProjects();
-  } catch (e) {
-    showAlert('Error: ' + e.message, 'error');
-  }
-}
-
-async function deleteProject(id, title) {
-  if (!confirm(`Delete "${title}"?`)) return;
-  try {
-    await apiFetch(`/projects?id=eq.${id}`, { method: 'DELETE' });
-    showAlert('Project deleted', 'success');
-    loadProjects();
-  } catch (e) {
-    showAlert('Error: ' + e.message, 'error');
-  }
 }
 
 // ===== HELPERS =====
@@ -801,13 +1074,36 @@ function escAttr(s) {
   return String(s).replace(/'/g, "\\'");
 }
 
+// ===== DRAG & DROP =====
+['hero-upload-zone', 'gallery-upload-zone'].forEach(zoneId => {
+  const zone = document.getElementById(zoneId);
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const files = e.dataTransfer.files;
+    if (zoneId === 'hero-upload-zone') uploadHeroImage(files[0]);
+    else uploadGalleryFiles(files);
+  });
+});
+
 // ===== INIT =====
 document.getElementById('btn-add-project').addEventListener('click', openAddModal);
 document.getElementById('project-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('project-modal')) closeModal();
 });
 document.getElementById('gallery-url-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addGalleryImage(); }
+  if (e.key === 'Enter') { e.preventDefault(); addGalleryUrl(); }
+});
+// Show hero preview when URL typed manually
+document.getElementById('hero_placeholder').addEventListener('input', e => {
+  const url = e.target.value.trim();
+  const wrap = document.getElementById('hero-preview-wrap');
+  const img = document.getElementById('hero-preview-img');
+  if (url) { img.src = url; wrap.classList.add('show'); }
+  else { wrap.classList.remove('show'); }
 });
 
 checkApiStatus();
