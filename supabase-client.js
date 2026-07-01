@@ -129,7 +129,7 @@ async function getProjects() {
   }
   try {
     const data = await supabase.getProjects();
-    return data;
+    return data.map(normalizeProject);
   } catch (error) {
     console.warn('Failed to fetch from Supabase, using fallback:', error);
     return FALLBACK_PROJECTS;
@@ -150,20 +150,22 @@ async function getProject(projectId) {
   }
 }
 
-// Normalize field names (Supabase snake_case → camelCase)
+// Normalize field names (ensure snake_case for consistency)
 function normalizeProject(p) {
   return {
     id: p.id,
     project_id: p.project_id,
     title: p.title,
     subtitle: p.subtitle,
-    typeLabel: p.type_label || p.typeLabel,
-    catLabel: p.cat_label || p.catLabel,
+    type_label: p.type_label || p.typeLabel,
+    cat_label: p.cat_label || p.catLabel,
     year: p.year,
     location: p.location,
     body: p.body,
-    bodyDetail: p.body_detail || p.bodyDetail,
-    heroPlaceholder: p.hero_placeholder || p.heroPlaceholder,
+    body_detail: p.body_detail || p.bodyDetail,
+    hero_placeholder: p.hero_placeholder || p.heroPlaceholder,
+    gallery_images: p.gallery_images,
+    project_sections: p.project_sections,
   };
 }
 
