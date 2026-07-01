@@ -1,0 +1,267 @@
+/* Enhanced Design Styles for The Manual Studio */
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(21, 20, 15, 0.1); }
+  50% { box-shadow: 0 0 0 10px rgba(21, 20, 15, 0); }
+}
+
+/* ========== ENHANCED ELEMENTS ========== */
+
+/* Better button styles */
+button, a[role="button"] {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover, a[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(21, 20, 15, 0.12) !important;
+}
+
+button:active, a[role="button"]:active {
+  transform: translateY(0);
+}
+
+/* Card hover effects */
+[data-card] {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-card]:hover {
+  transform: translateY(-8px) !important;
+}
+
+/* Link hover effects */
+a {
+  transition: all 0.3s ease !important;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* ========== REVEAL ANIMATIONS ========== */
+[data-reveal] {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+/* Staggered animations for multiple elements */
+section > div[data-reveal]:nth-child(1) { animation-delay: 0s !important; }
+section > div[data-reveal]:nth-child(2) { animation-delay: 0.1s !important; }
+section > div[data-reveal]:nth-child(3) { animation-delay: 0.2s !important; }
+section > div[data-reveal]:nth-child(4) { animation-delay: 0.3s !important; }
+
+/* ========== ENHANCED COLORS & CONTRAST ========== */
+
+:root {
+  --primary: #15140f;
+  --secondary: #f5f4f1;
+  --accent: #9a958a;
+  --dark: #2a2820;
+}
+
+/* Better link styles */
+a {
+  color: inherit;
+}
+
+a:not([href^="#"]) {
+  position: relative;
+  padding-bottom: 2px;
+}
+
+/* ========== RESPONSIVE IMPROVEMENTS ========== */
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+  button, a[role="button"], [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better spacing on mobile */
+  section {
+    padding-top: 60px !important;
+    padding-bottom: 60px !important;
+  }
+
+  h1, h2, h3 {
+    line-height: 1.1 !important;
+  }
+
+  /* Improved touch spacing */
+  [data-card] {
+    padding: 16px !important;
+  }
+}
+
+/* ========== ENHANCED TYPOGRAPHY ========== */
+
+/* Better font rendering */
+body {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+/* Better paragraph spacing */
+p {
+  margin: 0 0 1.2em 0;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== INTERACTIVE STATES ========== */
+
+/* Focus states for accessibility */
+a:focus, button:focus, input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for form elements */
+input, textarea, select {
+  transition: all 0.3s ease !important;
+  border-color: #d2cec5 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--primary) !important;
+}
+
+/* ========== DARK MODE SUPPORT ========== */
+
+@media (prefers-color-scheme: dark) {
+  /* Subtle adjustments for dark mode */
+  body {
+    background: #0a0a08;
+  }
+}
+
+/* ========== SMOOTH SCROLL BEHAVIOR ========== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ========== BACKDROP EFFECTS ========== */
+
+/* Subtle backdrop blur for modals/overlays */
+[role="dialog"]::backdrop {
+  backdrop-filter: blur(4px);
+  background: rgba(21, 20, 15, 0.4);
+}
+
+/* ========== ENHANCED GRID & SPACING ========== */
+
+/* Improved grid layouts */
+[style*="grid"] {
+  gap: max(1rem, 2vw) !important;
+}
+
+/* Better flex spacing */
+[style*="flex"] {
+  gap: max(0.5rem, 1.5vw) !important;
+}
+
+/* ========== LOADING & TRANSITION STATES ========== */
+
+/* Smooth fade transitions */
+.fade-enter {
+  animation: fadeIn 0.3s ease;
+}
+
+.fade-exit {
+  animation: fadeIn 0.3s ease reverse;
+}
+
+/* Scale transition for cards */
+.scale-enter {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+  body {
+    background: white;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  button, [role="button"] {
+    display: none;
+  }
+}
+
+/* ========== REDUCED MOTION ========== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
