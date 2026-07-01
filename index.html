@@ -309,25 +309,25 @@
   let allProjects = [];
   let currentFilter = 'all';
 
-  // Use fallback data by default
+  // Load projects from Supabase only
   async function loadProjects() {
-    allProjects = [
-      { project_id: 'sukhumvit-residence', title: 'Sukhumvit Residence', subtitle: 'บ้านพักอาศัย · Interior & Exterior', type_label: 'Photography', cat_label: 'INTERIOR & EXTERIOR', year: '2025', location: 'กรุงเทพมหานคร', body: 'บ้านพักอาศัยส่วนตัว', body_detail: 'งานภาพถ่าย', hero_placeholder: 'Sukhumvit Residence' },
-      { project_id: 'riverside-hotel', title: 'Riverside Hotel', subtitle: 'โรงแรม · Interior & Exterior', type_label: 'Photography + Videography', cat_label: 'INTERIOR & EXTERIOR', year: '2025', location: 'กรุงเทพมหานคร', body: 'โรงแรมริมแม่น้ำ', body_detail: 'งานถ่ายภาพและวิดีโอ', hero_placeholder: 'Riverside Hotel' },
-      { project_id: 'siam-profile', title: 'Siam Group — Profile', subtitle: 'วิดีโอโปรไฟล์ · Documentary', type_label: 'Videography', cat_label: 'DOCUMENTARY', year: '2025', location: 'กรุงเทพมหานคร', body: 'วิดีโออแนะนำองค์กร', body_detail: 'การผลิตวิดีโอโปรไฟล์', hero_placeholder: 'Siam Group' },
-    ];
+    if (!supabase) {
+      console.error('Supabase not initialized');
+      return;
+    }
 
-    // Try to load from Supabase (async)
-    if (supabase) {
-      try {
-        const data = await supabase.getProjects();
-        if (data && data.length > 0) {
-          allProjects = data;
-          console.log('Loaded from Supabase:', data.length, 'projects');
-        }
-      } catch (error) {
-        console.log('Using fallback data:', error.message);
+    try {
+      const data = await supabase.getProjects();
+      if (data && data.length > 0) {
+        allProjects = data;
+        console.log('✅ Loaded from Supabase:', data.length, 'projects');
+      } else {
+        console.warn('⚠️ No projects in database');
+        allProjects = [];
       }
+    } catch (error) {
+      console.error('❌ Failed to load projects:', error.message);
+      allProjects = [];
     }
 
     renderProjects();
