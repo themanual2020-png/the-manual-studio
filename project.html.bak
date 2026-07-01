@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Manual Studio — Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./design-enhancements.css">
+<script>
+  window.SUPABASE_URL = '{{ VITE_SUPABASE_URL }}';
+  window.SUPABASE_KEY = '{{ VITE_SUPABASE_KEY }}';
+</script>
+<script src="./supabase-client.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #f5f4f1; font-family: 'Anuphan', system-ui, sans-serif; color: #15140f; }
+  ::selection { background: #15140f; color: #f5f4f1; }
+
+  @keyframes tms-reveal { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: translateY(0); } }
+
+  #project-root [data-reveal] {
+    opacity: 0;
+    animation: tms-reveal .9s cubic-bezier(.16,1,.3,1) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+  @supports not (animation-timeline: view()) {
+    #project-root [data-reveal] { opacity: 1 !important; animation: none !important; }
+  }
+
+  .hero-img { width: 100%; height: auto; display: block; max-height: 500px; object-fit: cover; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin: 40px 0; }
+  .gallery-item { overflow: hidden; border-radius: 8px; }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .section-block { margin: 60px 0; padding: 40px 0; border-top: 1px solid #e2dfd8; }
+  .section-block:first-child { border-top: none; padding-top: 0; }
+  .section-block h3 { font-family: 'Archivo', sans-serif; font-size: 28px; font-weight: 800; margin: 0 0 24px; }
+  .section-block p { font-size: 16px; line-height: 1.7; color: #15140f; margin: 0 0 16px; }
+  .section-block img { width: 100%; height: auto; object-fit: cover; border-radius: 8px; margin-top: 24px; max-height: 400px; }
+
+  @media (max-width: 700px) {
+    #nav-bar { padding: 16px 20px !important; }
+    #nav-bar span { display: none !important; }
+    #project-root > section { padding-left: 20px !important; padding-right: 20px !important; }
+    .hero-section { padding: 0 !important; margin-top: 60px; }
+    .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div id="project-root" style="overflow-x: clip; position: relative; background: #f5f4f1;">
+
+  <!-- Nav -->
+  <nav id="nav-bar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 22px 40px; background: #f5f4f1; border-bottom: 1px solid #e2dfd8; transition: all .4s ease;">
+    <a href="index.html#work" id="nav-logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #15140f;">
+      <span style="font-size: 20px;">←</span>
+      <img src="./assets/logo-m.png" alt="The Manual" style="width: 28px; height: 28px; object-fit: contain;">
+      <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .22em;">THE MANUAL</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 34px;">
+      <a href="index.html#work" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: #15140f; text-decoration: none;">WORK</a>
+      <a href="about.html" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: rgba(21,20,15,0.6); text-decoration: none;">ABOUT</a>
+      <a href="index.html#contact" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: #15140f; text-decoration: none;">CONTACT</a>
+    </div>
+  </nav>
+
+  <!-- Hero Image -->
+  <section class="hero-section" style="padding: 80px 40px 40px; margin-top: 60px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <img id="hero-image" class="hero-img" src="" alt="Project Hero" style="display:none;">
+      <div id="hero-placeholder" style="width:100%;height:400px;background:#e2dfd8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#9a958a;font-size:32px;">📷</div>
+    </div>
+  </section>
+
+  <!-- Title -->
+  <section style="padding: 0 40px 40px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <h1 id="project-title" style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(40px, 8vw, 80px); line-height: .9; margin: 0 0 16px; letter-spacing: -.02em;">—</h1>
+      <p id="project-subtitle" style="font-size: 16px; color: #9a958a; margin: 0;">—</p>
+    </div>
+  </section>
+
+  <!-- Details -->
+  <section style="padding: 0 40px 60px; border-bottom: 1px solid #e2dfd8;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">YEAR</div>
+        <div id="project-year" style="font-size: 16px;">—</div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">LOCATION</div>
+        <div id="project-location" style="font-size: 16px;">—</div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">TYPE</div>
+        <div id="project-type" style="font-size: 16px;">—</div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 8px;">CATEGORY</div>
+        <div id="project-category" style="font-size: 16px;">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Body -->
+  <section style="padding: 60px 40px;">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <p id="project-body" data-reveal style="font-size: clamp(20px, 3vw, 28px); line-height: 1.6; font-weight: 300; margin: 0;">—</p>
+      <p id="project-body-detail" data-reveal style="font-size: 16px; line-height: 1.8; color: #15140f; margin: 32px 0 0; font-weight: 300;">—</p>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section id="gallery-section" style="padding: 60px 40px; display: none;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <h2 data-reveal style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 44px; margin: 0 0 40px; letter-spacing: -.02em;">Gallery</h2>
+      <div id="gallery-grid" class="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- Sections -->
+  <div id="sections-container"></div>
+
+  <!-- Footer -->
+  <footer style="background: #15140f; color: #f5f4f1; padding: 48px 40px; margin-top: 60px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="./assets/logo-m.png" alt="" style="width: 30px; height: 30px; object-fit: contain;">
+        <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .2em;">THE MANUAL STUDIO</span>
+      </div>
+      <div style="font-size: 13px; color: rgba(245,244,241,.5); font-weight: 300;">© 2026 Themanual studio — Memo · Memories · Memorial</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  async function loadProjectDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('id');
+
+    if (!projectId) {
+      document.body.textContent = 'Project not found';
+      return;
+    }
+
+    setTimeout(async () => {
+      if (!supabase) {
+        console.error('Supabase not initialized');
+        return;
+      }
+
+      try {
+        const project = await supabase.getProject(projectId);
+
+        if (!project) {
+          document.body.textContent = 'Project not found';
+          return;
+        }
+
+        document.getElementById('project-title').textContent = project.title || '—';
+        document.getElementById('project-subtitle').textContent = project.subtitle || '—';
+        document.getElementById('project-year').textContent = project.year || '—';
+        document.getElementById('project-location').textContent = project.location || '—';
+        document.getElementById('project-type').textContent = project.type_label || '—';
+        document.getElementById('project-category').textContent = project.cat_label || '—';
+        document.getElementById('project-body').textContent = project.body || '—';
+        document.getElementById('project-body-detail').textContent = project.body_detail || '—';
+
+        if (project.hero_placeholder) {
+          const heroImg = document.getElementById('hero-image');
+          heroImg.src = project.hero_placeholder;
+          heroImg.style.display = 'block';
+          document.getElementById('hero-placeholder').style.display = 'none';
+        }
+
+        const gallery = Array.isArray(project.gallery_images) ? project.gallery_images : [];
+        if (gallery.length > 0) {
+          const galleryGrid = document.getElementById('gallery-grid');
+          galleryGrid.innerHTML = gallery.map(img => `
+            <div class="gallery-item">
+              <img src="${escapeHtml(img.url || img)}" alt="">
+            </div>
+          `).join('');
+          document.getElementById('gallery-section').style.display = 'block';
+        }
+
+        const sections = Array.isArray(project.project_sections) ? project.project_sections : [];
+        if (sections.length > 0) {
+          const container = document.getElementById('sections-container');
+          container.innerHTML = sections.map((s, idx) => `
+            <section style="padding: 60px 40px;">
+              <div style="max-width: 1200px; margin: 0 auto;">
+                <div class="section-block">
+                  <h3 data-reveal>${escapeHtml(s.title || '')}</h3>
+                  <p data-reveal>${escapeHtml(s.body || '')}</p>
+                  ${s.image_url ? `<img src="${escapeHtml(s.image_url)}" alt="">` : ''}
+                </div>
+              </div>
+            </section>
+          `).join('');
+        }
+
+        document.title = `${project.title} — The Manual Studio`;
+
+      } catch (error) {
+        console.error('Failed to load project:', error);
+        document.body.textContent = 'Error loading project';
+      }
+    }, 100);
+  }
+
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadProjectDetail);
+  } else {
+    loadProjectDetail();
+  }
+</script>
+</body>
+</html>
