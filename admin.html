@@ -479,7 +479,10 @@
 
         <div class="form-group">
           <label>Hero Image URL</label>
-          <input type="text" id="hero_placeholder" placeholder="https://... (Google Drive, Imgur, etc)">
+          <input type="text" id="hero_placeholder" placeholder="https://... (Google Drive, Imgur, etc)" oninput="updateHeroPreview()">
+          <div id="hero-preview-container" style="margin-top:12px;display:none;">
+            <img id="hero-preview-img" src="" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid #e2dfd8;">
+          </div>
         </div>
       </form>
     </div>
@@ -493,9 +496,12 @@
       <div class="gallery-add-row">
         <div class="form-group">
           <label>Image URL</label>
-          <input type="text" id="gallery-url-input" placeholder="https://... (Google Drive, Imgur, etc)">
+          <input type="text" id="gallery-url-input" placeholder="https://... (Google Drive, Imgur, etc)" oninput="updateGalleryPreview()">
         </div>
         <button type="button" class="btn-primary btn-sm" style="white-space:nowrap;padding:10px 16px;" onclick="addGalleryUrl()">+ Add</button>
+      </div>
+      <div id="gallery-preview-container" style="margin-top:12px;display:none;">
+        <img id="gallery-preview-img" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;border:1px solid #e2dfd8;">
       </div>
     </div>
 
@@ -543,6 +549,49 @@ async function apiFetch(path, opts = {}) {
   return res.json();
 }
 
+// ===== CONVERT GOOGLE DRIVE LINK =====
+function convertGDriveLink(url) {
+  if (url.includes('drive.google.com')) {
+    // เปลี่ยน /view?... เป็น /preview
+    return url.replace(/\/view\?.*$/, '/preview');
+  }
+  return url;
+}
+
+// ===== HERO PREVIEW =====
+function updateHeroPreview() {
+  const input = document.getElementById('hero_placeholder');
+  const url = input.value.trim();
+  const container = document.getElementById('hero-preview-container');
+  const img = document.getElementById('hero-preview-img');
+
+  if (!url) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const previewUrl = convertGDriveLink(url);
+  img.src = previewUrl;
+  container.style.display = 'block';
+}
+
+// ===== GALLERY PREVIEW =====
+function updateGalleryPreview() {
+  const input = document.getElementById('gallery-url-input');
+  const url = input.value.trim();
+  const container = document.getElementById('gallery-preview-container');
+  const img = document.getElementById('gallery-preview-img');
+
+  if (!url) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const previewUrl = convertGDriveLink(url);
+  img.src = previewUrl;
+  container.style.display = 'block';
+}
+
 // ===== GALLERY =====
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
@@ -550,13 +599,16 @@ function renderGallery() {
     grid.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1">ยังไม่มีรูปภาพ — เพิ่ม URL ด้านล่าง</div>';
     return;
   }
-  grid.innerHTML = galleryImages.map((img, i) => `
+  grid.innerHTML = galleryImages.map((img, i) => {
+    const displayUrl = convertGDriveLink(img.url);
+    return `
     <div class="gallery-item">
-      <img src="${escHtml(img.url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="${escHtml(displayUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="gallery-item-error" style="display:none">🖼️</div>
       <button class="gallery-item-remove" onclick="removeGalleryImage(${i})" title="Remove">×</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function addGalleryUrl() {
@@ -565,6 +617,7 @@ function addGalleryUrl() {
   if (!url) return;
   galleryImages.push({ url });
   input.value = '';
+  document.getElementById('gallery-preview-container').style.display = 'none';
   renderGallery();
 }
 
@@ -580,7 +633,9 @@ function renderSections() {
     list.innerHTML = '<div class="sections-empty">ยังไม่มี sections — click "+ Add Section" เพื่อเพิ่ม</div>';
     return;
   }
-  list.innerHTML = projectSections.map((s, i) => `
+  list.innerHTML = projectSections.map((s, i) => {
+    const displayUrl = s.image_url ? convertGDriveLink(s.image_url) : '';
+    return `
     <div class="section-item">
       <div class="section-item-header">
         <span>Section ${i + 1}</span>
@@ -596,13 +651,16 @@ function renderSections() {
       </div>
       <div class="form-group">
         <label>Section Image URL (optional)</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" value="${escHtml(s.image_url || '')}" oninput="projectSections[${i}].image_url=this.value" placeholder="https://..." style="flex:1;">
-          ${s.image_url ? `<img src="${escHtml(s.image_url)}" alt="" class="section-img-preview" onerror="this.style.display='none'">` : ''}
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;">
+            <input type="text" value="${escHtml(s.image_url || '')}" oninput="projectSections[${i}].image_url=this.value;renderSections()" placeholder="https://...">
+          </div>
+          ${displayUrl ? `<img src="${escHtml(displayUrl)}" alt="" class="section-img-preview" style="display:block;margin-top:0;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function addSection() {
@@ -651,8 +709,18 @@ async function editProject(id) {
   });
   document.getElementById('cat_label').value = p.cat_label || '';
 
-  galleryImages = Array.isArray(p.gallery_images) ? JSON.parse(JSON.stringify(p.gallery_images)) : [];
-  projectSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
+  // Convert Google Drive URLs to preview format when loading
+  const rawGallery = Array.isArray(p.gallery_images) ? JSON.parse(JSON.stringify(p.gallery_images)) : [];
+  galleryImages = rawGallery.map(img => ({
+    url: convertGDriveLink(img.url || img)
+  }));
+
+  const rawSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
+  projectSections = rawSections.map(s => ({
+    title: s.title || '',
+    body: s.body || '',
+    image_url: s.image_url ? convertGDriveLink(s.image_url) : ''
+  }));
 
   switchTab('details');
   renderGallery();
