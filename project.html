@@ -128,6 +128,13 @@
     </div>
   </section>
 
+  <!-- YouTube Video -->
+  <section id="video-section" style="padding: 0 40px 60px; display: none;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div id="youtube-embed" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px;"></div>
+    </div>
+  </section>
+
   <!-- Gallery -->
   <section id="gallery-section" style="padding: 60px 40px; display: none;">
     <div style="max-width: 1200px; margin: 0 auto;">
@@ -216,6 +223,15 @@
           heroImg.src = convertGDriveLink(project.hero_placeholder);
           heroImg.style.display = 'block';
           document.getElementById('hero-placeholder').style.display = 'none';
+        }
+
+        if (project.youtube_url) {
+          const ytMatch = project.youtube_url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) {
+            document.getElementById('youtube-embed').innerHTML =
+              `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px;" allowfullscreen></iframe>`;
+            document.getElementById('video-section').style.display = '';
+          }
         }
 
         const gallery = Array.isArray(project.gallery_images) ? project.gallery_images : [];
