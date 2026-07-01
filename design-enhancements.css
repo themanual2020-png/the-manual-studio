@@ -82,13 +82,19 @@ button:active, a[role="button"]:active {
   transform: translateY(-8px) !important;
 }
 
-/* Link hover effects */
-a {
+/* Link hover effects (exclude navigation) */
+a:not(nav a):not([href*="#"]) {
   transition: all 0.3s ease !important;
 }
 
-a:hover {
+a:not(nav a):hover {
   opacity: 0.8;
+}
+
+/* Navigation link styles - keep consistent */
+nav a {
+  transition: color 0.3s ease !important;
+  text-decoration: none !important;
 }
 
 /* ========== REVEAL ANIMATIONS ========== */
