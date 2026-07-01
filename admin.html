@@ -473,8 +473,8 @@
         </div>
 
         <div class="form-group">
-          <label>Detail Description</label>
-          <textarea id="body_detail" required placeholder="Detailed description..."></textarea>
+          <label>Client</label>
+          <input type="text" id="client" placeholder="ชื่อลูกค้า / บริษัท">
         </div>
 
         <div class="form-group">
@@ -703,7 +703,7 @@ async function editProject(id) {
   document.getElementById('modal-title').textContent = 'Edit Project';
   document.getElementById('project_id').disabled = true;
 
-  ['project_id','title','subtitle','type_label','year','location','body','body_detail','hero_placeholder'].forEach(k => {
+  ['project_id','title','subtitle','type_label','year','location','body','client','hero_placeholder'].forEach(k => {
     const el = document.getElementById(k);
     if (el) el.value = p[k] || '';
   });
@@ -735,7 +735,7 @@ function closeModal() {
 
 // ===== SAVE =====
 async function saveProject() {
-  const required = ['project_id','title','subtitle','type_label','cat_label','year','location','body','body_detail'];
+  const required = ['project_id','title','subtitle','type_label','cat_label','year','location','body'];
   for (const f of required) {
     if (!document.getElementById(f).value.trim()) {
       switchTab('details');
@@ -754,7 +754,7 @@ async function saveProject() {
     year: document.getElementById('year').value.trim(),
     location: document.getElementById('location').value.trim(),
     body: document.getElementById('body').value.trim(),
-    body_detail: document.getElementById('body_detail').value.trim(),
+    client: document.getElementById('client').value.trim(),
     hero_placeholder: document.getElementById('hero_placeholder').value.trim(),
     gallery_images: galleryImages.filter(img => img.url),
     project_sections: projectSections,
