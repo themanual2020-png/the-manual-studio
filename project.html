@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project — The Manual Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="./supabase-client.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #f5f4f1; font-family: 'Anuphan', system-ui, sans-serif; color: #15140f; }
+  ::selection { background: #15140f; color: #f5f4f1; }
+
+  @keyframes proj-rise { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes proj-reveal { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: translateY(0); } }
+
+  #proj-root [data-reveal] {
+    opacity: 0;
+    animation: proj-reveal .9s cubic-bezier(.16,1,.3,1) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+  @supports not (animation-timeline: view()) {
+    #proj-root [data-reveal] { opacity: 1 !important; animation: none !important; }
+  }
+
+  image-slot { --is-bg: #e9e7e2; }
+  #proj-hero-wrap image-slot { --is-bg: #1c1b16; }
+
+  .hero-eyebrow { animation: proj-rise .8s .2s cubic-bezier(.16,1,.3,1) both; }
+  .hero-title    { animation: proj-rise .9s .32s cubic-bezier(.16,1,.3,1) both; }
+  .hero-sub      { animation: proj-rise .9s .44s cubic-bezier(.16,1,.3,1) both; }
+
+  @media (max-width: 700px) {
+    #proj-root nav { padding: 16px 20px !important; }
+    #proj-root nav span { display: none !important; }
+    #proj-hero-content { padding: 0 20px 44px !important; }
+    #proj-root > section,
+    #proj-root > footer { padding-left: 20px !important; padding-right: 20px !important; }
+    #proj-body-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+    #proj-gallery-row1 { grid-template-columns: 1fr !important; }
+    #proj-gallery-row2 { grid-template-columns: 1fr !important; }
+    #proj-gallery-row2 > div { aspect-ratio: 4/3 !important; }
+  }
+</style>
+</head>
+<body>
+<div id="proj-root" style="overflow-x: clip; position: relative; background: #f5f4f1;">
+
+  <!-- Nav -->
+  <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 22px 40px; mix-blend-mode: difference;">
+    <a href="index.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="./assets/logo-m.png" alt="The Manual" style="width: 34px; height: 34px; object-fit: contain;">
+      <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .22em; color: #fff;">THE MANUAL</span>
+    </a>
+    <a href="index.html#work" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: #fff; text-decoration: none;">← BACK</a>
+  </nav>
+
+  <!-- Hero -->
+  <div id="proj-hero-wrap" style="position: relative; width: 100%; height: 100svh; min-height: 560px; overflow: hidden; background: #15140f; transform: scale(1.04);">
+    <image-slot id="proj-hero-img" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Hero image"></image-slot>
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,7,.3) 0%, rgba(10,9,7,.1) 40%, rgba(10,9,7,.65) 100%); pointer-events: none;"></div>
+    <div id="proj-hero-content" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 40px 64px; pointer-events: none;">
+      <div id="proj-cat-year" class="hero-eyebrow" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .34em; color: rgba(245,244,241,.7); margin-bottom: 20px;"></div>
+      <h1 id="proj-title" class="hero-title" style="font-family: 'Archivo', sans-serif; font-weight: 900; color: #f5f4f1; font-size: clamp(52px, 10vw, 160px); line-height: .88; letter-spacing: -.025em; margin: 0;"></h1>
+      <p id="proj-subtitle" class="hero-sub" style="margin: 24px 0 0; font-size: clamp(15px, 1.5vw, 18px); font-weight: 300; color: rgba(245,244,241,.85); max-width: 520px; line-height: 1.6;"></p>
+    </div>
+  </div>
+
+  <!-- Meta strip -->
+  <section style="padding: 56px 40px; border-bottom: 1px solid #e2dfd8;">
+    <div style="max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 40px 80px; align-items: flex-start;">
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a;">TYPE</div>
+        <div id="proj-type" style="margin-top: 8px; font-size: 16px; font-weight: 400;"></div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a;">CATEGORY</div>
+        <div id="proj-cat" style="margin-top: 8px; font-size: 16px; font-weight: 400;"></div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a;">YEAR</div>
+        <div id="proj-year" style="margin-top: 8px; font-size: 16px; font-weight: 400;"></div>
+      </div>
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a;">LOCATION</div>
+        <div id="proj-location" style="margin-top: 8px; font-size: 16px; font-weight: 400;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Body -->
+  <section style="padding: clamp(64px,10vh,120px) 40px;">
+    <div id="proj-body-grid" style="max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px,6vw,100px); align-items: start;">
+      <div data-reveal>
+        <p id="proj-body" style="font-size: clamp(22px, 2.8vw, 36px); line-height: 1.45; font-weight: 400; margin: 0; text-wrap: pretty;"></p>
+      </div>
+      <div data-reveal style="padding-top: 6px;">
+        <p id="proj-body-detail" style="font-size: clamp(15px, 1.4vw, 18px); line-height: 1.75; font-weight: 300; margin: 0; color: #4a4842; text-wrap: pretty;"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section style="padding: 0 40px clamp(80px,12vh,140px);">
+    <div style="max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(16px,3vw,32px);">
+      <div id="proj-gallery-row1" data-reveal style="display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px,3vw,32px);">
+        <div style="aspect-ratio: 4/3; overflow: hidden;">
+          <image-slot id="proj-g1" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Gallery 1"></image-slot>
+        </div>
+        <div style="aspect-ratio: 4/3; overflow: hidden;">
+          <image-slot id="proj-g2" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Gallery 2"></image-slot>
+        </div>
+      </div>
+      <div data-reveal style="aspect-ratio: 16/7; overflow: hidden;">
+        <image-slot id="proj-g3" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Gallery 3 (wide)"></image-slot>
+      </div>
+      <div id="proj-gallery-row2" data-reveal style="display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px,3vw,32px);">
+        <div style="aspect-ratio: 3/4; overflow: hidden;">
+          <image-slot id="proj-g4" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Gallery 4"></image-slot>
+        </div>
+        <div style="aspect-ratio: 3/4; overflow: hidden;">
+          <image-slot id="proj-g5" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Gallery 5"></image-slot>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next project -->
+  <section style="border-top: 1px solid #e2dfd8; padding: 56px 40px;">
+    <div style="max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+      <div>
+        <div style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #9a958a; margin-bottom: 10px;">NEXT PROJECT</div>
+        <a id="proj-next-link" href="#" style="font-family: 'Archivo', sans-serif; font-size: clamp(22px, 4vw, 52px); font-weight: 900; letter-spacing: -.02em; color: #15140f; text-decoration: none; line-height: 1; transition: opacity .3s;"></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background: #15140f; color: #f5f4f1; padding: 48px 40px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="./assets/logo-m.png" alt="" style="width: 30px; height: 30px; object-fit: contain;">
+        <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .2em;">THE MANUAL STUDIO</span>
+      </div>
+      <div style="font-size: 13px; color: rgba(245,244,241,.5); font-weight: 300;">© 2026 บริษัท เดอะแมนนวล จำกัด — Memo · Memories · Memorial</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// Load projects from Supabase
+let PROJECTS = [];
+let currentProject = null;
+
+async function loadProjects() {
+  try {
+    const data = await getProjects();
+    PROJECTS = data;
+    loadFromURL();
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+    PROJECTS = FALLBACK_PROJECTS;
+    loadFromURL();
+  }
+}
+
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id') || (PROJECTS[0]?.project_id);
+  const project = PROJECTS.find(p => p.project_id === id);
+
+  if (!project) {
+    document.getElementById('proj-root').innerHTML = '<p style="padding: 40px; text-align: center;">Project not found</p>';
+    return;
+  }
+
+  currentProject = project;
+  populateProject(project);
+}
+
+function populateProject(p) {
+  document.title = `${p.title} — The Manual Studio`;
+
+  const catLabel = p.cat_label || p.catLabel || 'OTHER';
+  const typeLabel = p.type_label || p.typeLabel || 'MEDIA';
+  const year = p.year || '2024';
+
+  document.getElementById('proj-cat-year').textContent = `${catLabel} · ${year}`;
+  document.getElementById('proj-title').textContent = p.title;
+  document.getElementById('proj-subtitle').textContent = p.subtitle;
+  document.getElementById('proj-type').textContent = typeLabel;
+  document.getElementById('proj-cat').textContent = catLabel;
+  document.getElementById('proj-year').textContent = year;
+  document.getElementById('proj-location').textContent = p.location || '';
+  document.getElementById('proj-body').textContent = p.body || '';
+  document.getElementById('proj-body-detail').textContent = p.body_detail || p.bodyDetail || '';
+
+  document.getElementById('proj-hero-img').setAttribute('placeholder', p.hero_placeholder || p.title);
+  document.getElementById('proj-hero-img').id = `proj-${p.project_id}-hero`;
+
+  const idx = PROJECTS.findIndex(x => x.project_id === p.project_id);
+  const next = PROJECTS[(idx + 1) % PROJECTS.length];
+  const nextLink = document.getElementById('proj-next-link');
+  nextLink.href = `project.html?id=${next.project_id}`;
+  nextLink.textContent = `${next.title} →`;
+  nextLink.addEventListener('mouseenter', () => nextLink.style.opacity = '.6');
+  nextLink.addEventListener('mouseleave', () => nextLink.style.opacity = '1');
+}
+
+const PROJECTS_FALLBACK = [
+  {
+    id: 'sukhumvit-residence',
+    title: 'Sukhumvit Residence',
+    subtitle: 'บ้านพักอาศัย · Interior & Exterior',
+    typeLabel: 'Photography',
+    catLabel: 'INTERIOR & EXTERIOR',
+    year: '2025',
+    location: 'กรุงเทพมหานคร',
+    body: 'บ้านพักอาศัยส่วนตัวบนถนนสุขุมวิท ที่ผสมผสานความเป็นส่วนตัวและความทันสมัยไว้ด้วยกัน',
+    bodyDetail: 'งานภาพถ่ายสถาปัตยกรรมที่บันทึกทั้งพื้นที่ภายในและภายนอก ให้ครบถ้วนทุกมุมมอง ด้วยแสงธรรมชาติและการจัดฉากที่ละเอียดอ่อน เพื่อสื่อสารคุณค่าของพื้นที่ให้ตรงกับเจตนาของสถาปนิกและเจ้าของบ้าน',
+    heroPlaceholder: 'Sukhumvit Residence — hero',
+  },
+  {
+    id: 'riverside-hotel',
+    title: 'Riverside Hotel',
+    subtitle: 'โรงแรม · Interior & Exterior',
+    typeLabel: 'Photography + Videography',
+    catLabel: 'INTERIOR & EXTERIOR',
+    year: '2025',
+    location: 'กรุงเทพมหานคร',
+    body: 'โรงแรมริมแม่น้ำเจ้าพระยา บรรยากาศคลาสสิกผสมร่วมสมัย',
+    bodyDetail: 'งานถ่ายภาพและวิดีโอครอบคลุมพื้นที่ทุกส่วนของโรงแรม ตั้งแต่ล็อบบี้ ห้องพัก ไปจนถึงมุมมองริมแม่น้ำ เพื่อใช้ในสื่อการตลาดและเว็บไซต์',
+    heroPlaceholder: 'Riverside Hotel — hero',
+  },
+  {
+    id: 'siam-profile',
+    title: 'Siam Group — Profile',
+    subtitle: 'วิดีโอโปรไฟล์ · Documentary',
+    typeLabel: 'Videography',
+    catLabel: 'DOCUMENTARY',
+    year: '2025',
+    location: 'กรุงเทพมหานคร',
+    body: 'วิดีโอแนะนำองค์กรที่บอกเล่าเรื่องราว ค่านิยม และวิสัยทัศน์ของกลุ่มสยาม',
+    bodyDetail: 'การผลิตวิดีโอโปรไฟล์องค์กรที่ครอบคลุมทั้งการสัมภาษณ์ผู้บริหาร การถ่ายทำในสถานที่จริง และการตัดต่อที่เน้นความเป็นมืออาชีพ',
+    heroPlaceholder: 'Siam Group — corporate film hero',
+  },
+  {
+    id: 'annual-gala-2025',
+    title: 'Annual Gala 2025',
+    subtitle: 'งานกาลาดินเนอร์ · Event',
+    typeLabel: 'Photography + Videography',
+    catLabel: 'EVENT',
+    year: '2025',
+    location: 'กรุงเทพมหานคร',
+    body: 'งานกาลาดินเนอร์ประจำปี ที่ซึ่งทุกรายละเอียดคือช่วงเวลาที่ควรถูกบันทึกไว้',
+    bodyDetail: 'ครอบคลุมทุกช่วงของงาน ตั้งแต่การตกแต่งสถานที่ พิธีการ บรรยากาศ และปฏิกิริยาของผู้ร่วมงาน เพื่อสร้างภาพจำที่ยั่งยืน',
+    heroPlaceholder: 'Annual Gala 2025 — event hero',
+  },
+  {
+    id: 'investor-story',
+    title: 'Investor Story',
+    subtitle: 'วิดีโอนำเสนอ · Presentation',
+    typeLabel: 'Videography',
+    catLabel: 'PRESENTATION',
+    year: '2024',
+    location: 'กรุงเทพมหานคร',
+    body: 'วิดีโอนำเสนอสำหรับนักลงทุน ที่สื่อสารศักยภาพและเรื่องราวของธุรกิจอย่างทรงพลัง',
+    bodyDetail: 'งานวิดีโอที่ผสมผสานข้อมูลธุรกิจ การสัมภาษณ์ผู้บริหาร และภาพที่สวยงาม เพื่อสร้างความเชื่อมั่นและแรงบันดาลใจแก่ผู้รับชม',
+    heroPlaceholder: 'Investor Story — presentation hero',
+  },
+  {
+    id: 'the-craftsman',
+    title: 'The Craftsman',
+    subtitle: 'สารคดีชีวิต · Documentary',
+    typeLabel: 'Photography + Videography',
+    catLabel: 'DOCUMENTARY',
+    year: '2024',
+    location: 'เชียงใหม่',
+    body: 'สารคดีสั้นที่บอกเล่าชีวิตและงานฝีมือของช่างท้องถิ่น ผู้สืบทอดภูมิปัญญาดั้งเดิม',
+    bodyDetail: 'การถ่ายทำตลอดระยะเวลา 3 วัน เพื่อบันทึกกระบวนการทำงาน ความคิด และแรงบันดาลใจของช่างฝีมือ ออกมาเป็นสารคดีความยาว 12 นาที',
+    heroPlaceholder: 'The Craftsman — documentary hero',
+  },
+  {
+    id: 'lobby-lounge',
+    title: 'Lobby & Lounge',
+    subtitle: 'พื้นที่ส่วนกลาง · Interior',
+    typeLabel: 'Photography',
+    catLabel: 'INTERIOR & EXTERIOR',
+    year: '2024',
+    location: 'กรุงเทพมหานคร',
+    body: 'พื้นที่ล็อบบี้และเลานจ์ที่ออกแบบมาเพื่อสร้างประสบการณ์แรกพบที่น่าประทับใจ',
+    bodyDetail: 'งานถ่ายภาพที่เน้นบรรยากาศ แสงเงา และรายละเอียดการออกแบบตกแต่ง เพื่อใช้ในสื่อโฆษณาและการนำเสนอโครงการ',
+    heroPlaceholder: 'Lobby & Lounge — interior hero',
+  },
+  {
+    id: 'product-launch-night',
+    title: 'Product Launch Night',
+    subtitle: 'เปิดตัวสินค้า · Event',
+    typeLabel: 'Photography',
+    catLabel: 'EVENT',
+    year: '2024',
+    location: 'กรุงเทพมหานคร',
+    body: 'งานเปิดตัวสินค้าที่สร้างบรรยากาศ Exclusive ด้วยแสงและการออกแบบที่พิถีพิถัน',
+    bodyDetail: 'ภาพถ่ายงาน Event ที่บันทึกทั้งบรรยากาศโดยรวม ปฏิสัมพันธ์ของผู้ร่วมงาน และ Key Visual ของสินค้า เพื่อการสื่อสารแบรนด์',
+    heroPlaceholder: 'Product Launch Night — event hero',
+  },
+  {
+    id: 'brand-presentation',
+    title: 'Brand Presentation',
+    subtitle: 'งานนำเสนอแบรนด์ · Presentation',
+    typeLabel: 'Photography + Videography',
+    catLabel: 'PRESENTATION',
+    year: '2024',
+    location: 'กรุงเทพมหานคร',
+    body: 'งานนำเสนอแบรนด์ที่สื่อสาร Identity และวิสัยทัศน์ผ่านภาพและวิดีโอที่ทรงพลัง',
+    bodyDetail: 'ชุดสื่อครบวงจรที่ประกอบด้วยภาพถ่าย วิดีโอ Reel และ Motion Graphic เพื่อใช้ในการนำเสนอแบรนด์ในหลากหลายช่องทาง',
+    heroPlaceholder: 'Brand Presentation — reel hero',
+  },
+  {
+    id: 'factory-story',
+    title: 'Factory Story',
+    subtitle: 'สารคดีองค์กร · Documentary',
+    typeLabel: 'Videography',
+    catLabel: 'DOCUMENTARY',
+    year: '2023',
+    location: 'สมุทรปราการ',
+    body: 'สารคดีองค์กรที่บันทึกกระบวนการผลิตและคนทำงานเบื้องหลังความสำเร็จ',
+    bodyDetail: 'วิดีโอสารคดีที่พาผู้ชมเข้าไปสำรวจกระบวนการผลิตที่แท้จริง พร้อมถ่ายทอดเรื่องราวของบุคลากรที่ขับเคลื่อนองค์กรมาตลอด',
+    heroPlaceholder: 'Factory Story — documentary hero',
+  },
+];
+
+// Load projects and populate page
+loadProjects();
+
+// Parallax
+const hero = document.getElementById('proj-hero-wrap');
+const heroContent = document.getElementById('proj-hero-content');
+if (hero) hero.style.transform = 'scale(1.04)';
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  if (hero) hero.style.transform = `scale(1.04) translateY(${y * 0.09}px)`;
+  if (heroContent) heroContent.style.opacity = String(Math.max(0, 1 - y / 580));
+}, { passive: true });
+</script>
+</body>
+</html>

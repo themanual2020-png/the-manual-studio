@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — The Manual Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #f5f4f1; font-family: 'Anuphan', system-ui, sans-serif; color: #15140f; }
+
+  .admin-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #e2dfd8;
+    padding-bottom: 20px;
+  }
+
+  .admin-header h1 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 32px; }
+
+  .admin-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  button {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .btn-primary {
+    background: #15140f;
+    color: #f5f4f1;
+  }
+
+  .btn-primary:hover {
+    opacity: .8;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #15140f;
+    border: 1px solid #d2cec5;
+  }
+
+  .btn-secondary:hover {
+    border-color: #15140f;
+    background: #f5f4f1;
+  }
+
+  .btn-danger {
+    background: #b3261e;
+    color: #f5f4f1;
+  }
+
+  .btn-danger:hover {
+    opacity: .8;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .project-card {
+    border: 1px solid #e2dfd8;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fff;
+    transition: all .2s;
+  }
+
+  .project-card:hover {
+    box-shadow: 0 4px 12px rgba(21, 20, 15, .1);
+    transform: translateY(-2px);
+  }
+
+  .project-card h3 { margin: 0 0 8px; font-size: 18px; font-family: 'Archivo', sans-serif; }
+  .project-card p { margin: 6px 0; font-size: 13px; color: #9a958a; }
+
+  .project-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .project-actions button {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(21, 20, 15, .5);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+
+  .modal.active { display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+  .modal-content {
+    background: #fff;
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e2dfd8;
+    padding-bottom: 16px;
+  }
+
+  .modal-header h2 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 24px; }
+
+  .close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #9a958a;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: #9a958a;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2dfd8;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #15140f;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #15140f;
+    box-shadow: 0 0 0 3px rgba(21, 20, 15, .1);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    justify-content: flex-end;
+  }
+
+  .api-status {
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    font-family: 'Archivo', sans-serif;
+  }
+
+  .api-status.connected {
+    background: #c8e6c9;
+    color: #1b5e20;
+    border: 1px solid #81c784;
+  }
+
+  .api-status.disconnected {
+    background: #ffcdd2;
+    color: #b71c1c;
+    border: 1px solid #ef5350;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(21, 20, 15, .2);
+    border-top-color: #15140f;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .alert-success {
+    background: #c8e6c9;
+    color: #1b5e20;
+    border: 1px solid #81c784;
+  }
+
+  .alert-error {
+    background: #ffcdd2;
+    color: #b71c1c;
+    border: 1px solid #ef5350;
+  }
+
+  @media (max-width: 700px) {
+    .admin-container { padding: 20px 16px; }
+    .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .modal-content { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>📋 Admin Panel</h1>
+    <div class="admin-actions">
+      <button class="btn-primary" id="btn-add-project">+ Add Project</button>
+      <button class="btn-secondary" onclick="window.location.href='index.html'">← Back</button>
+    </div>
+  </div>
+
+  <div id="api-status" class="api-status disconnected">
+    <span class="spinner"></span> Checking Supabase connection...
+  </div>
+
+  <div id="alerts"></div>
+
+  <div id="projects-container" class="projects-grid">
+    <p style="text-align: center; color: #9a958a; padding: 40px; grid-column: 1/-1;">Loading projects...</p>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div id="project-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title">Add Project</h2>
+      <button class="close-modal" onclick="closeModal()">&times;</button>
+    </div>
+
+    <form id="project-form">
+      <div class="form-group">
+        <label>Project ID (unique, use kebab-case)</label>
+        <input type="text" id="project_id" required placeholder="e.g. sukhumvit-residence">
+      </div>
+
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="title" required placeholder="e.g. Sukhumvit Residence">
+      </div>
+
+      <div class="form-group">
+        <label>Subtitle</label>
+        <input type="text" id="subtitle" required placeholder="e.g. บ้านพักอาศัย · Interior & Exterior">
+      </div>
+
+      <div class="form-group">
+        <label>Type Label</label>
+        <input type="text" id="type_label" required placeholder="e.g. Photography">
+      </div>
+
+      <div class="form-group">
+        <label>Category Label</label>
+        <select id="cat_label" required>
+          <option value="">Select category...</option>
+          <option value="INTERIOR & EXTERIOR">INTERIOR & EXTERIOR</option>
+          <option value="EVENT">EVENT</option>
+          <option value="DOCUMENTARY">DOCUMENTARY</option>
+          <option value="PRESENTATION">PRESENTATION</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Year</label>
+        <input type="text" id="year" required placeholder="e.g. 2025">
+      </div>
+
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="location" required placeholder="e.g. กรุงเทพมหานคร">
+      </div>
+
+      <div class="form-group">
+        <label>Body (Main Description)</label>
+        <textarea id="body" required placeholder="Main description..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Body Detail</label>
+        <textarea id="body_detail" required placeholder="Detailed description..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Hero Image Placeholder</label>
+        <input type="text" id="hero_placeholder" placeholder="e.g. Hero image description">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Configuration (UPDATE THESE)
+const CONFIG = {
+  SUPABASE_URL: 'https://pzrjboiioplhijzyfdmf.supabase.co',
+  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw'
+};
+
+let projects = [];
+let currentEditId = null;
+
+// Check API status
+async function checkApiStatus() {
+  const statusEl = document.getElementById('api-status');
+  try {
+    const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/projects?limit=1`, {
+      headers: {
+        'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+        'apikey': CONFIG.SUPABASE_KEY,
+      }
+    });
+
+    if (response.ok) {
+      statusEl.innerHTML = '✓ Connected to Supabase';
+      statusEl.className = 'api-status connected';
+      loadProjects();
+    } else {
+      throw new Error('API error: ' + response.status);
+    }
+  } catch (error) {
+    statusEl.innerHTML = '✗ Cannot connect to Supabase. Please update CONFIG with your Supabase credentials.';
+    statusEl.className = 'api-status disconnected';
+    console.error('API Error:', error);
+  }
+}
+
+// Load all projects
+async function loadProjects() {
+  try {
+    const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/projects?order=created_at.desc`, {
+      headers: {
+        'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+        'apikey': CONFIG.SUPABASE_KEY,
+      }
+    });
+
+    const data = await response.json();
+    projects = data;
+    renderProjects();
+  } catch (error) {
+    showAlert('Failed to load projects: ' + error.message, 'error');
+    console.error('Load error:', error);
+  }
+}
+
+// Render projects
+function renderProjects() {
+  const container = document.getElementById('projects-container');
+
+  if (projects.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #9a958a; padding: 40px; grid-column: 1/-1;">No projects yet. <a href="#" onclick="openAddModal(); return false;">Add one</a></p>';
+    return;
+  }
+
+  container.innerHTML = projects.map(p => `
+    <div class="project-card">
+      <h3>${p.title}</h3>
+      <p>${p.subtitle}</p>
+      <p><strong>Year:</strong> ${p.year}</p>
+      <p><strong>Location:</strong> ${p.location}</p>
+      <p><strong>Category:</strong> ${p.cat_label}</p>
+      <div class="project-actions">
+        <button class="btn-secondary" onclick="editProject('${p.id}')">Edit</button>
+        <button class="btn-danger" onclick="deleteProject('${p.id}', '${p.title}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Open add modal
+function openAddModal() {
+  currentEditId = null;
+  document.getElementById('modal-title').textContent = 'Add New Project';
+  document.getElementById('project-form').reset();
+  document.getElementById('project_id').disabled = false;
+  document.getElementById('project-modal').classList.add('active');
+}
+
+// Edit project
+async function editProject(id) {
+  const project = projects.find(p => p.id === id);
+  if (!project) return;
+
+  currentEditId = id;
+  document.getElementById('modal-title').textContent = 'Edit Project';
+  document.getElementById('project_id').disabled = true;
+
+  Object.keys(project).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.value = project[key] || '';
+  });
+
+  document.getElementById('project-modal').classList.add('active');
+}
+
+// Close modal
+function closeModal() {
+  document.getElementById('project-modal').classList.remove('active');
+  currentEditId = null;
+}
+
+// Save project
+document.getElementById('project-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const formData = {
+    project_id: document.getElementById('project_id').value,
+    title: document.getElementById('title').value,
+    subtitle: document.getElementById('subtitle').value,
+    type_label: document.getElementById('type_label').value,
+    cat_label: document.getElementById('cat_label').value,
+    year: document.getElementById('year').value,
+    location: document.getElementById('location').value,
+    body: document.getElementById('body').value,
+    body_detail: document.getElementById('body_detail').value,
+    hero_placeholder: document.getElementById('hero_placeholder').value,
+  };
+
+  try {
+    if (currentEditId) {
+      // Update
+      const response = await fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/projects?id=eq.${currentEditId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+            'apikey': CONFIG.SUPABASE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        }
+      );
+
+      if (!response.ok) throw new Error('Update failed');
+      showAlert('Project updated successfully!', 'success');
+    } else {
+      // Create
+      const response = await fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/projects`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+            'apikey': CONFIG.SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(formData)
+        }
+      );
+
+      if (!response.ok) throw new Error('Create failed');
+      showAlert('Project created successfully!', 'success');
+    }
+
+    closeModal();
+    loadProjects();
+  } catch (error) {
+    showAlert('Error saving project: ' + error.message, 'error');
+    console.error('Save error:', error);
+  }
+});
+
+// Delete project
+async function deleteProject(id, title) {
+  if (!confirm(`Delete "${title}"?`)) return;
+
+  try {
+    const response = await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/projects?id=eq.${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+          'apikey': CONFIG.SUPABASE_KEY,
+        }
+      }
+    );
+
+    if (!response.ok) throw new Error('Delete failed');
+    showAlert('Project deleted!', 'success');
+    loadProjects();
+  } catch (error) {
+    showAlert('Error deleting project: ' + error.message, 'error');
+  }
+}
+
+// Show alert
+function showAlert(message, type) {
+  const alertsEl = document.getElementById('alerts');
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  alertsEl.appendChild(alert);
+
+  setTimeout(() => alert.remove(), 4000);
+}
+
+// Add project button
+document.getElementById('btn-add-project').addEventListener('click', openAddModal);
+
+// Close modal on outside click
+document.getElementById('project-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('project-modal')) closeModal();
+});
+
+// Initialize
+checkApiStatus();
+</script>
+
+</body>
+</html>
