@@ -1,0 +1,7 @@
+{
+  "name": "the-manual-studio",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/inject-env.js"
+  }
+}
