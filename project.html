@@ -436,7 +436,7 @@
         b.address   ? `<div class="info-row">${ICON_MAP.address}<span class="info-text">${escapeHtml(b.address)}</span></div>` : '',
         b.hours     ? `<div class="info-row">${ICON_MAP.hours}<span class="info-text">${escapeHtml(b.hours)}</span></div>` : '',
         b.phone     ? `<div class="info-row">${ICON_MAP.phone}<span class="info-text">${escapeHtml(b.phone)}</span></div>` : '',
-        b.facebook  ? `<div class="info-row">${ICON_MAP.facebook}<a href="${escapeHtml(b.facebook)}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//,''))}</a></div>` : '',
+        b.facebook  ? (()=>{ const raw = b.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//,'').replace(/\/$/,''); const label = (raw.startsWith('profile.php') || raw === '') ? 'Facebook' : raw; return `<div class="info-row">${ICON_MAP.facebook}<a href="${escapeHtml(b.facebook)}" target="_blank" rel="noopener" class="info-link">${escapeHtml(label)}</a></div>`; })() : '',
         b.instagram ? (()=>{ const handle = b.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$/,'').replace(/^@/,''); const href = b.instagram.startsWith('http') ? b.instagram : `https://instagram.com/${handle}`; return `<div class="info-row">${ICON_MAP.instagram}<a href="${escapeHtml(href)}" target="_blank" rel="noopener" class="info-link">@${escapeHtml(handle)}</a></div>`; })() : '',
         b.line      ? `<div class="info-row">${ICON_MAP.line}<a href="${escapeHtml(b.line)}" target="_blank" rel="noopener" class="info-link">Line</a></div>` : '',
         b.youtube   ? `<div class="info-row">${ICON_MAP.youtube}<a href="${escapeHtml(b.youtube)}" target="_blank" rel="noopener" class="info-link">YouTube</a></div>` : '',
