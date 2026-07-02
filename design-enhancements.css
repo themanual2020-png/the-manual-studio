@@ -84,7 +84,7 @@ button:active, a[role="button"]:active {
 
 /* Link hover effects (exclude navigation) */
 a:not(nav a) {
-  color: inherit !important;
+  color: inherit;
 }
 
 a:not(nav a):not([href*="#"]) {
