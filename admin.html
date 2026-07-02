@@ -1129,9 +1129,6 @@ function escAttr(s) {
 
 // ===== INIT =====
 document.getElementById('btn-add-project').addEventListener('click', openAddModal);
-document.getElementById('project-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('project-modal')) closeModal();
-});
 
 checkApiStatus();
 
