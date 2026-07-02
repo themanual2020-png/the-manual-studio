@@ -366,6 +366,21 @@
       </div>`;
     }
 
+    if (type === 'youtube') {
+      const url = b.url || '';
+      if (!url) return '';
+      const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (!match) return '';
+      const vid = match[1];
+      return `<div class="block-wrap">
+        <div class="block-inner" data-reveal>
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+            <iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+          </div>
+        </div>
+      </div>`;
+    }
+
     if (type === 'info_card') {
       const ICON_MAP = {
         address:   `<span class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6b6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>`,

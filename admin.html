@@ -341,6 +341,7 @@
   .block-badge.image  { background: #d4f0e5; color: #1a7a4a; }
   .block-badge.slider { background: #ede0ff; color: #6b34b8; }
   .block-badge.info_card { background: #fff3d4; color: #9a6800; }
+  .block-badge.youtube   { background: #ffe0e0; color: #c0000a; }
   .block-move-btns { display: flex; gap: 2px; margin-left: auto; }
   .block-move-btn {
     background: none; border: none; cursor: pointer;
@@ -563,6 +564,7 @@
         <button type="button" class="add-block-btn" onclick="addBlock('image')">+ Image</button>
         <button type="button" class="add-block-btn" onclick="addBlock('slider')">+ Slider</button>
         <button type="button" class="add-block-btn" onclick="addBlock('info_card')">+ Info card</button>
+        <button type="button" class="add-block-btn" onclick="addBlock('youtube')">+ YouTube</button>
       </div>
     </div>
 
@@ -681,7 +683,7 @@ function removeGalleryImage(i) {
 }
 
 // ===== BLOCK EDITOR =====
-const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card' };
+const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card', youtube: 'YouTube' };
 
 function renderSections() { renderBlocks(); }
 
@@ -788,6 +790,11 @@ function renderBlockFields(b, i) {
         <input type="text" value="${escHtml(b.youtube||'')}" oninput="projectSections[${i}].youtube=this.value" placeholder="https://www.youtube.com/watch?v=...">
       </div>
     </div>`;
+  if (type === 'youtube') return `
+    <div class="form-group" style="margin:0">
+      <label>YouTube URL</label>
+      <input type="text" value="${escHtml(b.url||'')}" oninput="projectSections[${i}].url=this.value" placeholder="https://www.youtube.com/watch?v=...">
+    </div>`;
   return '';
 }
 
@@ -796,7 +803,8 @@ function addBlock(type) {
     text: { type:'text', title:'', body:'' },
     image: { type:'image', image_url:'', caption:'' },
     slider: { type:'slider', images:[''] },
-    info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'', youtube:'' }
+    info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'', youtube:'' },
+    youtube:   { type:'youtube', url:'' }
   };
   projectSections.push({ ...defaults[type] });
   renderBlocks();
