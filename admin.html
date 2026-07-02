@@ -388,11 +388,18 @@
   .mp-header h3 { margin:0; font-size:15px; font-weight:700; font-family:'Archivo',sans-serif; }
   .mp-header input { flex:1; padding:7px 12px; border:1px solid #d2cec5; border-radius:8px; font-size:13px; font-family:'Archivo',sans-serif; background:#fff; }
   .mp-close { background:none; border:none; font-size:22px; cursor:pointer; color:#9a958a; line-height:1; padding:0 4px; }
-  .mp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; padding:16px; overflow-y:auto; flex:1; }
-  .mp-item { border-radius:8px; overflow:hidden; cursor:pointer; border:2px solid transparent; position:relative; aspect-ratio:4/3; background:#e2dfd8; }
+  .mp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:16px; overflow-y:auto; flex:1; }
+  .mp-item { border-radius:10px; overflow:hidden; cursor:pointer; border:2px solid transparent; position:relative; aspect-ratio:4/3; background:#e8e5de; transition:border-color .15s,transform .15s; }
   .mp-item img { width:100%; height:100%; object-fit:cover; display:block; }
-  .mp-item:hover { border-color:#15140f; }
-  .mp-item-name { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.55); color:#fff; font-size:9px; padding:3px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mp-item:hover { border-color:#15140f; transform:scale(1.02); }
+  .mp-item-overlay { position:absolute; inset:0; background:rgba(0,0,0,.6); opacity:0; transition:opacity .15s; display:flex; align-items:center; justify-content:center; }
+  .mp-item:hover .mp-item-overlay { opacity:1; }
+  .mp-item-overlay span { color:#fff; font-size:22px; }
+  .mp-item-name { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.6); color:#fff; font-size:9px; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .15s; }
+  .mp-item:hover .mp-item-name { opacity:1; }
+  .mp-footer { padding:12px 16px; border-top:1px solid #e2dfd8; display:flex; justify-content:center; }
+  .mp-loadmore { padding:8px 20px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; background:#f5f4f1; border:1px solid #d2cec5; border-radius:8px; cursor:pointer; }
+  .mp-loadmore:hover { background:#e8e5de; }
   .mp-empty { grid-column:1/-1; text-align:center; color:#9a958a; padding:40px; font-size:14px; }
   .mp-loading { grid-column:1/-1; text-align:center; color:#9a958a; padding:40px; font-size:14px; }
 
@@ -485,6 +492,9 @@
       <button class="mp-close" onclick="closeMediaPicker()">×</button>
     </div>
     <div class="mp-grid" id="mp-grid"><div class="mp-loading">กำลังโหลด...</div></div>
+    <div class="mp-footer" id="mp-footer" style="display:none">
+      <button class="mp-loadmore" id="mp-loadmore-btn" onclick="loadMoreMedia()">โหลดเพิ่ม</button>
+    </div>
   </div>
 </div>
 
@@ -1127,12 +1137,18 @@ checkApiStatus();
 
 // ===== MEDIA PICKER =====
 let _mpCallback = null;
+let _mpAllFiles = [];
+let _mpOffset = 0;
+const MP_PAGE = 50;
 
 async function openMediaPicker(callback) {
   _mpCallback = callback;
+  _mpAllFiles = [];
+  _mpOffset = 0;
   document.getElementById('media-picker').classList.add('active');
   document.getElementById('mp-search').value = '';
-  await loadMediaFiles();
+  document.getElementById('mp-footer').style.display = 'none';
+  await fetchMediaFiles(true);
 }
 
 function closeMediaPicker() {
@@ -1140,41 +1156,38 @@ function closeMediaPicker() {
   _mpCallback = null;
 }
 
-async function loadMediaFiles(prefix = '') {
+async function fetchMediaFiles(reset = false) {
   const grid = document.getElementById('mp-grid');
-  grid.innerHTML = '<div class="mp-loading">กำลังโหลด...</div>';
+  if (reset) { _mpAllFiles = []; _mpOffset = 0; grid.innerHTML = '<div class="mp-loading">กำลังโหลด...</div>'; }
   try {
     const res = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/list/images`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
-        'apikey': CONFIG.SUPABASE_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prefix, limit: 200, offset: 0, sortBy: { column: 'created_at', order: 'desc' } })
+      headers: { 'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`, 'apikey': CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix: '', limit: MP_PAGE, offset: _mpOffset, sortBy: { column: 'created_at', order: 'desc' } })
     });
-    const files = await res.json();
-    renderMediaGrid(files, prefix);
+    const files = (await res.json()).filter(f => f.id && f.name !== '.emptyFolderPlaceholder');
+    _mpAllFiles = reset ? files : [..._mpAllFiles, ...files];
+    _mpOffset += files.length;
+    renderMediaGrid();
+    document.getElementById('mp-footer').style.display = files.length === MP_PAGE ? '' : 'none';
   } catch(e) {
     grid.innerHTML = '<div class="mp-empty">โหลดไม่ได้ — ตรวจสอบ Storage Policy</div>';
   }
 }
 
-function renderMediaGrid(files, prefix = '') {
+function loadMoreMedia() { fetchMediaFiles(false); }
+
+function renderMediaGrid() {
   const search = document.getElementById('mp-search').value.toLowerCase();
   const grid = document.getElementById('mp-grid');
-  const items = files.filter(f => f.name !== '.emptyFolderPlaceholder' && f.name.toLowerCase().includes(search));
+  const items = search ? _mpAllFiles.filter(f => f.name.toLowerCase().includes(search)) : _mpAllFiles;
   if (!items.length) { grid.innerHTML = '<div class="mp-empty">ไม่พบไฟล์</div>'; return; }
   grid.innerHTML = items.map(f => {
-    const path = prefix ? `${prefix}/${f.name}` : f.name;
-    const isFolder = !f.id;
-    if (isFolder) {
-      return `<div class="mp-item" onclick="loadMediaFiles('${path}')" style="display:flex;align-items:center;justify-content:center;font-size:30px;">
-        📁<div class="mp-item-name">${f.name}</div></div>`;
-    }
-    const url = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${path}`;
-    return `<div class="mp-item" onclick="selectMedia('${url}')">
-      <img src="${url}" alt="${f.name}" onerror="this.style.display='none'">
+    const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${f.name}`;
+    const thumbUrl = `${CONFIG.SUPABASE_URL}/storage/v1/render/image/public/images/${f.name}?width=300&quality=60`;
+    return `<div class="mp-item" onclick="selectMedia('${fullUrl}')">
+      <img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'">
+      <div class="mp-item-overlay"><span>✓</span></div>
       <div class="mp-item-name">${f.name}</div>
     </div>`;
   }).join('');
@@ -1185,9 +1198,7 @@ function selectMedia(url) {
   closeMediaPicker();
 }
 
-document.getElementById('mp-search').addEventListener('input', () => {
-  loadMediaFiles();
-});
+document.getElementById('mp-search').addEventListener('input', renderMediaGrid);
 document.getElementById('media-picker').addEventListener('click', e => {
   if (e.target === document.getElementById('media-picker')) closeMediaPicker();
 });
