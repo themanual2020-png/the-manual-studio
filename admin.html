@@ -316,47 +316,59 @@
   .gallery-add-row .form-group { flex: 1; margin: 0; }
 
   /* ====== SECTIONS ====== */
-  .section-item {
+  .block-item {
     border: 1px solid #e2dfd8;
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     background: #fafaf8;
+    overflow: hidden;
   }
-
-  .section-item-header {
+  .block-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    gap: 8px;
+    padding: 9px 12px;
+    background: #f0ede8;
+    border-bottom: 1px solid #e2dfd8;
   }
-
-  .section-item-header span {
+  .block-drag-handle { color: #9a958a; cursor: grab; font-size: 14px; }
+  .block-badge {
     font-family: 'Archivo', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .1em;
-    color: #9a958a;
-    text-transform: uppercase;
+    font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
   }
-
+  .block-badge.text   { background: #e3e8ff; color: #3b4bb8; }
+  .block-badge.image  { background: #d4f0e5; color: #1a7a4a; }
+  .block-badge.slider { background: #ede0ff; color: #6b34b8; }
+  .block-badge.info_card { background: #fff3d4; color: #9a6800; }
+  .block-move-btns { display: flex; gap: 2px; margin-left: auto; }
+  .block-move-btn {
+    background: none; border: none; cursor: pointer;
+    color: #9a958a; padding: 2px 5px; border-radius: 4px; font-size: 13px;
+  }
+  .block-move-btn:hover { background: #e2dfd8; color: #15140f; }
+  .block-body { padding: 14px 16px; }
   .sections-empty {
-    text-align: center;
-    color: #9a958a;
-    font-size: 13px;
-    padding: 32px;
-    border: 2px dashed #e2dfd8;
-    border-radius: 8px;
-    margin-bottom: 16px;
+    text-align: center; color: #9a958a; font-size: 13px;
+    padding: 28px; border: 2px dashed #e2dfd8;
+    border-radius: 8px; margin-bottom: 12px;
   }
-
-  .section-img-preview {
-    width: 52px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid #e2dfd8;
-    margin-left: 8px;
+  .add-block-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .add-block-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 6px;
+    border: 1px dashed #d2cec5; background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: .06em;
+    color: #9a958a; cursor: pointer; transition: all .2s;
+  }
+  .add-block-btn:hover { border-color: #15140f; color: #15140f; background: #f5f4f1; }
+  .slider-url-list { display: flex; flex-direction: column; gap: 6px; }
+  .slider-url-row { display: flex; gap: 6px; align-items: center; }
+  .slider-url-row input { flex: 1; }
+  .img-preview-thumb {
+    width: 48px; height: 36px; object-fit: cover;
+    border-radius: 4px; border: 1px solid #e2dfd8; flex-shrink: 0;
   }
 
   /* ====== STATUS / ALERTS ====== */
@@ -542,11 +554,16 @@
       </div>
     </div>
 
-    <!-- Tab: Sections -->
+    <!-- Tab: Sections / Blocks -->
     <div id="tab-sections" class="tab-pane">
-      <p style="font-size:13px;color:#9a958a;margin:0 0 16px;">เพิ่ม sections/articles ใน project นี้</p>
-      <div id="sections-list"></div>
-      <button type="button" class="btn-secondary" onclick="addSection()" style="width:100%;">+ Add Section</button>
+      <p style="font-size:13px;color:#9a958a;margin:0 0 14px;">ลากเพื่อเรียงลำดับ · เพิ่ม block ตามต้องการ</p>
+      <div id="blocks-list"></div>
+      <div class="add-block-bar">
+        <button type="button" class="add-block-btn" onclick="addBlock('text')">+ Text</button>
+        <button type="button" class="add-block-btn" onclick="addBlock('image')">+ Image</button>
+        <button type="button" class="add-block-btn" onclick="addBlock('slider')">+ Slider</button>
+        <button type="button" class="add-block-btn" onclick="addBlock('info_card')">+ Info card</button>
+      </div>
     </div>
 
     <div class="form-actions">
@@ -663,51 +680,167 @@ function removeGalleryImage(i) {
   renderGallery();
 }
 
-// ===== SECTIONS =====
-function renderSections() {
-  const list = document.getElementById('sections-list');
+// ===== BLOCK EDITOR =====
+const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card' };
+
+function renderSections() { renderBlocks(); }
+
+function renderBlocks() {
+  const list = document.getElementById('blocks-list');
   if (!projectSections.length) {
-    list.innerHTML = '<div class="sections-empty">ยังไม่มี sections — click "+ Add Section" เพื่อเพิ่ม</div>';
+    list.innerHTML = '<div class="sections-empty">ยังไม่มี block — เพิ่มด้านล่าง</div>';
     return;
   }
-  list.innerHTML = projectSections.map((s, i) => {
-    const displayUrl = s.image_url ? convertGDriveLink(s.image_url) : '';
-    return `
-    <div class="section-item">
-      <div class="section-item-header">
-        <span>Section ${i + 1}</span>
-        <button class="btn-danger btn-sm" onclick="removeSection(${i})">Remove</button>
-      </div>
-      <div class="form-group">
-        <label>Section Title</label>
-        <input type="text" value="${escHtml(s.title || '')}" oninput="projectSections[${i}].title=this.value" placeholder="e.g. The Challenge">
-      </div>
-      <div class="form-group">
-        <label>Body Text</label>
-        <textarea oninput="projectSections[${i}].body=this.value" placeholder="Write section content here...">${escHtml(s.body || '')}</textarea>
-      </div>
-      <div class="form-group">
-        <label>Section Image URL (optional)</label>
-        <div style="display:flex;gap:8px;align-items:flex-start;">
-          <div style="flex:1;">
-            <input type="text" value="${escHtml(s.image_url || '')}" oninput="projectSections[${i}].image_url=this.value;renderSections()" placeholder="https://...">
-          </div>
-          ${displayUrl ? `<img src="${escHtml(displayUrl)}" alt="" class="section-img-preview" style="display:block;margin-top:0;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+  list.innerHTML = projectSections.map((b, i) => {
+    const type = b.type || 'text';
+    const label = BLOCK_LABELS[type] || type;
+    return `<div class="block-item" draggable="true" data-bidx="${i}">
+      <div class="block-header">
+        <span class="block-drag-handle">⠿</span>
+        <span class="block-badge ${type}">${label}</span>
+        <div class="block-move-btns">
+          <button type="button" class="block-move-btn" onclick="moveBlock(${i},-1)" title="ขึ้น">↑</button>
+          <button type="button" class="block-move-btn" onclick="moveBlock(${i},1)" title="ลง">↓</button>
+          <button type="button" class="block-move-btn" style="color:#b3261e" onclick="removeBlock(${i})" title="ลบ">✕</button>
         </div>
       </div>
-    </div>
-  `;
+      <div class="block-body">${renderBlockFields(b, i)}</div>
+    </div>`;
   }).join('');
+  initBlockDrag();
 }
 
-function addSection() {
-  projectSections.push({ title: '', body: '', image_url: '' });
-  renderSections();
+function renderBlockFields(b, i) {
+  const type = b.type || 'text';
+  if (type === 'text') return `
+    <div class="form-group" style="margin-bottom:10px">
+      <label>หัวข้อ (ไม่บังคับ)</label>
+      <input type="text" value="${escHtml(b.title||'')}" oninput="projectSections[${i}].title=this.value" placeholder="หัวข้อ section">
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>เนื้อหา</label>
+      <textarea style="min-height:80px" oninput="projectSections[${i}].body=this.value" placeholder="เนื้อหา...">${escHtml(b.body||'')}</textarea>
+    </div>`;
+
+  if (type === 'image') {
+    const prev = b.image_url ? `<img src="${escHtml(b.image_url)}" class="img-preview-thumb" onerror="this.style.display='none'">` : '';
+    return `
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Image URL</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" style="flex:1" value="${escHtml(b.image_url||'')}" oninput="projectSections[${i}].image_url=this.value;renderBlocks()" placeholder="https://...">
+        ${prev}
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Caption (ไม่บังคับ)</label>
+      <input type="text" value="${escHtml(b.caption||'')}" oninput="projectSections[${i}].caption=this.value" placeholder="คำอธิบายภาพ">
+    </div>`;
+  }
+
+  if (type === 'slider') {
+    const imgs = Array.isArray(b.images) ? b.images : [''];
+    return `
+    <label style="font-family:'Archivo',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;color:#9a958a;text-transform:uppercase;display:block;margin-bottom:8px">รูปภาพ (ใส่ทีละ URL)</label>
+    <div class="slider-url-list" id="slider-urls-${i}">
+      ${imgs.map((url, j) => `
+        <div class="slider-url-row">
+          ${url ? `<img src="${escHtml(url)}" class="img-preview-thumb" onerror="this.style.display='none'">` : ''}
+          <input type="text" value="${escHtml(url)}" oninput="updateSliderImg(${i},${j},this.value)" placeholder="https://... (รูปที่ ${j+1})">
+          <button type="button" class="block-move-btn" style="color:#b3261e;flex-shrink:0" onclick="removeSliderImg(${i},${j})">✕</button>
+        </div>`).join('')}
+    </div>
+    <button type="button" class="add-block-btn" style="margin-top:8px" onclick="addSliderImg(${i})">+ เพิ่มรูป</button>`;
+  }
+
+  if (type === 'info_card') return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="margin:0">
+        <label>ชื่อสถานที่</label>
+        <input type="text" value="${escHtml(b.name||'')}" oninput="projectSections[${i}].name=this.value" placeholder="SODO Donut">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>เบอร์โทร</label>
+        <input type="text" value="${escHtml(b.phone||'')}" oninput="projectSections[${i}].phone=this.value" placeholder="09 6616 8949">
+      </div>
+      <div class="form-group" style="margin:0;grid-column:1/-1">
+        <label>ที่อยู่</label>
+        <input type="text" value="${escHtml(b.address||'')}" oninput="projectSections[${i}].address=this.value" placeholder="230 ถนนนเรศ แขวงสี่พระยา กรุงเทพฯ">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>เวลาเปิด-ปิด</label>
+        <input type="text" value="${escHtml(b.hours||'')}" oninput="projectSections[${i}].hours=this.value" placeholder="08.00–18.00 น.">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Facebook URL</label>
+        <input type="text" value="${escHtml(b.facebook||'')}" oninput="projectSections[${i}].facebook=this.value" placeholder="https://facebook.com/...">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Instagram</label>
+        <input type="text" value="${escHtml(b.instagram||'')}" oninput="projectSections[${i}].instagram=this.value" placeholder="@username">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Line URL</label>
+        <input type="text" value="${escHtml(b.line||'')}" oninput="projectSections[${i}].line=this.value" placeholder="https://lin.ee/...">
+      </div>
+    </div>`;
+  return '';
 }
 
-function removeSection(i) {
+function addBlock(type) {
+  const defaults = {
+    text: { type:'text', title:'', body:'' },
+    image: { type:'image', image_url:'', caption:'' },
+    slider: { type:'slider', images:[''] },
+    info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'' }
+  };
+  projectSections.push({ ...defaults[type] });
+  renderBlocks();
+}
+
+function removeBlock(i) {
   projectSections.splice(i, 1);
-  renderSections();
+  renderBlocks();
+}
+
+function moveBlock(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= projectSections.length) return;
+  [projectSections[i], projectSections[j]] = [projectSections[j], projectSections[i]];
+  renderBlocks();
+}
+
+function updateSliderImg(blockIdx, imgIdx, val) {
+  projectSections[blockIdx].images[imgIdx] = val;
+}
+
+function addSliderImg(blockIdx) {
+  if (!Array.isArray(projectSections[blockIdx].images)) projectSections[blockIdx].images = [];
+  projectSections[blockIdx].images.push('');
+  renderBlocks();
+}
+
+function removeSliderImg(blockIdx, imgIdx) {
+  projectSections[blockIdx].images.splice(imgIdx, 1);
+  renderBlocks();
+}
+
+function initBlockDrag() {
+  const items = document.querySelectorAll('#blocks-list .block-item');
+  let srcIdx = null;
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => { srcIdx = parseInt(item.dataset.bidx); item.style.opacity='.4'; e.dataTransfer.effectAllowed='move'; });
+    item.addEventListener('dragend', () => { item.style.opacity=''; });
+    item.addEventListener('dragover', e => { e.preventDefault(); });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const tgt = parseInt(item.dataset.bidx);
+      if (srcIdx === null || srcIdx === tgt) return;
+      const moved = projectSections.splice(srcIdx, 1)[0];
+      projectSections.splice(tgt, 0, moved);
+      renderBlocks();
+    });
+  });
 }
 
 // ===== TABS =====
@@ -753,11 +886,12 @@ async function editProject(id) {
   }));
 
   const rawSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
-  projectSections = rawSections.map(s => ({
-    title: s.title || '',
-    body: s.body || '',
-    image_url: s.image_url ? convertGDriveLink(s.image_url) : ''
-  }));
+  projectSections = rawSections.map(s => {
+    const type = s.type || 'text';
+    if (type === 'slider') return { ...s, type, images: Array.isArray(s.images) ? s.images : [] };
+    if (type === 'image') return { ...s, type, image_url: s.image_url ? convertGDriveLink(s.image_url) : '' };
+    return { ...s, type };
+  });
 
   switchTab('details');
   renderGallery();
