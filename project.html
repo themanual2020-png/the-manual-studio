@@ -280,7 +280,7 @@
         }
 
         document.getElementById('project-title').innerHTML = (project.title || '—')
-          .replace(/([฀-๿]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
+          .replace(/([\u0E00-\u0E7F]+)/g, '<span style="font-family:\'Prompt\',sans-serif;font-weight:700">$1</span>');
         document.getElementById('project-subtitle').textContent = project.subtitle || '—';
         document.getElementById('project-year').textContent = project.year || '—';
         document.getElementById('project-location').textContent = project.location || '—';
@@ -353,7 +353,7 @@
   }
 
   function wrapThai(text) {
-    return escapeHtml(text).replace(/([฀-๿]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
+    return escapeHtml(text).replace(/([\u0E00-\u0E7F]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
   }
 
   function renderBlock(b, idx) {
