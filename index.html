@@ -46,16 +46,22 @@
   .tms-card:hover image-slot { transform: scale(1.06); }
 
   @media (max-width: 700px) {
+    body { overflow-x: hidden; }
     #tms-nav { padding: 16px 20px !important; gap: 20px !important; }
     #tms-nav div { gap: 20px !important; }
     #tms-nav span { display: none !important; }
     #tms-hero-content { padding: 0 20px 44px !important; }
+    #tms-hero-content h1 { font-size: clamp(34px, 9.5vw, 56px) !important; line-height: .9 !important; }
+    #tms-hero-content p { font-size: 14px !important; max-width: 100% !important; }
+    #tms-hero-content div:first-child { font-size: 10px !important; letter-spacing: .22em !important; margin-bottom: 16px !important; }
     #tms-root > section:not(#top),
     #tms-root > footer { padding-left: 20px !important; padding-right: 20px !important; }
     #tms-grid { grid-template-columns: 1fr !important; }
-    #tms-filters { gap: 6px !important; }
+    #tms-filters { gap: 6px !important; flex-wrap: wrap !important; }
     #tms-filters button { padding: 7px 12px !important; font-size: 11px !important; letter-spacing: .06em !important; }
     #tms-grid article { margin-bottom: 8px; }
+    #tms-grid article > div:last-child > div:first-child { font-size: 16px !important; }
+    #tms-grid article > div:last-child > div:last-child { font-size: 13px !important; }
   }
 </style>
 </head>
