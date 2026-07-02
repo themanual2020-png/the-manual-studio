@@ -63,8 +63,10 @@
   </nav>
 
   <!-- Hero text -->
-  <section style="padding: clamp(140px, 22vh, 240px) 40px clamp(60px, 9vh, 110px);">
-    <div style="max-width: 1080px; margin: 0 auto;">
+  <section id="about-hero" style="position: relative; min-height: 85svh; display: flex; align-items: flex-end; padding: 0 40px clamp(60px, 9vh, 110px); overflow: hidden;">
+    <div id="about-slides" style="position: absolute; inset: 0; z-index: 0;"></div>
+    <div style="position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, rgba(21,20,15,.25) 0%, rgba(21,20,15,.55) 70%, rgba(21,20,15,1) 100%);"></div>
+    <div style="max-width: 1080px; margin: 0 auto; position: relative; z-index: 2; padding-top: clamp(140px, 22vh, 240px);">
       <span data-reveal style="display: block; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: rgba(245,244,241,.5);">ABOUT THE STUDIO</span>
       <h1 data-reveal style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(56px, 12vw, 180px); line-height: .9; letter-spacing: -.03em; margin: 18px 0 0;">ABOUT</h1>
     </div>
@@ -108,5 +110,37 @@
   </footer>
 
 </div>
+<script>
+const HERO_SLIDES = [
+  'https://via.placeholder.com/1600x900/2a2825/2a2825',
+  'https://via.placeholder.com/1600x900/332e28/332e28',
+  'https://via.placeholder.com/1600x900/3a3530/3a3530',
+];
+
+(function() {
+  const wrap = document.getElementById('about-slides');
+  if (!wrap || !HERO_SLIDES.length) return;
+
+  const slides = HERO_SLIDES.map((url, i) => {
+    const el = document.createElement('div');
+    el.style.cssText = [
+      'position:absolute', 'inset:0',
+      'background-size:cover', 'background-position:center',
+      `background-image:url('${url}')`,
+      'transition:opacity 1.5s ease',
+      `opacity:${i === 0 ? 1 : 0}`,
+    ].join(';');
+    wrap.appendChild(el);
+    return el;
+  });
+
+  let cur = 0;
+  setInterval(() => {
+    slides[cur].style.opacity = 0;
+    cur = (cur + 1) % slides.length;
+    slides[cur].style.opacity = 1;
+  }, 4000);
+})();
+</script>
 </body>
 </html>
