@@ -279,7 +279,8 @@
           return;
         }
 
-        document.getElementById('project-title').textContent = project.title || '—';
+        document.getElementById('project-title').innerHTML = (project.title || '—')
+          .replace(/([฀-๿]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
         document.getElementById('project-subtitle').textContent = project.subtitle || '—';
         document.getElementById('project-year').textContent = project.year || '—';
         document.getElementById('project-location').textContent = project.location || '—';
@@ -351,13 +352,17 @@
     return String(text).replace(/[&<>"']/g, m => map[m]);
   }
 
+  function wrapThai(text) {
+    return escapeHtml(text).replace(/([฀-๿]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
+  }
+
   function renderBlock(b, idx) {
     const type = b.type || 'text';
 
     if (type === 'text') {
       return `<div class="block-wrap">
         <div class="block-inner narrow block-text" data-reveal>
-          ${b.title ? `<h3>${escapeHtml(b.title)}</h3>` : ''}
+          ${b.title ? `<h3>${wrapThai(b.title)}</h3>` : ''}
           ${b.body ? `<p>${escapeHtml(b.body).replace(/\n/g,'<br>')}</p>` : ''}
         </div>
       </div>`;
