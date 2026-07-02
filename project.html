@@ -4,6 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Manual Studio — Project</title>
+<meta name="description" content="ผลงานถ่ายภาพและวิดีโอโดย The Manual Studio — Bangkok Photography & Film">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://themanualstudio.vercel.app/project.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://themanualstudio.vercel.app/project.html">
+<meta property="og:title" content="The Manual Studio — Project">
+<meta property="og:description" content="ผลงานถ่ายภาพและวิดีโอโดย The Manual Studio">
+<meta property="og:image" content="https://themanualstudio.vercel.app/assets/og-image.jpg">
+<meta property="og:site_name" content="The Manual Studio">
+<meta property="og:locale" content="th_TH">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Manual Studio — Project">
+<meta name="twitter:description" content="ผลงานถ่ายภาพและวิดีโอโดย The Manual Studio">
+<meta name="twitter:image" content="https://themanualstudio.vercel.app/assets/og-image.jpg">
+<link rel="icon" type="image/png" href="./assets/logo-m.png">
+<link rel="apple-touch-icon" href="./assets/logo-m.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -262,6 +278,18 @@
         }
 
         document.title = `${project.title} — The Manual Studio`;
+        // Update meta tags dynamically
+        const desc = project.body ? project.body.slice(0, 160) : `${project.title} — ผลงานโดย The Manual Studio`;
+        document.querySelector('meta[name="description"]').setAttribute('content', desc);
+        document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${project.title} — The Manual Studio`);
+        document.querySelector('meta[property="og:description"]')?.setAttribute('content', desc);
+        if (project.hero_placeholder) {
+          document.querySelector('meta[property="og:image"]')?.setAttribute('content', project.hero_placeholder);
+          document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', project.hero_placeholder);
+        }
+        const pageUrl = `https://themanualstudio.vercel.app/project.html?id=${encodeURIComponent(project.project_id)}`;
+        document.querySelector('link[rel="canonical"]')?.setAttribute('href', pageUrl);
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', pageUrl);
 
       } catch (error) {
         console.error('Failed to load project:', error);
