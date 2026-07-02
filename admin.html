@@ -381,27 +381,27 @@
   .browse-btn:hover { background: #e8e5de; }
 
   /* Media Picker Modal */
-  #media-picker { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
+  #media-picker { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.7); align-items:center; justify-content:center; }
   #media-picker.active { display:flex; }
-  .mp-box { background:#fafaf8; border-radius:14px; width:min(760px,95vw); max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,.25); }
-  .mp-header { padding:18px 22px; border-bottom:1px solid #e2dfd8; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .mp-header h3 { margin:0; font-size:15px; font-weight:700; font-family:'Archivo',sans-serif; }
-  .mp-header input { flex:1; padding:7px 12px; border:1px solid #d2cec5; border-radius:8px; font-size:13px; font-family:'Archivo',sans-serif; background:#fff; }
-  .mp-close { background:none; border:none; font-size:22px; cursor:pointer; color:#9a958a; line-height:1; padding:0 4px; }
-  .mp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; padding:16px; overflow-y:auto; flex:1; }
-  .mp-item { border-radius:10px; overflow:hidden; cursor:pointer; border:2px solid transparent; position:relative; aspect-ratio:3/2; background:#f0ede8; display:flex; align-items:center; justify-content:center; transition:border-color .15s; }
-  .mp-item img { width:100%; height:100%; object-fit:cover; display:block; }
-  .mp-item:hover { border-color:#15140f; background:#e8e5de; }
-  .mp-item-overlay { position:absolute; inset:0; background:rgba(21,20,15,.45); opacity:0; transition:opacity .15s; display:flex; align-items:center; justify-content:center; border-radius:8px; }
-  .mp-item:hover .mp-item-overlay { opacity:1; }
-  .mp-item-overlay span { color:#fff; font-size:28px; font-weight:300; }
-  .mp-item-name { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.65); color:#fff; font-size:9px; padding:4px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-radius:0 0 8px 8px; opacity:0; transition:opacity .15s; }
-  .mp-item:hover .mp-item-name { opacity:1; }
-  .mp-footer { padding:12px 16px; border-top:1px solid #e2dfd8; display:flex; justify-content:center; }
-  .mp-loadmore { padding:8px 20px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; background:#f5f4f1; border:1px solid #d2cec5; border-radius:8px; cursor:pointer; }
-  .mp-loadmore:hover { background:#e8e5de; }
-  .mp-empty { grid-column:1/-1; text-align:center; color:#9a958a; padding:40px; font-size:14px; }
-  .mp-loading { grid-column:1/-1; text-align:center; color:#9a958a; padding:40px; font-size:14px; }
+  .mp-box { background:#1c1c1e; border-radius:14px; width:min(900px,96vw); max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 32px 80px rgba(0,0,0,.6); }
+  .mp-header { padding:14px 18px; display:flex; align-items:center; gap:12px; background:#2c2c2e; }
+  .mp-header h3 { margin:0; font-size:14px; font-weight:600; font-family:'Archivo',sans-serif; color:#fff; }
+  .mp-header input { flex:1; padding:7px 12px; border:none; border-radius:8px; font-size:13px; font-family:'Archivo',sans-serif; background:#3a3a3c; color:#fff; outline:none; }
+  .mp-header input::placeholder { color:#888; }
+  .mp-close { background:none; border:none; font-size:20px; cursor:pointer; color:#888; line-height:1; padding:0 2px; }
+  .mp-close:hover { color:#fff; }
+  .mp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; padding:20px; overflow-y:auto; flex:1; }
+  .mp-item { cursor:pointer; position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px; border-radius:10px; transition:background .15s; }
+  .mp-item:hover { background:rgba(255,255,255,.1); }
+  .mp-item.selected { background:rgba(10,132,255,.3); }
+  .mp-thumb { width:100%; aspect-ratio:3/2; border-radius:8px; overflow:hidden; background:#3a3a3c; }
+  .mp-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mp-item-name { color:#e5e5ea; font-size:11px; text-align:center; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-family:'Archivo',sans-serif; }
+  .mp-footer { padding:12px 18px; display:flex; justify-content:center; background:#2c2c2e; }
+  .mp-loadmore { padding:8px 24px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; background:#3a3a3c; border:none; border-radius:8px; cursor:pointer; color:#fff; }
+  .mp-loadmore:hover { background:#48484a; }
+  .mp-empty { grid-column:1/-1; text-align:center; color:#888; padding:40px; font-size:14px; }
+  .mp-loading { grid-column:1/-1; text-align:center; color:#888; padding:40px; font-size:14px; }
 
   /* ====== STATUS / ALERTS ====== */
   .api-status {
@@ -1185,10 +1185,10 @@ function renderMediaGrid() {
   grid.innerHTML = items.map(f => {
     const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${f.name}`;
     const thumbUrl = `${CONFIG.SUPABASE_URL}/storage/v1/render/image/public/images/${f.name}?width=300&height=200&resize=cover&quality=65`;
+    const shortName = f.name.replace(/\.[^.]+$/, '');
     return `<div class="mp-item" onclick="selectMedia('${fullUrl}')">
-      <img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'">
-      <div class="mp-item-overlay"><span>✓</span></div>
-      <div class="mp-item-name">${f.name}</div>
+      <div class="mp-thumb"><img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'"></div>
+      <div class="mp-item-name">${shortName}</div>
     </div>`;
   }).join('');
 }
