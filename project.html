@@ -103,7 +103,8 @@
   .slider-dot { width: 5px; height: 5px; min-width: 0; min-height: 0; border-radius: 50%; background: #d2cec5; border: none; cursor: pointer; padding: 0; margin: 0; appearance: none; -webkit-appearance: none; transition: background .2s; display: block; flex-shrink: 0; }
   .slider-dot.active { background: #15140f; }
 
-  .info-card { border: 1px solid #e2dfd8; border-radius: 10px; padding: 24px 28px; background: #fff; max-width: 520px; }
+  .info-card { border: 1px solid #e2dfd8; border-radius: 10px; padding: 24px 28px; background: #fff; max-width: 520px; overflow: hidden; }
+  .info-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; display: inline-block; vertical-align: bottom; }
   .info-card-name { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
   .info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
   .info-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
@@ -436,7 +437,7 @@
         b.hours     ? `<div class="info-row">${ICON_MAP.hours}<span class="info-text">${escapeHtml(b.hours)}</span></div>` : '',
         b.phone     ? `<div class="info-row">${ICON_MAP.phone}<span class="info-text">${escapeHtml(b.phone)}</span></div>` : '',
         b.facebook  ? `<div class="info-row">${ICON_MAP.facebook}<a href="${escapeHtml(b.facebook)}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//,''))}</a></div>` : '',
-        b.instagram ? `<div class="info-row">${ICON_MAP.instagram}<a href="${escapeHtml(b.instagram.startsWith('http') ? b.instagram : 'https://instagram.com/'+b.instagram.replace(/^@/,''))}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.instagram.replace(/^@/,'@'))}</a></div>` : '',
+        b.instagram ? (()=>{ const handle = b.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$/,'').replace(/^@/,''); const href = b.instagram.startsWith('http') ? b.instagram : `https://instagram.com/${handle}`; return `<div class="info-row">${ICON_MAP.instagram}<a href="${escapeHtml(href)}" target="_blank" rel="noopener" class="info-link">@${escapeHtml(handle)}</a></div>`; })() : '',
         b.line      ? `<div class="info-row">${ICON_MAP.line}<a href="${escapeHtml(b.line)}" target="_blank" rel="noopener" class="info-link">Line</a></div>` : '',
         b.youtube   ? `<div class="info-row">${ICON_MAP.youtube}<a href="${escapeHtml(b.youtube)}" target="_blank" rel="noopener" class="info-link">YouTube</a></div>` : '',
       ].filter(Boolean).join('');
