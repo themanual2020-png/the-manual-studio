@@ -631,39 +631,10 @@ function updateGalleryPreview() {
   container.style.display = 'block';
 }
 
-// ===== GALLERY =====
-function renderGallery() {
-  const grid = document.getElementById('gallery-grid');
-  if (!galleryImages.length) {
-    grid.innerHTML = '<div class="gallery-empty" style="grid-column:1/-1">ยังไม่มีรูปภาพ — เพิ่ม URL ด้านล่าง</div>';
-    return;
-  }
-  grid.innerHTML = galleryImages.map((img, i) => {
-    const displayUrl = convertGDriveLink(img.url);
-    return `
-    <div class="gallery-item">
-      <img src="${escHtml(displayUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="gallery-item-error" style="display:none">🖼️</div>
-      <button class="gallery-item-remove" onclick="removeGalleryImage(${i})" title="Remove">×</button>
-    </div>
-  `;
-  }).join('');
-}
-
-function addGalleryUrl() {
-  const input = document.getElementById('gallery-url-input');
-  const url = input.value.trim();
-  if (!url) return;
-  galleryImages.push({ url });
-  input.value = '';
-  document.getElementById('gallery-preview-container').style.display = 'none';
-  renderGallery();
-}
-
-function removeGalleryImage(i) {
-  galleryImages.splice(i, 1);
-  renderGallery();
-}
+// ===== GALLERY (legacy stubs — gallery is now a block type) =====
+function renderGallery() {}
+function addGalleryUrl() {}
+function removeGalleryImage(i) {}
 
 // ===== BLOCK EDITOR =====
 const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card', youtube: 'YouTube', gallery: 'Gallery' };
