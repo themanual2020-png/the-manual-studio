@@ -724,9 +724,13 @@ function renderBlockFields(b, i) {
         <label>Line URL</label>
         <input type="text" value="${escHtml(b.line||'')}" oninput="projectSections[${i}].line=this.value" placeholder="https://lin.ee/...">
       </div>
-      <div class="form-group" style="margin:0;grid-column:1/-1">
+      <div class="form-group" style="margin:0">
         <label>YouTube URL</label>
         <input type="text" value="${escHtml(b.youtube||'')}" oninput="projectSections[${i}].youtube=this.value" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Email</label>
+        <input type="text" value="${escHtml(b.email||'')}" oninput="projectSections[${i}].email=this.value" placeholder="hello@example.com">
       </div>
     </div>`;
   if (type === 'youtube') return `
@@ -753,7 +757,7 @@ function addBlock(type) {
     text: { type:'text', title:'', body:'' },
     image: { type:'image', image_url:'', caption:'' },
     slider: { type:'slider', images:[''] },
-    info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'', youtube:'' },
+    info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'', youtube:'', email:'' },
     youtube:   { type:'youtube', url:'' },
     gallery:   { type:'gallery', images:[''] }
   };
