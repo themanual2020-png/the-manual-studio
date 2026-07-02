@@ -342,6 +342,7 @@
   .block-badge.slider { background: #ede0ff; color: #6b34b8; }
   .block-badge.info_card { background: #fff3d4; color: #9a6800; }
   .block-badge.youtube   { background: #ffe0e0; color: #c0000a; }
+  .block-badge.gallery   { background: #e0f0ff; color: #005fa3; }
   .block-move-btns { display: flex; gap: 2px; margin-left: auto; }
   .block-move-btn {
     background: none; border: none; cursor: pointer;
@@ -461,7 +462,6 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('details')">Details</button>
-      <button class="tab-btn" onclick="switchTab('gallery')">Gallery</button>
       <button class="tab-btn" onclick="switchTab('sections')">Sections</button>
     </div>
 
@@ -537,24 +537,6 @@
       </form>
     </div>
 
-    <!-- Tab: Gallery -->
-    <div id="tab-gallery" class="tab-pane">
-      <p style="font-size:13px;color:#9a958a;margin:0 0 16px;">เพิ่มรูปภาพหลายรูปสำหรับ project นี้</p>
-
-      <div id="gallery-grid" class="gallery-grid"></div>
-
-      <div class="gallery-add-row">
-        <div class="form-group">
-          <label>Image URL</label>
-          <input type="text" id="gallery-url-input" placeholder="https://... (Google Drive, Imgur, etc)" oninput="updateGalleryPreview()">
-        </div>
-        <button type="button" class="btn-primary btn-sm" style="white-space:nowrap;padding:10px 16px;" onclick="addGalleryUrl()">+ Add</button>
-      </div>
-      <div id="gallery-preview-container" style="margin-top:12px;display:none;">
-        <img id="gallery-preview-img" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;border:1px solid #e2dfd8;">
-      </div>
-    </div>
-
     <!-- Tab: Sections / Blocks -->
     <div id="tab-sections" class="tab-pane">
       <p style="font-size:13px;color:#9a958a;margin:0 0 14px;">ลากเพื่อเรียงลำดับ · เพิ่ม block ตามต้องการ</p>
@@ -565,6 +547,7 @@
         <button type="button" class="add-block-btn" onclick="addBlock('slider')">+ Slider</button>
         <button type="button" class="add-block-btn" onclick="addBlock('info_card')">+ Info card</button>
         <button type="button" class="add-block-btn" onclick="addBlock('youtube')">+ YouTube</button>
+        <button type="button" class="add-block-btn" onclick="addBlock('gallery')">+ Gallery</button>
       </div>
     </div>
 
@@ -683,7 +666,7 @@ function removeGalleryImage(i) {
 }
 
 // ===== BLOCK EDITOR =====
-const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card', youtube: 'YouTube' };
+const BLOCK_LABELS = { text: 'Text', image: 'Image', slider: 'Slider', info_card: 'Info card', youtube: 'YouTube', gallery: 'Gallery' };
 
 function renderSections() { renderBlocks(); }
 
@@ -795,6 +778,17 @@ function renderBlockFields(b, i) {
       <label>YouTube URL</label>
       <input type="text" value="${escHtml(b.url||'')}" oninput="projectSections[${i}].url=this.value" placeholder="https://www.youtube.com/watch?v=...">
     </div>`;
+  if (type === 'gallery') {
+    const imgs = Array.isArray(b.images) ? b.images : [''];
+    const rows = imgs.map((url, j) => `
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        ${url ? `<img src="${escHtml(convertGDriveLink(url))}" class="img-preview-thumb" onerror="this.style.display='none'">` : ''}
+        <input type="text" value="${escHtml(url)}" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #d2cec5;border-radius:6px;" placeholder="https://... (Google Drive, Supabase, Imgur)"
+          oninput="updateGalleryImg(${i},${j},this.value)">
+        <button type="button" onclick="removeGalleryImg(${i},${j})" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;">×</button>
+      </div>`).join('');
+    return `<div>${rows}<button type="button" class="add-block-btn" style="margin-top:8px" onclick="addGalleryImg(${i})">+ เพิ่มรูป</button></div>`;
+  }
   return '';
 }
 
@@ -804,7 +798,8 @@ function addBlock(type) {
     image: { type:'image', image_url:'', caption:'' },
     slider: { type:'slider', images:[''] },
     info_card: { type:'info_card', name:'', address:'', hours:'', phone:'', facebook:'', instagram:'', line:'', youtube:'' },
-    youtube:   { type:'youtube', url:'' }
+    youtube:   { type:'youtube', url:'' },
+    gallery:   { type:'gallery', images:[''] }
   };
   projectSections.push({ ...defaults[type] });
   renderBlocks();
@@ -833,6 +828,19 @@ function addSliderImg(blockIdx) {
 }
 
 function removeSliderImg(blockIdx, imgIdx) {
+  projectSections[blockIdx].images.splice(imgIdx, 1);
+  renderBlocks();
+}
+
+function updateGalleryImg(blockIdx, imgIdx, val) {
+  projectSections[blockIdx].images[imgIdx] = val;
+}
+function addGalleryImg(blockIdx) {
+  if (!Array.isArray(projectSections[blockIdx].images)) projectSections[blockIdx].images = [];
+  projectSections[blockIdx].images.push('');
+  renderBlocks();
+}
+function removeGalleryImg(blockIdx, imgIdx) {
   projectSections[blockIdx].images.splice(imgIdx, 1);
   renderBlocks();
 }
@@ -872,8 +880,7 @@ function openAddModal() {
   document.getElementById('project-form').reset();
   document.getElementById('project_id').disabled = false;
   switchTab('details');
-  renderGallery();
-  renderSections();
+  renderBlocks();
   document.getElementById('project-modal').classList.add('active');
 }
 
@@ -891,23 +898,16 @@ async function editProject(id) {
   });
   document.getElementById('cat_label').value = p.cat_label || '';
 
-  // Convert Google Drive URLs to preview format when loading
-  const rawGallery = Array.isArray(p.gallery_images) ? JSON.parse(JSON.stringify(p.gallery_images)) : [];
-  galleryImages = rawGallery.map(img => ({
-    url: convertGDriveLink(img.url || img)
-  }));
-
   const rawSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
   projectSections = rawSections.map(s => {
     const type = s.type || 'text';
-    if (type === 'slider') return { ...s, type, images: Array.isArray(s.images) ? s.images : [] };
+    if (type === 'slider' || type === 'gallery') return { ...s, type, images: Array.isArray(s.images) ? s.images : [] };
     if (type === 'image') return { ...s, type, image_url: s.image_url ? convertGDriveLink(s.image_url) : '' };
     return { ...s, type };
   });
 
   switchTab('details');
-  renderGallery();
-  renderSections();
+  renderBlocks();
   document.getElementById('project-modal').classList.add('active');
 }
 
