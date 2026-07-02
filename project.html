@@ -223,8 +223,16 @@
   <!-- Sections -->
   <div id="sections-container"></div>
 
+  <!-- More Projects -->
+  <section id="more-projects-section" style="padding: 80px 40px; border-top: 1px solid #e2dfd8; display: none;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <h2 style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(13px,1.1vw,15px); letter-spacing: .22em; color: #9a958a; margin: 0 0 36px; text-transform: uppercase;">More Projects</h2>
+      <div id="more-projects-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px;"></div>
+    </div>
+  </section>
+
   <!-- Footer -->
-  <footer style="background: #15140f; color: #f5f4f1; padding: 48px 40px; margin-top: 60px;">
+  <footer style="background: #15140f; color: #f5f4f1; padding: 48px 40px; margin-top: 0;">
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
       <div style="display: flex; align-items: center; gap: 14px;">
         <img src="./assets/logo-m.png" alt="" style="width: 30px; height: 30px; object-fit: contain;">
@@ -325,6 +333,9 @@
           initSliders();
         }
 
+        // More Projects
+        loadMoreProjects(projectId);
+
         document.title = `${project.title} — The Manual Studio`;
         // Update meta tags dynamically
         const desc = project.body ? project.body.slice(0, 160) : `${project.title} — ผลงานโดย The Manual Studio`;
@@ -344,6 +355,41 @@
         document.body.textContent = 'Error loading project';
       }
     }, 100);
+  }
+
+  async function loadMoreProjects(currentId) {
+    try {
+      const all = await supabase.getProjects();
+      const others = all.filter(p => p.project_id !== currentId);
+      if (!others.length) return;
+
+      // shuffle and pick up to 4
+      const picks = others.sort(() => Math.random() - 0.5).slice(0, 4);
+      const grid = document.getElementById('more-projects-grid');
+      grid.innerHTML = picks.map(p => {
+        const img = p.hero_placeholder || '';
+        const url = `project.html?id=${encodeURIComponent(p.project_id)}`;
+        return `<a href="${url}" style="text-decoration:none;color:inherit;display:block;">
+          <div style="aspect-ratio:4/3;overflow:hidden;border-radius:8px;background:#e2dfd8;margin-bottom:14px;">
+            ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;">` : ''}
+          </div>
+          <div style="font-size:15px;font-weight:400;line-height:1.3;margin-bottom:4px;">${escapeHtml(p.title || '')}</div>
+          ${p.cat_label ? `<div style="font-family:'Archivo',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;color:#9a958a;">${escapeHtml(p.cat_label)}</div>` : ''}
+        </a>`;
+      }).join('');
+
+      // hover zoom on images
+      grid.querySelectorAll('a').forEach(card => {
+        const img = card.querySelector('img');
+        if (!img) return;
+        card.addEventListener('mouseenter', () => img.style.transform = 'scale(1.05)');
+        card.addEventListener('mouseleave', () => img.style.transform = '');
+      });
+
+      document.getElementById('more-projects-section').style.display = '';
+    } catch (e) {
+      console.warn('loadMoreProjects error:', e);
+    }
   }
 
   function escapeHtml(text) {
