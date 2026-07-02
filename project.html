@@ -509,7 +509,7 @@
 
       function startAuto() {
         stopAuto();
-        timer = setInterval(() => go(cur + 1), 2000);
+        timer = setInterval(() => go(cur - 1), 4000);
       }
       function stopAuto() {
         if (timer) { clearInterval(timer); timer = null; }
