@@ -64,6 +64,7 @@
   .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* Gallery block */
+  .block-gallery-label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .18em; color: #9a958a; text-transform: uppercase; margin: 0 0 14px; }
   .block-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .block-gallery-item { overflow: hidden; border-radius: 8px; cursor: zoom-in; aspect-ratio: 4/3; }
   .block-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
@@ -407,12 +408,14 @@
     if (type === 'gallery') {
       const imgs = Array.isArray(b.images) ? b.images.filter(u => u) : [];
       if (!imgs.length) return '';
+      const safeImgs = escapeHtml(JSON.stringify(imgs));
       const items = imgs.map((url, i) => `
-        <div class="block-gallery-item" onclick="lbOpen(${JSON.stringify(imgs)},${i})">
+        <div class="block-gallery-item" data-imgs='${safeImgs}' data-idx="${i}" onclick="lbOpenAttr(this)">
           <img src="${escapeHtml(convertGDriveLink(url))}" alt="" loading="lazy">
         </div>`).join('');
       return `<div class="block-wrap">
         <div class="block-inner" data-reveal>
+          <h4 class="block-gallery-label">Gallery</h4>
           <div class="block-gallery-grid">${items}</div>
         </div>
       </div>`;
@@ -450,6 +453,10 @@
   }
 
   let _lbImgs = [], _lbIdx = 0;
+  function lbOpenAttr(el) {
+    const imgs = JSON.parse(el.dataset.imgs);
+    lbOpen(imgs, parseInt(el.dataset.idx));
+  }
   function lbOpen(imgs, idx) {
     _lbImgs = imgs; _lbIdx = idx;
     document.getElementById('lb-img').src = convertGDriveLink(imgs[idx]);
