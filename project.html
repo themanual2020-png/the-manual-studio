@@ -90,7 +90,13 @@
   .info-card { border: 1px solid #e2dfd8; border-radius: 10px; padding: 24px 28px; background: #fff; max-width: 520px; }
   .info-card-name { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
   .info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-  .info-icon { font-size: 15px; color: #9a958a; margin-top: 1px; flex-shrink: 0; }
+  .info-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+  .info-icon svg { width: 16px; height: 16px; }
+  .info-icon.fb { background: #1877f2; border-radius: 50%; width: 20px; height: 20px; }
+  .info-icon.fb svg { width: 12px; height: 12px; }
+  .info-icon.ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); border-radius: 5px; width: 20px; height: 20px; }
+  .info-icon.ig svg { width: 12px; height: 12px; }
+  .info-icon.line-ic { background: #06c755; border-radius: 5px; width: 20px; height: 20px; }
   .info-text { font-size: 14px; color: #15140f; line-height: 1.5; font-weight: 300; }
   .info-link { color: #15140f; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; font-weight: 300; }
 
@@ -360,13 +366,21 @@
     }
 
     if (type === 'info_card') {
+      const ICON_MAP = {
+        address:   `<span class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6b6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>`,
+        hours:     `<span class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6b6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 15.5"/></svg></span>`,
+        phone:     `<span class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#6b6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span>`,
+        facebook:  `<span class="info-icon fb"><svg viewBox="0 0 24 24" fill="#fff"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></span>`,
+        instagram: `<span class="info-icon ig"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5" fill="#fff" stroke="none"/></svg></span>`,
+        line:      `<span class="info-icon line-ic"><svg viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>`,
+      };
       const rows = [
-        b.address   ? `<div class="info-row"><span class="info-icon">📍</span><span class="info-text">${escapeHtml(b.address)}</span></div>` : '',
-        b.hours     ? `<div class="info-row"><span class="info-icon">🕐</span><span class="info-text">${escapeHtml(b.hours)}</span></div>` : '',
-        b.phone     ? `<div class="info-row"><span class="info-icon">📞</span><span class="info-text">${escapeHtml(b.phone)}</span></div>` : '',
-        b.facebook  ? `<div class="info-row"><span class="info-icon">📘</span><a href="${escapeHtml(b.facebook)}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//,''))}</a></div>` : '',
-        b.instagram ? `<div class="info-row"><span class="info-icon">📷</span><span class="info-text">${escapeHtml(b.instagram.replace(/^@/,'@'))}</span></div>` : '',
-        b.line      ? `<div class="info-row"><span class="info-icon">💬</span><a href="${escapeHtml(b.line)}" target="_blank" rel="noopener" class="info-link">Line</a></div>` : '',
+        b.address   ? `<div class="info-row">${ICON_MAP.address}<span class="info-text">${escapeHtml(b.address)}</span></div>` : '',
+        b.hours     ? `<div class="info-row">${ICON_MAP.hours}<span class="info-text">${escapeHtml(b.hours)}</span></div>` : '',
+        b.phone     ? `<div class="info-row">${ICON_MAP.phone}<span class="info-text">${escapeHtml(b.phone)}</span></div>` : '',
+        b.facebook  ? `<div class="info-row">${ICON_MAP.facebook}<a href="${escapeHtml(b.facebook)}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//,''))}</a></div>` : '',
+        b.instagram ? `<div class="info-row">${ICON_MAP.instagram}<a href="${escapeHtml(b.instagram.startsWith('http') ? b.instagram : 'https://instagram.com/'+b.instagram.replace(/^@/,''))}" target="_blank" rel="noopener" class="info-link">${escapeHtml(b.instagram.replace(/^@/,'@'))}</a></div>` : '',
+        b.line      ? `<div class="info-row">${ICON_MAP.line}<a href="${escapeHtml(b.line)}" target="_blank" rel="noopener" class="info-link">Line</a></div>` : '',
       ].filter(Boolean).join('');
       return `<div class="block-wrap">
         <div class="block-inner" data-reveal>
