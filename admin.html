@@ -60,9 +60,36 @@
     overflow: hidden;
     background: #fff;
     transition: all .2s;
+    cursor: grab;
+    user-select: none;
   }
 
   .project-card:hover { box-shadow: 0 4px 12px rgba(21,20,15,.1); transform: translateY(-2px); }
+  .project-card.dragging { opacity: 0.35; cursor: grabbing; transform: none !important; box-shadow: none !important; }
+  .project-card.drag-over { border: 2px dashed #15140f; transform: none !important; }
+
+  .drag-handle {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(21,20,15,.55); color: #fff;
+    border-radius: 4px; padding: 4px 7px;
+    font-size: 13px; line-height: 1; cursor: grab;
+    z-index: 2;
+  }
+
+  #sort-save-bar {
+    display: none;
+    align-items: center; justify-content: space-between;
+    background: #15140f; color: #f5f4f1;
+    border-radius: 8px; padding: 12px 20px;
+    margin-bottom: 16px; gap: 12px;
+    font-size: 14px;
+  }
+  #sort-save-bar button {
+    background: #f5f4f1; color: #15140f;
+    border: none; border-radius: 6px;
+    padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
 
   .project-card-thumb {
     width: 100%;
@@ -400,6 +427,11 @@
   </div>
 
   <div id="alerts"></div>
+
+  <div id="sort-save-bar">
+    <span>↕ ลากการ์ดเพื่อเรียงลำดับ — มีการเปลี่ยนแปลง</span>
+    <button onclick="saveOrder()">บันทึกลำดับ</button>
+  </div>
 
   <div id="projects-container" class="projects-grid">
     <p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">Loading projects...</p>
@@ -805,7 +837,7 @@ async function checkApiStatus() {
 
 async function loadProjects() {
   try {
-    projects = await apiFetch('/projects?order=created_at.desc');
+    projects = await apiFetch('/projects?order=sort_order.asc.nullslast,created_at.desc');
     renderProjects();
   } catch (e) {
     showAlert('Failed to load: ' + e.message, 'error');
@@ -832,7 +864,7 @@ function renderProjects() {
     return;
   }
 
-  c.innerHTML = projects.map(p => {
+  c.innerHTML = projects.map((p, idx) => {
     const imgs = Array.isArray(p.gallery_images) ? p.gallery_images : [];
     const firstImg = p.hero_placeholder || (imgs[0] && imgs[0].url) || '';
     const thumbHtml = firstImg
@@ -840,8 +872,11 @@ function renderProjects() {
       : `<div class="project-card-thumb-placeholder">📷</div>`;
     const sects = Array.isArray(p.project_sections) ? p.project_sections : [];
 
-    return `<div class="project-card">
-      ${thumbHtml}
+    return `<div class="project-card" draggable="true" data-idx="${idx}" data-id="${p.id}">
+      <div style="position:relative;">
+        ${thumbHtml}
+        <div class="drag-handle" title="ลากเพื่อเรียง">⠿</div>
+      </div>
       <div class="project-card-body">
         <h3>${escHtml(p.title)}</h3>
         <p>${escHtml(p.subtitle || '')}</p>
@@ -858,6 +893,63 @@ function renderProjects() {
       </div>
     </div>`;
   }).join('');
+
+  initDragAndDrop();
+}
+
+// ===== DRAG AND DROP =====
+let dragSrcIdx = null;
+let orderChanged = false;
+
+function initDragAndDrop() {
+  const cards = document.querySelectorAll('#projects-container .project-card');
+  cards.forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrcIdx = parseInt(card.dataset.idx);
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.querySelectorAll('.project-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.project-card').forEach(c => c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      const targetIdx = parseInt(card.dataset.idx);
+      if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+      const moved = projects.splice(dragSrcIdx, 1)[0];
+      projects.splice(targetIdx, 0, moved);
+      orderChanged = true;
+      renderProjects();
+      document.getElementById('sort-save-bar').style.display = 'flex';
+    });
+  });
+}
+
+// ===== SAVE ORDER =====
+async function saveOrder() {
+  const bar = document.getElementById('sort-save-bar');
+  bar.querySelector('button').textContent = 'กำลังบันทึก...';
+  try {
+    await Promise.all(projects.map((p, idx) =>
+      apiFetch(`/projects?id=eq.${p.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ sort_order: idx }),
+      })
+    ));
+    orderChanged = false;
+    bar.style.display = 'none';
+    showAlert('บันทึกลำดับเรียบร้อย', 'success');
+  } catch (e) {
+    showAlert('Error saving order: ' + e.message, 'error');
+    bar.querySelector('button').textContent = 'บันทึกลำดับ';
+  }
 }
 
 // ===== HELPERS =====

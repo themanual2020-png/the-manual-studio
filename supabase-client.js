@@ -34,7 +34,7 @@ class SupabaseClient {
 
   // Get all projects
   async getProjects() {
-    return this.request('/projects?order=created_at.desc');
+    return this.request('/projects?order=sort_order.asc.nullslast,created_at.desc');
   }
 
   // Get single project by project_id
