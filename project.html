@@ -167,7 +167,7 @@
   <!-- Title -->
   <section style="padding: 0 40px 40px;">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <h1 id="project-title" style="font-family: 'Archivo', 'Prompt', sans-serif; font-weight: 900; font-size: clamp(40px, 8vw, 80px); line-height: .9; margin: 0 0 16px; letter-spacing: -.02em;">—</h1>
+      <h1 id="project-title" style="font-family: 'Prompt', sans-serif; font-weight: 700; font-size: clamp(40px, 8vw, 80px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -.01em;">—</h1>
       <p id="project-subtitle" style="font-size: 16px; color: #9a958a; margin: 0;">—</p>
     </div>
   </section>
@@ -279,8 +279,7 @@
           return;
         }
 
-        document.getElementById('project-title').innerHTML = (project.title || '—')
-          .replace(/([\u0E00-\u0E7F]+)/g, '<span style="font-family:\'Prompt\',sans-serif;font-weight:700">$1</span>');
+        document.getElementById('project-title').textContent = project.title || '—';
         document.getElementById('project-subtitle').textContent = project.subtitle || '—';
         document.getElementById('project-year').textContent = project.year || '—';
         document.getElementById('project-location').textContent = project.location || '—';
