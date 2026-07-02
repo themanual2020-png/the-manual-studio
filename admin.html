@@ -614,22 +614,7 @@ function updateHeroPreview() {
   container.style.display = 'block';
 }
 
-// ===== GALLERY PREVIEW =====
-function updateGalleryPreview() {
-  const input = document.getElementById('gallery-url-input');
-  const url = input.value.trim();
-  const container = document.getElementById('gallery-preview-container');
-  const img = document.getElementById('gallery-preview-img');
-
-  if (!url) {
-    container.style.display = 'none';
-    return;
-  }
-
-  const previewUrl = convertGDriveLink(url);
-  img.src = previewUrl;
-  container.style.display = 'block';
-}
+function updateGalleryPreview() {}
 
 // ===== GALLERY (legacy stubs — gallery is now a block type) =====
 function renderGallery() {}
@@ -1091,9 +1076,6 @@ function escAttr(s) {
 document.getElementById('btn-add-project').addEventListener('click', openAddModal);
 document.getElementById('project-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('project-modal')) closeModal();
-});
-document.getElementById('gallery-url-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addGalleryUrl(); }
 });
 
 checkApiStatus();
