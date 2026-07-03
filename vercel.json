@@ -13,13 +13,6 @@
     },
     {
       "source": "/project.html",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Line|Discordbot|Pinterest|redditbot).*"
-        }
-      ],
       "destination": "/api/project-meta"
     }
   ]
