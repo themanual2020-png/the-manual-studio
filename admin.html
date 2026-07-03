@@ -543,7 +543,7 @@
       <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="analytics-columns">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;" id="analytics-columns">
       <div>
         <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Page Views ตามหน้า</h3>
         <div id="analytics-by-page"></div>
@@ -551,6 +551,10 @@
       <div>
         <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Project ที่ถูกดูมากที่สุด</h3>
         <div id="analytics-by-project"></div>
+      </div>
+      <div>
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">แหล่งที่มา (Traffic Source)</h3>
+        <div id="analytics-by-source"></div>
       </div>
     </div>
   </div>
@@ -739,6 +743,16 @@ async function loadAnalytics() {
   renderAnalyticsSummary(analyticsEvents);
   renderAnalyticsByPage(analyticsEvents);
   renderAnalyticsByProject(analyticsEvents);
+  renderAnalyticsBySource(analyticsEvents);
+}
+
+function renderAnalyticsBySource(events) {
+  const counts = {};
+  events.filter(e => e.event_type === 'page_view').forEach(e => {
+    const key = e.source || 'Direct';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  renderAnalyticsBarList('analytics-by-source', counts);
 }
 
 function renderAnalyticsSummary(events) {
@@ -797,7 +811,7 @@ function renderAnalyticsBarList(elId, counts) {
 
 function exportAnalyticsCSV() {
   if (!analyticsEvents.length) { showAlert('ไม่มีข้อมูลให้ export', 'error'); return; }
-  const headers = ['event_type', 'page', 'project_id', 'visitor_id', 'created_at'];
+  const headers = ['event_type', 'page', 'project_id', 'source', 'visitor_id', 'created_at'];
   const rows = analyticsEvents.map(e => headers.map(h => JSON.stringify(e[h] ?? '')).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
