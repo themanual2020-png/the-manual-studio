@@ -698,7 +698,6 @@
 
     <div class="form-actions">
       <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-      <button type="button" class="btn-secondary" onclick="previewProject()" id="btn-preview" style="display:none;">Preview ↗</button>
       <button type="button" class="btn-primary" onclick="saveProject()">Save</button>
     </div>
   </div>
@@ -889,11 +888,6 @@ function slugifyProjectId(s) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-function previewProject() {
-  const pid = normalizeProjectId(document.getElementById('project_id').value) || (currentEditId ? projects.find(p=>p.id===currentEditId)?.project_id : '');
-  if (pid) window.open(`project.html?id=${encodeURIComponent(pid)}`, '_blank');
 }
 
 // ===== API =====
@@ -1174,7 +1168,6 @@ function openAddModal() {
   document.getElementById('published').checked = true;
   document.getElementById('published-label').textContent = 'เผยแพร่ (Published)';
   document.getElementById('published-label').style.color = '#155724';
-  document.getElementById('btn-preview').style.display = 'none';
   populateCatSelect('');
   switchTab('details');
   renderBlocks();
@@ -1199,7 +1192,6 @@ async function editProject(id) {
   document.getElementById('published').checked = isPublished;
   document.getElementById('published-label').textContent = isPublished ? 'เผยแพร่ (Published)' : 'ร่าง (Draft)';
   document.getElementById('published-label').style.color = isPublished ? '#155724' : '#856404';
-  document.getElementById('btn-preview').style.display = '';
 
   const rawSections = Array.isArray(p.project_sections) ? JSON.parse(JSON.stringify(p.project_sections)) : [];
   projectSections = rawSections.map(s => {
