@@ -1169,6 +1169,8 @@ function openAddModal() {
   document.getElementById('modal-title').textContent = 'Add New Project';
   document.getElementById('project-form').reset();
   document.getElementById('project_id').disabled = false;
+  document.getElementById('hero-preview-container').style.display = 'none';
+  document.getElementById('hero-preview-img').src = '';
   document.getElementById('published').checked = true;
   document.getElementById('published-label').textContent = 'เผยแพร่ (Published)';
   document.getElementById('published-label').style.color = '#155724';
