@@ -186,5 +186,22 @@ const HERO_SLIDES = [
   }, 4000);
 })();
 </script>
+
+<!-- Vercel Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Instagram');
+      });
+    });
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Phone');
+      });
+    });
+  });
+</script>
 </body>
 </html>

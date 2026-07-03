@@ -517,5 +517,42 @@
     }
   }, { passive: true });
 </script>
+
+<!-- Vercel Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
+  // Custom events
+  document.addEventListener('DOMContentLoaded', function () {
+    // Contact form submit
+    const form = document.getElementById('contact-form');
+    if (form) {
+      form.addEventListener('submit', function () {
+        window.va && window.va('track', 'Contact Form Submit');
+      });
+    }
+
+    // Instagram click
+    document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Instagram');
+      });
+    });
+
+    // Phone click
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Phone');
+      });
+    });
+
+    // Project card click
+    document.addEventListener('click', function (e) {
+      const card = e.target.closest('[data-project-id]');
+      if (card) {
+        window.va && window.va('track', 'Click Project', { project: card.dataset.projectId });
+      }
+    });
+  });
+</script>
 </body>
 </html>

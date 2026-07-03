@@ -610,5 +610,29 @@
     loadProjectDetail();
   }
 </script>
+
+<!-- Vercel Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Track which project was viewed (after project data loads)
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('id');
+    if (pid) {
+      window.va && window.va('track', 'View Project', { project: pid });
+    }
+
+    document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Instagram');
+      });
+    });
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.va && window.va('track', 'Click Phone');
+      });
+    });
+  });
+</script>
 </body>
 </html>
