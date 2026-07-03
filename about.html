@@ -189,19 +189,50 @@ const HERO_SLIDES = [
 
 <!-- Vercel Analytics -->
 <script defer src="/_vercel/insights/script.js"></script>
+<!-- Own Analytics (Supabase) -->
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        window.va && window.va('track', 'Click Instagram');
-      });
-    });
-    document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        window.va && window.va('track', 'Click Phone');
-      });
+(function () {
+  const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw';
+  function getVisitorId() {
+    let id = localStorage.getItem('tms_vid');
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('tms_vid', id); }
+    return id;
+  }
+  window.tmsTrack = function (eventType, projectId) {
+    fetch(SUPA_URL + '/rest/v1/analytics_events', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'apikey': SUPA_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        page: 'about.html',
+        project_id: projectId || null,
+        visitor_id: getVisitorId(),
+      }),
+    }).catch(function () {});
+  };
+  window.tmsTrack('page_view');
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      window.va && window.va('track', 'Click Instagram');
+      window.tmsTrack('click_instagram');
     });
   });
+  document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      window.va && window.va('track', 'Click Phone');
+      window.tmsTrack('click_phone');
+    });
+  });
+});
 </script>
 </body>
 </html>

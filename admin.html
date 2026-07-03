@@ -493,6 +493,7 @@
     .form-actions { padding: 16px 20px 20px; }
     .form-row { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    #analytics-columns { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -504,6 +505,7 @@
     <div class="admin-actions">
       <button class="btn-primary" id="btn-add-project">+ Add Project</button>
       <button class="btn-secondary" onclick="openCatModal()">Categories</button>
+      <button class="btn-secondary" id="btn-analytics" onclick="toggleAnalyticsView()">📊 Analytics</button>
       <button class="btn-secondary" onclick="window.location.href='index.html'">← Back</button>
       <button class="btn-secondary" onclick="logout()">Logout</button>
     </div>
@@ -522,6 +524,35 @@
 
   <div id="projects-container" class="projects-grid">
     <p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">Loading projects...</p>
+  </div>
+
+  <div id="analytics-view" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <label style="font-family:'Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
+        <select id="analytics-range" onchange="loadAnalytics()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+          <option value="7">7 วันล่าสุด</option>
+          <option value="30" selected>30 วันล่าสุด</option>
+          <option value="90">90 วันล่าสุด</option>
+        </select>
+      </div>
+      <button class="btn-secondary btn-sm" onclick="exportAnalyticsCSV()">⬇ Export CSV</button>
+    </div>
+
+    <div id="analytics-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:32px;">
+      <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="analytics-columns">
+      <div>
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Page Views ตามหน้า</h3>
+        <div id="analytics-by-page"></div>
+      </div>
+      <div>
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Project ที่ถูกดูมากที่สุด</h3>
+        <div id="analytics-by-project"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -679,6 +710,104 @@ let projects = [];
 let currentEditId = null;
 let galleryImages = [];
 let projectSections = [];
+let analyticsEvents = [];
+
+// ===== ANALYTICS =====
+function toggleAnalyticsView() {
+  const view = document.getElementById('analytics-view');
+  const isShowing = view.style.display !== 'none';
+  view.style.display = isShowing ? 'none' : 'block';
+  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
+  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
+  document.getElementById('btn-analytics').textContent = isShowing ? '📊 Analytics' : '📋 Projects';
+  if (!isShowing) loadAnalytics();
+}
+
+async function loadAnalytics() {
+  const summaryEl = document.getElementById('analytics-summary');
+  summaryEl.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>';
+  const days = parseInt(document.getElementById('analytics-range').value, 10);
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    analyticsEvents = await apiFetch(`/analytics_events?created_at=gte.${encodeURIComponent(cutoff)}&order=created_at.desc&limit=10000`);
+  } catch (e) {
+    summaryEl.innerHTML = `<p style="grid-column:1/-1;color:#b3261e;padding:20px;">Error: ${escHtml(e.message)}</p>`;
+    document.getElementById('analytics-by-page').innerHTML = '';
+    document.getElementById('analytics-by-project').innerHTML = '';
+    return;
+  }
+  renderAnalyticsSummary(analyticsEvents);
+  renderAnalyticsByPage(analyticsEvents);
+  renderAnalyticsByProject(analyticsEvents);
+}
+
+function renderAnalyticsSummary(events) {
+  const cards = [
+    { label: 'Page Views', value: events.filter(e => e.event_type === 'page_view').length },
+    { label: 'Visitors', value: new Set(events.map(e => e.visitor_id)).size },
+    { label: 'Contact Submit', value: events.filter(e => e.event_type === 'contact_form_submit').length },
+    { label: 'Instagram Click', value: events.filter(e => e.event_type === 'click_instagram').length },
+    { label: 'Phone Click', value: events.filter(e => e.event_type === 'click_phone').length },
+  ];
+  document.getElementById('analytics-summary').innerHTML = cards.map(c => `
+    <div style="background:#fff;border:1px solid #e2dfd8;border-radius:8px;padding:18px;text-align:center;">
+      <div style="font-size:28px;font-weight:700;font-family:'Archivo',sans-serif;">${c.value}</div>
+      <div style="font-size:12px;color:#9a958a;margin-top:4px;">${c.label}</div>
+    </div>`).join('');
+}
+
+function renderAnalyticsByPage(events) {
+  const counts = {};
+  events.filter(e => e.event_type === 'page_view').forEach(e => {
+    const key = e.page || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  renderAnalyticsBarList('analytics-by-page', counts);
+}
+
+function renderAnalyticsByProject(events) {
+  const counts = {};
+  events.filter(e => e.event_type === 'view_project' || e.event_type === 'click_project').forEach(e => {
+    const key = e.project_id || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const named = {};
+  Object.entries(counts).forEach(([pid, count]) => {
+    const p = projects.find(x => x.project_id === pid);
+    named[p ? p.title : pid] = count;
+  });
+  renderAnalyticsBarList('analytics-by-project', named);
+}
+
+function renderAnalyticsBarList(elId, counts) {
+  const el = document.getElementById(elId);
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) { el.innerHTML = '<p style="color:#9a958a;font-size:13px;">ไม่มีข้อมูล</p>'; return; }
+  const max = entries[0][1];
+  el.innerHTML = entries.map(([label, count]) => `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+        <span>${escHtml(label)}</span><span style="font-weight:600;">${count}</span>
+      </div>
+      <div style="background:#e2dfd8;border-radius:4px;height:8px;overflow:hidden;">
+        <div style="background:#15140f;height:100%;width:${(count / max * 100).toFixed(0)}%;"></div>
+      </div>
+    </div>`).join('');
+}
+
+function exportAnalyticsCSV() {
+  if (!analyticsEvents.length) { showAlert('ไม่มีข้อมูลให้ export', 'error'); return; }
+  const headers = ['event_type', 'page', 'project_id', 'visitor_id', 'created_at'];
+  const rows = analyticsEvents.map(e => headers.map(h => JSON.stringify(e[h] ?? '')).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ===== CATEGORIES =====
 const DEFAULT_CATS = ['INTERIOR & EXTERIOR','EVENT','DOCUMENTARY','PRESENTATION','COMPANY PROFILE'];

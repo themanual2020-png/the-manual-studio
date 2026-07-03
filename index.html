@@ -520,39 +520,71 @@
 
 <!-- Vercel Analytics -->
 <script defer src="/_vercel/insights/script.js"></script>
+<!-- Own Analytics (Supabase) -->
 <script>
-  // Custom events
-  document.addEventListener('DOMContentLoaded', function () {
-    // Contact form submit
-    const form = document.getElementById('contact-form');
-    if (form) {
-      form.addEventListener('submit', function () {
-        window.va && window.va('track', 'Contact Form Submit');
-      });
-    }
+(function () {
+  const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw';
+  function getVisitorId() {
+    let id = localStorage.getItem('tms_vid');
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('tms_vid', id); }
+    return id;
+  }
+  window.tmsTrack = function (eventType, projectId) {
+    fetch(SUPA_URL + '/rest/v1/analytics_events', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'apikey': SUPA_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        page: 'index.html',
+        project_id: projectId || null,
+        visitor_id: getVisitorId(),
+      }),
+    }).catch(function () {});
+  };
+  window.tmsTrack('page_view');
+})();
 
-    // Instagram click
-    document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        window.va && window.va('track', 'Click Instagram');
-      });
+document.addEventListener('DOMContentLoaded', function () {
+  // Contact form submit
+  const form = document.getElementById('contact-form');
+  if (form) {
+    form.addEventListener('submit', function () {
+      window.va && window.va('track', 'Contact Form Submit');
+      window.tmsTrack('contact_form_submit');
     });
+  }
 
-    // Phone click
-    document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        window.va && window.va('track', 'Click Phone');
-      });
-    });
-
-    // Project card click
-    document.addEventListener('click', function (e) {
-      const card = e.target.closest('[data-project-id]');
-      if (card) {
-        window.va && window.va('track', 'Click Project', { project: card.dataset.projectId });
-      }
+  // Instagram click
+  document.querySelectorAll('a[href*="instagram"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      window.va && window.va('track', 'Click Instagram');
+      window.tmsTrack('click_instagram');
     });
   });
+
+  // Phone click
+  document.querySelectorAll('a[href^="tel:"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      window.va && window.va('track', 'Click Phone');
+      window.tmsTrack('click_phone');
+    });
+  });
+
+  // Project card click
+  document.addEventListener('click', function (e) {
+    const card = e.target.closest('[data-project-id]');
+    if (card) {
+      window.va && window.va('track', 'Click Project', { project: card.dataset.projectId });
+      window.tmsTrack('click_project', card.dataset.projectId);
+    }
+  });
+});
 </script>
 </body>
 </html>
