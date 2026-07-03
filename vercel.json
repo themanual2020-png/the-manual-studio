@@ -3,7 +3,7 @@
   "outputDirectory": ".",
   "functions": {
     "api/project-meta.js": {
-      "includeFiles": "project.html"
+      "includeFiles": "_project-template.html"
     }
   },
   "rewrites": [

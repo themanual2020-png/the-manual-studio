@@ -15,7 +15,7 @@ function escapeXml(s) {
 
 module.exports = async function handler(req, res) {
   const pid = req.query.id;
-  let html = fs.readFileSync(path.join(process.cwd(), 'project.html'), 'utf8');
+  let html = fs.readFileSync(path.join(process.cwd(), '_project-template.html'), 'utf8');
 
   if (pid) {
     try {
