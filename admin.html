@@ -877,8 +877,12 @@ function setupPublishedToggle() {
 }
 
 // ===== PREVIEW =====
+function normalizeProjectId(s) {
+  return String(s || '').trim().replace(/\s+/g, ' ');
+}
+
 function previewProject() {
-  const pid = document.getElementById('project_id').value.trim() || (currentEditId ? projects.find(p=>p.id===currentEditId)?.project_id : '');
+  const pid = normalizeProjectId(document.getElementById('project_id').value) || (currentEditId ? projects.find(p=>p.id===currentEditId)?.project_id : '');
   if (pid) window.open(`project.html?id=${encodeURIComponent(pid)}`, '_blank');
 }
 
@@ -1226,7 +1230,7 @@ async function saveProject() {
   }
 
   const formData = {
-    project_id: document.getElementById('project_id').value.trim(),
+    project_id: normalizeProjectId(document.getElementById('project_id').value),
     title: document.getElementById('title').value.trim(),
     subtitle: document.getElementById('subtitle').value.trim(),
     type_label: document.getElementById('type_label').value.trim(),
