@@ -32,9 +32,18 @@ class SupabaseClient {
     }
   }
 
-  // Get all projects
+  // Get all projects (admin — no filter)
   async getProjects() {
     return this.request('/projects?order=sort_order.asc.nullslast,created_at.desc');
+  }
+
+  // Get published projects only (public site)
+  async getPublishedProjects() {
+    try {
+      return await this.request('/projects?published=neq.false&order=sort_order.asc.nullslast,created_at.desc');
+    } catch {
+      return this.request('/projects?order=sort_order.asc.nullslast,created_at.desc');
+    }
   }
 
   // Get single project by project_id

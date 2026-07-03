@@ -375,7 +375,7 @@
     }
 
     try {
-      const data = await supabase.getProjects();
+      const data = await supabase.getPublishedProjects();
       if (data && data.length > 0) {
         allProjects = data;
         console.log('✅ Loaded from Supabase:', data.length, 'projects');
