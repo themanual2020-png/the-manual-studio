@@ -304,14 +304,61 @@
 
   <!-- Contact -->
   <section id="contact" style="padding: clamp(90px, 14vh, 180px) 40px;">
-    <div style="max-width: 1080px; margin: 0 auto;">
-      <div data-reveal>
-        <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">LET'S CREATE TOGETHER</span>
+    <div style="max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 100px); align-items: start;">
+      <!-- Left: heading -->
+      <div>
+        <div data-reveal>
+          <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">LET'S CREATE TOGETHER</span>
+        </div>
+        <h2 data-reveal style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(44px, 6vw, 100px); line-height: .9; letter-spacing: -.03em; margin: 22px 0 28px;">START A<br>PROJECT</h2>
+        <a href="mailto:themanual.2020@gmail.com" data-reveal style="display: inline-block; font-size: 16px; font-weight: 300; color: #9a958a; text-decoration: none;">themanual.2020@gmail.com</a>
       </div>
-      <h2 data-reveal style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: clamp(44px, 9vw, 140px); line-height: .9; letter-spacing: -.03em; margin: 22px 0 0;">START A<br>PROJECT</h2>
-      <a href="mailto:themanual.2020@gmail.com" data-reveal style="display: inline-block; margin-top: 36px; font-size: clamp(20px, 3vw, 34px); font-weight: 400; color: #15140f; text-decoration: none; border-bottom: 2px solid #15140f; padding-bottom: 4px;">themanual.2020@gmail.com</a>
+      <!-- Right: form -->
+      <form id="contact-form" data-reveal action="https://api.web3forms.com/submit" method="POST" style="display:flex;flex-direction:column;gap:14px;">
+        <input type="hidden" name="access_key" value="12303091-8ff4-4f22-9f45-d8d73d2a25a1">
+        <input type="hidden" name="subject" value="New Contact — The Manual Studio">
+        <input type="hidden" name="from_name" value="The Manual Studio Website">
+        <input type="text" name="name" required placeholder="ชื่อ / Name" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <input type="tel" name="phone" placeholder="เบอร์โทร / Phone" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <input type="email" name="email" placeholder="อีเมล / Email" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <textarea name="message" required placeholder="รายละเอียด / Message" rows="4" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;resize:vertical;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'"></textarea>
+        <button type="submit" id="contact-submit" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;background:#15140f;color:#f5f4f1;border:none;border-radius:999px;padding:16px 32px;cursor:pointer;transition:opacity .2s;align-self:flex-start;">SEND MESSAGE →</button>
+        <p id="contact-msg" style="display:none;font-size:14px;font-weight:300;margin:0;"></p>
+      </form>
     </div>
   </section>
+  <script>
+  document.getElementById('contact-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('contact-submit');
+    const msg = document.getElementById('contact-msg');
+    btn.textContent = 'กำลังส่ง...';
+    btn.style.opacity = '.6';
+    btn.disabled = true;
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: new FormData(this),
+      });
+      const data = await res.json();
+      if (data.success) {
+        msg.textContent = '✓ ส่งข้อความแล้ว ขอบคุณครับ เราจะติดต่อกลับเร็วๆ นี้';
+        msg.style.color = '#155724';
+        msg.style.display = 'block';
+        this.reset();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch(err) {
+      msg.textContent = '✗ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+      msg.style.color = '#b3261e';
+      msg.style.display = 'block';
+    }
+    btn.textContent = 'SEND MESSAGE →';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  });
+  </script>
 
   <!-- Footer -->
   <footer style="background: #15140f; color: #f5f4f1; padding: 64px 40px 40px;">
