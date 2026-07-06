@@ -371,7 +371,14 @@
   .img-preview-thumb {
     width: 48px; height: 36px; object-fit: cover;
     border-radius: 4px; border: 1px solid #e2dfd8; flex-shrink: 0;
+    cursor: zoom-in;
   }
+
+  /* Image Lightbox */
+  #img-lightbox { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.85); align-items:center; justify-content:center; padding:40px; }
+  #img-lightbox.active { display:flex; }
+  #img-lightbox img { max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; }
+  #img-lightbox .lb-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#fff; font-size:32px; cursor:pointer; line-height:1; padding:0; }
   .browse-btn {
     flex-shrink: 0; padding: 6px 10px; font-size: 11px; font-weight: 600;
     font-family: 'Archivo', sans-serif; letter-spacing: .08em;
@@ -558,6 +565,12 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Image Lightbox -->
+<div id="img-lightbox" onclick="closeImgLightbox()">
+  <button type="button" class="lb-close" onclick="closeImgLightbox()">&times;</button>
+  <img id="img-lightbox-img" src="" alt="">
 </div>
 
 <!-- Project Modal -->
@@ -923,6 +936,16 @@ function convertGDriveLink(url) {
   return url;
 }
 
+// ===== IMAGE LIGHTBOX =====
+function openImgLightbox(url) {
+  document.getElementById('img-lightbox-img').src = url;
+  document.getElementById('img-lightbox').classList.add('active');
+}
+function closeImgLightbox() {
+  document.getElementById('img-lightbox').classList.remove('active');
+  document.getElementById('img-lightbox-img').src = '';
+}
+
 // ===== HERO PREVIEW =====
 function updateHeroPreview() {
   const input = document.getElementById('hero_placeholder');
@@ -990,7 +1013,7 @@ function renderBlockFields(b, i) {
     </div>`;
 
   if (type === 'image') {
-    const prev = b.image_url ? `<img src="${escHtml(b.image_url)}" class="img-preview-thumb" onerror="this.style.display='none'">` : '';
+    const prev = b.image_url ? `<img src="${escHtml(b.image_url)}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(b.image_url)}')" onerror="this.style.display='none'">` : '';
     return `
     <div class="form-group" style="margin-bottom:10px">
       <label>Image URL</label>
@@ -1013,7 +1036,7 @@ function renderBlockFields(b, i) {
     <div class="slider-url-list" id="slider-urls-${i}">
       ${imgs.map((url, j) => `
         <div class="slider-url-row">
-          ${url ? `<img src="${escHtml(url)}" class="img-preview-thumb" onerror="this.style.display='none'">` : ''}
+          ${url ? `<img src="${escHtml(url)}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(url)}')" onerror="this.style.display='none'">` : ''}
           <input type="text" value="${escHtml(url)}" oninput="updateSliderImg(${i},${j},this.value)" placeholder="https://... (รูปที่ ${j+1})">
           <button type="button" class="browse-btn" onclick="openMediaPicker(url=>{updateSliderImg(${i},${j},url);renderBlocks();})">Browse</button>
           <button type="button" class="block-move-btn" style="color:#b3261e;flex-shrink:0" onclick="removeSliderImg(${i},${j})">✕</button>
@@ -1070,7 +1093,7 @@ function renderBlockFields(b, i) {
     const imgs = Array.isArray(b.images) ? b.images : [''];
     const rows = imgs.map((url, j) => `
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-        ${url ? `<img src="${escHtml(convertGDriveLink(url))}" class="img-preview-thumb" onerror="this.style.display='none'">` : ''}
+        ${url ? `<img src="${escHtml(convertGDriveLink(url))}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(convertGDriveLink(url))}')" onerror="this.style.display='none'">` : ''}
         <input type="text" value="${escHtml(url)}" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #d2cec5;border-radius:6px;" placeholder="https://... (Supabase, Google Drive)"
           oninput="updateGalleryImg(${i},${j},this.value)">
         <button type="button" class="browse-btn" onclick="openMediaPicker(url=>{updateGalleryImg(${i},${j},url);renderBlocks();})">Browse</button>
