@@ -105,6 +105,8 @@
     #tms-grid article { margin-bottom: 8px; }
     #tms-grid article > div:last-child > div:first-child { font-size: 16px !important; }
     #tms-grid article > div:last-child > div:last-child { font-size: 13px !important; }
+    #contact-grid { grid-template-columns: 1fr !important; word-break: break-word; }
+    #contact-grid input, #contact-grid textarea { width: 100% !important; box-sizing: border-box !important; }
   }
 </style>
 </head>
@@ -304,7 +306,7 @@
 
   <!-- Contact -->
   <section id="contact" style="padding: clamp(90px, 14vh, 180px) 40px;">
-    <div style="max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 100px); align-items: start;">
+    <div id="contact-grid" style="max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 100px); align-items: start;">
       <!-- Left: heading -->
       <div>
         <div data-reveal>
