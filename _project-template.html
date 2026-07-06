@@ -282,6 +282,8 @@
     return url;
   }
 
+  let currentProjectTitle = '';
+
   async function loadProjectDetail() {
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get('id');
@@ -305,6 +307,8 @@
           return;
         }
 
+        currentProjectTitle = project.title || '';
+
         document.getElementById('project-title').textContent = project.title || '—';
         document.getElementById('project-subtitle').textContent = project.subtitle || '—';
         document.getElementById('project-year').textContent = project.year || '—';
@@ -320,6 +324,7 @@
         if (project.hero_placeholder) {
           const heroImg = document.getElementById('hero-image');
           heroImg.src = convertGDriveLink(project.hero_placeholder);
+          heroImg.alt = project.title || 'Project Hero';
           heroImg.style.display = 'block';
           document.getElementById('hero-placeholder').style.display = 'none';
         }
@@ -336,9 +341,9 @@
         const gallery = Array.isArray(project.gallery_images) ? project.gallery_images : [];
         if (gallery.length > 0) {
           const galleryGrid = document.getElementById('gallery-grid');
-          galleryGrid.innerHTML = gallery.map(img => `
+          galleryGrid.innerHTML = gallery.map((img, i) => `
             <div class="gallery-item">
-              <img src="${escapeHtml(convertGDriveLink(convertGDriveLink(img.url || img)))}" alt="">
+              <img src="${escapeHtml(convertGDriveLink(convertGDriveLink(img.url || img)))}" alt="${escapeHtml(img.caption || `${project.title} — ภาพที่ ${i + 1}`)}">
             </div>
           `).join('');
           document.getElementById('gallery-section').style.display = 'block';
@@ -389,7 +394,7 @@
         const url = `project.html?id=${encodeURIComponent(p.project_id)}`;
         return `<a href="${url}" style="text-decoration:none;color:inherit;display:block;">
           <div style="aspect-ratio:4/3;overflow:hidden;border-radius:8px;background:#e2dfd8;margin-bottom:14px;">
-            ${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;">` : ''}
+            ${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.title || '')}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;">` : ''}
           </div>
           <div style="font-size:15px;font-weight:400;line-height:1.3;margin-bottom:4px;">${escapeHtml(p.title || '')}</div>
           ${p.cat_label ? `<div style="font-family:'Archivo',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;color:#9a958a;">${escapeHtml(p.cat_label)}</div>` : ''}
@@ -437,7 +442,7 @@
       return `<div class="block-wrap">
         <div class="block-inner block-image" data-reveal>
           <figure style="margin:0">
-            <img src="${escapeHtml(url)}" alt="${escapeHtml(b.caption||'')}" loading="lazy">
+            <img src="${escapeHtml(url)}" alt="${escapeHtml(b.caption || currentProjectTitle)}" loading="lazy">
             ${b.caption ? `<figcaption>${escapeHtml(b.caption)}</figcaption>` : ''}
           </figure>
         </div>
@@ -447,9 +452,9 @@
     if (type === 'slider') {
       const imgs = Array.isArray(b.images) ? b.images.filter(u => u) : [];
       if (!imgs.length) return '';
-      const slides = imgs.map(url => `
+      const slides = imgs.map((url, i) => `
         <div class="slider-slide">
-          <img src="${escapeHtml(convertGDriveLink(url))}" alt="" loading="lazy">
+          <img src="${escapeHtml(convertGDriveLink(url))}" alt="${escapeHtml(currentProjectTitle)} — รูปที่ ${i + 1}" loading="lazy">
         </div>`).join('');
       const dots = imgs.map((_, i) => `<button class="slider-dot${i===0?' active':''}" data-i="${i}" aria-label="รูปที่ ${i+1}"></button>`).join('');
       return `<div class="block-wrap">
@@ -486,7 +491,7 @@
       const safeImgs = escapeHtml(JSON.stringify(imgs));
       const items = imgs.map((url, i) => `
         <div class="block-gallery-item" data-imgs='${safeImgs}' data-idx="${i}" onclick="lbOpenAttr(this)">
-          <img src="${escapeHtml(convertGDriveLink(url))}" alt="" loading="lazy">
+          <img src="${escapeHtml(convertGDriveLink(url))}" alt="${escapeHtml(currentProjectTitle)} — แกลเลอรี ${i + 1}" loading="lazy">
         </div>`).join('');
       return `<div class="block-wrap">
         <div class="block-inner" data-reveal>
@@ -536,7 +541,9 @@
   }
   function lbOpen(imgs, idx) {
     _lbImgs = imgs; _lbIdx = idx;
-    document.getElementById('lb-img').src = convertGDriveLink(imgs[idx]);
+    const img = document.getElementById('lb-img');
+    img.src = convertGDriveLink(imgs[idx]);
+    img.alt = `${currentProjectTitle} — รูปที่ ${idx + 1}`;
     document.getElementById('lb-overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
     const hasMult = imgs.length > 1;
@@ -549,7 +556,9 @@
   }
   function lbStep(dir) {
     _lbIdx = (_lbIdx + dir + _lbImgs.length) % _lbImgs.length;
-    document.getElementById('lb-img').src = convertGDriveLink(_lbImgs[_lbIdx]);
+    const img = document.getElementById('lb-img');
+    img.src = convertGDriveLink(_lbImgs[_lbIdx]);
+    img.alt = `${currentProjectTitle} — รูปที่ ${_lbIdx + 1}`;
   }
   document.addEventListener('keydown', e => {
     if (!document.getElementById('lb-overlay').classList.contains('active')) return;
