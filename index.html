@@ -130,7 +130,7 @@
   <!-- Hero -->
   <section id="top" style="position: relative; height: 100svh; min-height: 620px; width: 100%; overflow: hidden; background: #15140f;">
     <div id="tms-hero-media" style="position: absolute; inset: 0; background: #15140f; transform: scale(1.04);">
-      <video id="tms-hero-video" muted loop playsinline autoplay preload="auto" src="https://pzrjboiioplhijzyfdmf.supabase.co/storage/v1/object/public/images/Untitled%20(1).mp4" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;"></video>
+      <video id="tms-hero-video" muted loop playsinline autoplay preload="auto" src="./assets/hero-video.mp4" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;"></video>
     </div>
     <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.18) 38%, rgba(10,9,7,.55) 100%); pointer-events: none;"></div>
     <div id="tms-hero-content" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 40px 64px; pointer-events: none;">
@@ -418,6 +418,14 @@
   let allProjects = [];
   let currentFilter = 'all';
 
+  function proxyImg(url) {
+    if (!url) return url;
+    if (url.includes('pzrjboiioplhijzyfdmf.supabase.co/storage/')) {
+      return `/api/img?src=${encodeURIComponent(url)}`;
+    }
+    return url;
+  }
+
   // Load projects from Supabase only
   async function loadProjects() {
     if (!supabase) {
@@ -456,7 +464,7 @@
       return `
         <article data-card data-cat="${catValue}" data-reveal class="tms-card" style="cursor: pointer;" data-project-id="${p.project_id}">
           <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-            ${p.hero_placeholder ? `<img src="${p.hero_placeholder}" alt="${p.title}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
+            ${p.hero_placeholder ? `<img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
             <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">${p.type_label || 'MEDIA'}</span>
           </div>
           <div style="margin-top: 16px;">

@@ -161,6 +161,14 @@ const HERO_SLIDES = [
   'https://pzrjboiioplhijzyfdmf.supabase.co/storage/v1/object/public/images/BH/Still%202024-11-04%20132344_6.2.1.jpg',
 ];
 
+function proxyImg(url) {
+  if (!url) return url;
+  if (url.includes('pzrjboiioplhijzyfdmf.supabase.co/storage/')) {
+    return `/api/img?src=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 (function() {
   const wrap = document.getElementById('about-slides');
   if (!wrap || !HERO_SLIDES.length) return;
@@ -170,7 +178,7 @@ const HERO_SLIDES = [
     el.style.cssText = [
       'position:absolute', 'inset:0',
       'background-size:cover', 'background-position:center',
-      `background-image:url('${url}')`,
+      `background-image:url('${proxyImg(url)}')`,
       'transition:opacity 1.5s ease',
       `opacity:${i === 0 ? 1 : 0}`,
     ].join(';');

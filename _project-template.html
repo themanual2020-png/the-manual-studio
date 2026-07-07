@@ -279,6 +279,9 @@
         return `https://drive.google.com/uc?export=view&id=${match[1]}`;
       }
     }
+    if (url.includes('pzrjboiioplhijzyfdmf.supabase.co/storage/')) {
+      return `/api/img?src=${encodeURIComponent(url)}`;
+    }
     return url;
   }
 
@@ -390,7 +393,7 @@
       const picks = others.sort(() => Math.random() - 0.5).slice(0, 4);
       const grid = document.getElementById('more-projects-grid');
       grid.innerHTML = picks.map(p => {
-        const img = p.hero_placeholder || '';
+        const img = convertGDriveLink(p.hero_placeholder || '');
         const url = `project.html?id=${encodeURIComponent(p.project_id)}`;
         return `<a href="${url}" style="text-decoration:none;color:inherit;display:block;">
           <div style="aspect-ratio:4/3;overflow:hidden;border-radius:8px;background:#e2dfd8;margin-bottom:14px;">
