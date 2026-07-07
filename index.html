@@ -56,7 +56,6 @@
   window.SUPABASE_KEY = '{{ VITE_SUPABASE_KEY }}';
 </script>
 <script src="./supabase-client.js"></script>
-<script src="./image-slot.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -76,17 +75,11 @@
     #tms-root [data-reveal] { opacity: 1 !important; animation: none !important; }
   }
 
-  image-slot { --is-bg: #e9e7e2; }
-  #tms-hero-media image-slot { --is-bg: #1c1b16; }
-
   .tms-card { cursor: pointer; }
-  .tms-card image-slot {
+  .tms-card img {
     transition: transform 1.1s cubic-bezier(.16,1,.3,1);
-    display: block;
-    width: 100%;
-    height: 100%;
   }
-  .tms-card:hover image-slot { transform: scale(1.06); }
+  .tms-card:hover img { transform: scale(1.06); }
 
   @media (max-width: 700px) {
     body { overflow-x: hidden; }
@@ -194,7 +187,7 @@
 
       <article data-card data-cat="interior" class="tms-card" data-project-id="sukhumvit-residence" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p1" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Sukhumvit Residence — interior"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -205,7 +198,7 @@
 
       <article data-card data-cat="interior" class="tms-card" data-project-id="riverside-hotel" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p2" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Riverside Hotel — exterior"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -216,7 +209,7 @@
 
       <article data-card data-cat="doc" class="tms-card" data-project-id="siam-profile" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p3" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Siam Group — corporate film"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -227,7 +220,7 @@
 
       <article data-card data-cat="event" class="tms-card" data-project-id="annual-gala-2025" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p4" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Annual Gala 2025 — event"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -238,7 +231,7 @@
 
       <article data-card data-cat="presentation" class="tms-card" data-project-id="investor-story" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p5" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Investor presentation film"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -249,7 +242,7 @@
 
       <article data-card data-cat="doc" class="tms-card" data-project-id="the-craftsman" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p6" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="The Craftsman — documentary"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -260,7 +253,7 @@
 
       <article data-card data-cat="interior" class="tms-card" data-project-id="lobby-lounge" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p7" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Lobby &amp; Lounge — interior"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -271,7 +264,7 @@
 
       <article data-card data-cat="event" class="tms-card" data-project-id="product-launch-night" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p8" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Product Launch Night"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -282,7 +275,7 @@
 
       <article data-card data-cat="presentation" class="tms-card" data-project-id="brand-presentation" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p9" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Brand presentation reel"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
@@ -293,7 +286,7 @@
 
       <article data-card data-cat="doc" class="tms-card" data-project-id="factory-story" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <image-slot id="tms-p10" style="position: absolute; inset: 0; width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="Factory Story — documentary"></image-slot>
+          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
           <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
