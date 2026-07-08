@@ -8,12 +8,11 @@
 
 create table if not exists conversations (
   id uuid primary key default gen_random_uuid(),
-  platform text not null check (platform in ('facebook', 'instagram', 'line', 'fastwork')),
+  platform text not null check (platform in ('facebook', 'instagram', 'line')),
   platform_thread_id text,
   customer_name text,
   customer_avatar_url text,
   status text not null default 'open' check (status in ('open', 'pending_review', 'waiting_customer', 'closed')),
-  is_manual boolean not null default false,
   last_message_at timestamptz,
   last_message_preview text,
   unread_count int not null default 0,
