@@ -1009,12 +1009,7 @@ function renderBlockFields(b, i) {
     </div>
     <div class="form-group" style="margin-bottom:0">
       <label>เนื้อหา</label>
-      <div style="display:flex;gap:6px;margin-bottom:6px;">
-        <button type="button" class="browse-btn" style="font-weight:900;width:30px;" title="ตัวหนา" onclick="wrapSelectionMarkdown(${i},'**')">B</button>
-        <button type="button" class="browse-btn" style="font-style:italic;width:30px;" title="ตัวเอียง" onclick="wrapSelectionMarkdown(${i},'*')">I</button>
-      </div>
-      <textarea id="text-body-${i}" style="min-height:80px" oninput="projectSections[${i}].body=this.value" placeholder="เนื้อหา...">${escHtml(b.body||'')}</textarea>
-      <p style="margin:6px 0 0;font-size:11px;color:#9a958a;">เลือกข้อความแล้วกด B/I เพื่อทำตัวหนา/เอียง · Enter 1 ครั้ง = ขึ้นบรรทัดใหม่ · Enter 2 ครั้ง (เว้นบรรทัดว่าง) = ย่อหน้าใหม่ (มีระยะห่างเพิ่ม)</p>
+      <textarea style="min-height:80px" oninput="projectSections[${i}].body=this.value" placeholder="เนื้อหา...">${escHtml(b.body||'')}</textarea>
     </div>`;
 
   if (type === 'image') {
@@ -1107,20 +1102,6 @@ function renderBlockFields(b, i) {
     return `<div>${rows}<button type="button" class="add-block-btn" style="margin-top:8px" onclick="addGalleryImg(${i})">+ เพิ่มรูป</button></div>`;
   }
   return '';
-}
-
-function wrapSelectionMarkdown(idx, marker) {
-  const ta = document.getElementById('text-body-' + idx);
-  if (!ta) return;
-  const start = ta.selectionStart, end = ta.selectionEnd;
-  const val = ta.value;
-  const newVal = val.slice(0, start) + marker + val.slice(start, end) + marker + val.slice(end);
-  ta.value = newVal;
-  projectSections[idx].body = newVal;
-  const newStart = start + marker.length;
-  const newEnd = newStart + (end - start);
-  ta.focus();
-  ta.setSelectionRange(newStart, newEnd);
 }
 
 function addBlock(type) {
