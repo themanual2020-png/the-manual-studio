@@ -658,7 +658,13 @@
 
         <div class="form-group">
           <label>Main Description</label>
+          <div style="display:flex;gap:6px;margin-bottom:6px;">
+            <button type="button" class="browse-btn" style="font-weight:900;width:30px;" title="ตัวหนา" onclick="wrapMainDesc('**')">B</button>
+            <button type="button" class="browse-btn" style="font-style:italic;width:30px;" title="ตัวเอียง" onclick="wrapMainDesc('*')">I</button>
+            <button type="button" class="browse-btn" style="font-weight:700;" title="หัวข้อย่อยกลางบทความ" onclick="insertMainHeading()">H2</button>
+          </div>
           <textarea id="body" required placeholder="Main description..."></textarea>
+          <p style="margin:6px 0 0;font-size:11px;color:#9a958a;">เลือกข้อความแล้วกด B/I เพื่อทำตัวหนา/เอียง · กด H2 เพื่อแทรกหัวข้อย่อย · Enter 1 ครั้ง = ขึ้นบรรทัดใหม่ · Enter 2 ครั้ง (เว้นบรรทัดว่าง) = ย่อหน้าใหม่</p>
         </div>
 
         <div class="form-group">
@@ -1122,6 +1128,31 @@ function wrapSelectionMarkdown(idx, marker) {
   const newEnd = newStart + (end - start);
   ta.focus();
   ta.setSelectionRange(newStart, newEnd);
+}
+
+function wrapMainDesc(marker) {
+  const ta = document.getElementById('body');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const val = ta.value;
+  const newVal = val.slice(0, start) + marker + val.slice(start, end) + marker + val.slice(end);
+  ta.value = newVal;
+  const newStart = start + marker.length;
+  const newEnd = newStart + (end - start);
+  ta.focus();
+  ta.setSelectionRange(newStart, newEnd);
+}
+
+function insertMainHeading() {
+  const ta = document.getElementById('body');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const val = ta.value;
+  const selected = val.slice(start, end) || 'หัวข้อย่อย';
+  const insert = `\n\n## ${selected}\n\n`;
+  const newVal = val.slice(0, start) + insert + val.slice(end);
+  ta.value = newVal;
+  const headingStart = start + 5;
+  ta.focus();
+  ta.setSelectionRange(headingStart, headingStart + selected.length);
 }
 
 function insertHeading(idx) {
