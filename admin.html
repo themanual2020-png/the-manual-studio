@@ -397,12 +397,16 @@
   .mp-header input::placeholder { color:#888; }
   .mp-close { background:none; border:none; font-size:20px; cursor:pointer; color:#888; line-height:1; padding:0 2px; }
   .mp-close:hover { color:#fff; }
+  .mp-breadcrumb { padding:10px 18px; background:#242426; border-bottom:1px solid #3a3a3c; }
+  .mp-up-btn { background:none; border:none; color:#e5e5ea; font-size:12px; font-family:'Archivo',sans-serif; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:6px; }
+  .mp-up-btn:hover { background:rgba(255,255,255,.1); }
   .mp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; padding:20px; overflow-y:auto; flex:1; }
   .mp-item { cursor:pointer; position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px; border-radius:10px; transition:background .15s; }
   .mp-item:hover { background:rgba(255,255,255,.1); }
   .mp-item.selected { background:rgba(10,132,255,.3); }
   .mp-thumb { width:100%; aspect-ratio:3/2; border-radius:8px; overflow:hidden; background:#3a3a3c; }
   .mp-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mp-folder-thumb { display:flex; align-items:center; justify-content:center; font-size:36px; background:#333336; }
   .mp-item-name { color:#e5e5ea; font-size:11px; text-align:center; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-family:'Archivo',sans-serif; }
   .mp-footer { padding:12px 18px; display:flex; justify-content:center; background:#2c2c2e; }
   .mp-loadmore { padding:8px 24px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; background:#3a3a3c; border:none; border-radius:8px; cursor:pointer; color:#fff; }
@@ -583,6 +587,7 @@
       <input type="text" id="mp-search" placeholder="ค้นหาชื่อไฟล์...">
       <button class="mp-close" onclick="closeMediaPicker()">×</button>
     </div>
+    <div class="mp-breadcrumb" id="mp-breadcrumb" style="display:none"></div>
     <div class="mp-grid" id="mp-grid"><div class="mp-loading">กำลังโหลด...</div></div>
     <div class="mp-footer" id="mp-footer" style="display:none">
       <button class="mp-loadmore" id="mp-loadmore-btn" onclick="loadMoreMedia()">โหลดเพิ่ม</button>
@@ -1483,12 +1488,14 @@ checkApiStatus();
 let _mpCallback = null;
 let _mpAllFiles = [];
 let _mpOffset = 0;
+let _mpPath = '';
 const MP_PAGE = 50;
 
 async function openMediaPicker(callback) {
   _mpCallback = callback;
   _mpAllFiles = [];
   _mpOffset = 0;
+  _mpPath = '';
   document.getElementById('media-picker').classList.add('active');
   document.getElementById('mp-search').value = '';
   document.getElementById('mp-footer').style.display = 'none';
@@ -1507,11 +1514,11 @@ async function fetchMediaFiles(reset = false) {
     const res = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/list/images`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`, 'apikey': CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prefix: '', limit: MP_PAGE, offset: _mpOffset, sortBy: { column: 'created_at', order: 'desc' } })
+      body: JSON.stringify({ prefix: _mpPath, limit: MP_PAGE, offset: _mpOffset, sortBy: { column: 'name', order: 'asc' } })
     });
     const raw = await res.json();
-    const files = raw.filter(f => f.id && f.name !== '.emptyFolderPlaceholder');
-    _mpAllFiles = reset ? files : [..._mpAllFiles, ...files];
+    const items = raw.filter(f => f.name !== '.emptyFolderPlaceholder');
+    _mpAllFiles = reset ? items : [..._mpAllFiles, ...items];
     _mpOffset += raw.length;
     renderMediaGrid();
     document.getElementById('mp-footer').style.display = raw.length === MP_PAGE ? '' : 'none';
@@ -1522,18 +1529,51 @@ async function fetchMediaFiles(reset = false) {
 
 function loadMoreMedia() { fetchMediaFiles(false); }
 
+function openMpFolder(name) {
+  _mpPath = _mpPath + name + '/';
+  document.getElementById('mp-search').value = '';
+  fetchMediaFiles(true);
+}
+
+function mpGoUp() {
+  const parts = _mpPath.split('/').filter(Boolean);
+  parts.pop();
+  _mpPath = parts.length ? parts.join('/') + '/' : '';
+  document.getElementById('mp-search').value = '';
+  fetchMediaFiles(true);
+}
+
 function renderMediaGrid() {
   const search = document.getElementById('mp-search').value.toLowerCase();
   const grid = document.getElementById('mp-grid');
   const items = search ? _mpAllFiles.filter(f => f.name.toLowerCase().includes(search)) : _mpAllFiles;
+
+  const crumb = document.getElementById('mp-breadcrumb');
+  if (_mpPath) {
+    crumb.style.display = '';
+    crumb.innerHTML = `<button type="button" class="mp-up-btn" onclick="mpGoUp()">← ${escHtml(_mpPath.slice(0, -1))}</button>`;
+  } else {
+    crumb.style.display = 'none';
+    crumb.innerHTML = '';
+  }
+
   if (!items.length) { grid.innerHTML = '<div class="mp-empty">ไม่พบไฟล์</div>'; return; }
+
   grid.innerHTML = items.map(f => {
-    const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${f.name}`;
-    const thumbUrl = `${CONFIG.SUPABASE_URL}/storage/v1/render/image/public/images/${f.name}?width=300&height=200&resize=cover&quality=65`;
+    const isFolder = !f.id;
+    if (isFolder) {
+      return `<div class="mp-item" onclick="openMpFolder('${escAttr(f.name)}')">
+        <div class="mp-thumb mp-folder-thumb">📁</div>
+        <div class="mp-item-name">${escHtml(f.name)}</div>
+      </div>`;
+    }
+    const fullPath = _mpPath + f.name;
+    const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${fullPath}`;
+    const thumbUrl = `${CONFIG.SUPABASE_URL}/storage/v1/render/image/public/images/${fullPath}?width=300&height=200&resize=cover&quality=65`;
     const shortName = f.name.replace(/\.[^.]+$/, '');
     return `<div class="mp-item" onclick="selectMedia('${fullUrl}')">
       <div class="mp-thumb"><img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'"></div>
-      <div class="mp-item-name">${shortName}</div>
+      <div class="mp-item-name">${escHtml(shortName)}</div>
     </div>`;
   }).join('');
 }
