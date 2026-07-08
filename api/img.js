@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 
 const ALLOWED_HOST = 'pzrjboiioplhijzyfdmf.supabase.co';
+const MAX_WIDTH = 2000;
 
 module.exports = async function handler(req, res) {
   const src = req.query.src;
@@ -34,17 +35,24 @@ module.exports = async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
     res.setHeader('Vary', 'Accept');
 
-    const acceptsWebp = (req.headers.accept || '').includes('image/webp');
     const isConvertibleImage = /^image\/(jpeg|png|jpg)$/i.test(contentType);
+    const acceptsWebp = (req.headers.accept || '').includes('image/webp');
 
-    if (acceptsWebp && isConvertibleImage) {
+    if (isConvertibleImage) {
       try {
-        const webp = await sharp(buf).webp({ quality: 80 }).toBuffer();
-        res.setHeader('Content-Type', 'image/webp');
-        res.status(200).send(webp);
+        const pipeline = sharp(buf).resize({ width: MAX_WIDTH, withoutEnlargement: true });
+        if (acceptsWebp) {
+          const out = await pipeline.webp({ quality: 80 }).toBuffer();
+          res.setHeader('Content-Type', 'image/webp');
+          res.status(200).send(out);
+        } else {
+          const out = await pipeline.jpeg({ quality: 80 }).toBuffer();
+          res.setHeader('Content-Type', 'image/jpeg');
+          res.status(200).send(out);
+        }
         return;
       } catch (e) {
-        // fall through and serve the original bytes if conversion fails
+        // fall through and serve the original bytes if processing fails
       }
     }
 
