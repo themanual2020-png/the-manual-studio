@@ -13,15 +13,6 @@ function escapeXml(s) {
     .replace(/"/g, '&quot;');
 }
 
-function stripMarkdown(s) {
-  return String(s)
-    .replace(/^##\s+/gm, '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/\n+/g, ' ')
-    .trim();
-}
-
 module.exports = async function handler(req, res) {
   const pid = req.query.id;
   let html = fs.readFileSync(path.join(process.cwd(), '_project-template.html'), 'utf8');
@@ -37,7 +28,7 @@ module.exports = async function handler(req, res) {
 
       if (p) {
         const title = escapeXml(`${p.title} — The Manual Studio`);
-        const desc = escapeXml(stripMarkdown(p.body || p.subtitle || '').slice(0, 160));
+        const desc = escapeXml((p.body || p.subtitle || '').slice(0, 160));
         const img = escapeXml(p.hero_placeholder || `${BASE_URL}/assets/og-image.jpg`);
         const url = escapeXml(`${BASE_URL}/project.html?id=${encodeURIComponent(pid)}`);
 

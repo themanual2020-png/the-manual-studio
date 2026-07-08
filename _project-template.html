@@ -91,11 +91,6 @@
   .block-text h2.block-subhead { font-family: 'Archivo', 'Prompt', sans-serif; font-size: clamp(24px,3.2vw,36px); font-weight: 800; text-align: center; letter-spacing: -.01em; margin: 1.4em 0 1em; }
   .block-text h2.block-subhead:first-child { margin-top: 0; }
 
-  .project-body-text p { margin: 0; text-align: justify; text-indent: 1.5em; }
-  .project-body-text p + p { margin-top: 1em; }
-  .project-body-text h2.block-subhead { font-family: 'Archivo', 'Prompt', sans-serif; font-weight: 800; text-align: center; letter-spacing: -.01em; margin: 1.2em 0 .8em; font-size: clamp(26px,3.6vw,38px); }
-  .project-body-text h2.block-subhead:first-child { margin-top: 0; }
-
   .block-image img { width: 100%; height: auto; border-radius: 8px; display: block; }
   .block-image figcaption { font-size: 13px; color: #9a958a; margin-top: 10px; font-weight: 300; }
 
@@ -209,7 +204,7 @@
   <!-- Body -->
   <section style="padding: 60px 40px;">
     <div style="max-width: 800px; margin: 0 auto;">
-      <div id="project-body" data-reveal class="project-body-text" style="font-size: clamp(20px, 3vw, 28px); line-height: 1.6; font-weight: 300;">—</div>
+      <p id="project-body" data-reveal style="font-size: clamp(20px, 3vw, 28px); line-height: 1.6; font-weight: 300; margin: 0;">—</p>
     </div>
   </section>
 
@@ -326,7 +321,7 @@
         document.getElementById('project-location').textContent = project.location || '—';
         document.getElementById('project-type').textContent = project.type_label || '—';
         document.getElementById('project-category').textContent = project.cat_label || '—';
-        document.getElementById('project-body').innerHTML = project.body ? formatBodyText(project.body) : '—';
+        document.getElementById('project-body').textContent = project.body || '—';
         if (project.client) {
           document.getElementById('project-client').textContent = project.client;
           document.getElementById('client-section').style.display = '';
@@ -372,7 +367,7 @@
 
         document.title = `${project.title} — The Manual Studio`;
         // Update meta tags dynamically
-        const desc = project.body ? stripMarkdown(project.body).slice(0, 160) : `${project.title} — ผลงานโดย The Manual Studio`;
+        const desc = project.body ? project.body.slice(0, 160) : `${project.title} — ผลงานโดย The Manual Studio`;
         document.querySelector('meta[name="description"]').setAttribute('content', desc);
         document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${project.title} — The Manual Studio`);
         document.querySelector('meta[property="og:description"]')?.setAttribute('content', desc);
@@ -433,15 +428,6 @@
 
   function wrapThai(text) {
     return escapeHtml(text).replace(/([\u0E00-\u0E7F]+)/g, '<span style="font-family:\'Prompt\',sans-serif">$1</span>');
-  }
-
-  function stripMarkdown(s) {
-    return String(s)
-      .replace(/^##\s+/gm, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/\n+/g, ' ')
-      .trim();
   }
 
   function formatBodyText(body) {
