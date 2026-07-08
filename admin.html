@@ -1489,6 +1489,8 @@ let _mpCallback = null;
 let _mpAllFiles = [];
 let _mpOffset = 0;
 let _mpPath = '';
+let _mpFullyLoaded = false;
+let _mpLoadingAll = false;
 const MP_PAGE = 50;
 
 async function openMediaPicker(callback) {
@@ -1496,6 +1498,7 @@ async function openMediaPicker(callback) {
   _mpAllFiles = [];
   _mpOffset = 0;
   _mpPath = '';
+  _mpFullyLoaded = false;
   document.getElementById('media-picker').classList.add('active');
   document.getElementById('mp-search').value = '';
   document.getElementById('mp-footer').style.display = 'none';
@@ -1509,7 +1512,7 @@ function closeMediaPicker() {
 
 async function fetchMediaFiles(reset = false) {
   const grid = document.getElementById('mp-grid');
-  if (reset) { _mpAllFiles = []; _mpOffset = 0; grid.innerHTML = '<div class="mp-loading">กำลังโหลด...</div>'; }
+  if (reset) { _mpAllFiles = []; _mpOffset = 0; _mpFullyLoaded = false; grid.innerHTML = '<div class="mp-loading">กำลังโหลด...</div>'; }
   try {
     const res = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/list/images`, {
       method: 'POST',
@@ -1520,14 +1523,27 @@ async function fetchMediaFiles(reset = false) {
     const items = raw.filter(f => f.name !== '.emptyFolderPlaceholder');
     _mpAllFiles = reset ? items : [..._mpAllFiles, ...items];
     _mpOffset += raw.length;
+    if (raw.length < MP_PAGE) _mpFullyLoaded = true;
     renderMediaGrid();
-    document.getElementById('mp-footer').style.display = raw.length === MP_PAGE ? '' : 'none';
+    document.getElementById('mp-footer').style.display = (raw.length === MP_PAGE && !document.getElementById('mp-search').value.trim()) ? '' : 'none';
   } catch(e) {
     grid.innerHTML = '<div class="mp-empty">โหลดไม่ได้ — ตรวจสอบ Storage Policy</div>';
   }
 }
 
 function loadMoreMedia() { fetchMediaFiles(false); }
+
+// ค้นหาต้องเห็นทุกไฟล์/โฟลเดอร์ในชั้นนี้ ไม่ใช่แค่ 50 รายการแรกที่โหลดไว้
+async function mpEnsureFullyLoaded() {
+  if (_mpFullyLoaded || _mpLoadingAll) return;
+  _mpLoadingAll = true;
+  document.getElementById('mp-grid').innerHTML = '<div class="mp-loading">กำลังค้นหา...</div>';
+  while (!_mpFullyLoaded) {
+    await fetchMediaFiles(false);
+  }
+  _mpLoadingAll = false;
+  renderMediaGrid();
+}
 
 function openMpFolder(name) {
   _mpPath = _mpPath + name + '/';
@@ -1583,7 +1599,13 @@ function selectMedia(url) {
   closeMediaPicker();
 }
 
-document.getElementById('mp-search').addEventListener('input', renderMediaGrid);
+document.getElementById('mp-search').addEventListener('input', e => {
+  if (e.target.value.trim()) {
+    mpEnsureFullyLoaded();
+  } else {
+    renderMediaGrid();
+  }
+});
 document.getElementById('media-picker').addEventListener('click', e => {
   if (e.target === document.getElementById('media-picker')) closeMediaPicker();
 });
