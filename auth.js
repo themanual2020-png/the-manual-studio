@@ -1,47 +1,58 @@
-// Simple authentication for admin panel
-const ADMIN_CREDENTIALS = {
-  username: 'Manual',
-  password: 'manual2020'
-};
+// Admin authentication — verified server-side via an httpOnly session cookie.
+// See api/auth-login.js, api/auth-logout.js, api/auth-check.js.
 
-const AUTH_TOKEN_KEY = 'tms_admin_token';
-
-// Check if user is logged in
-function isLoggedIn() {
-  return localStorage.getItem(AUTH_TOKEN_KEY) === 'true';
-}
-
-// Login function
-function login(username, password) {
-  if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-    localStorage.setItem(AUTH_TOKEN_KEY, 'true');
-    return true;
+async function login(username, password) {
+  try {
+    const res = await fetch('/api/auth-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    return res.ok;
+  } catch (error) {
+    console.error('Login request failed:', error);
+    return false;
   }
-  return false;
 }
 
-// Logout function
-function logout() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+async function isLoggedIn() {
+  try {
+    const res = await fetch('/api/auth-check');
+    return res.ok;
+  } catch (error) {
+    console.error('Auth check failed:', error);
+    return false;
+  }
+}
+
+async function logout() {
+  try {
+    await fetch('/api/auth-logout', { method: 'POST' });
+  } catch (error) {
+    console.error('Logout request failed:', error);
+  }
   window.location.href = 'login.html';
 }
 
-// Redirect to login if not authenticated
-function requireAuth() {
-  if (!isLoggedIn()) {
+async function requireAuth() {
+  const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
     window.location.href = 'login.html';
+  }
+  return loggedIn;
+}
+
+// Auto-check on protected pages
+const PROTECTED_PAGES = ['admin.html', 'inbox.html'];
+
+async function autoCheck() {
+  if (PROTECTED_PAGES.some((page) => window.location.pathname.includes(page))) {
+    await requireAuth();
   }
 }
 
-// Auto-check on page load
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.includes('admin.html') && !isLoggedIn()) {
-      window.location.href = 'login.html';
-    }
-  });
+  document.addEventListener('DOMContentLoaded', autoCheck);
 } else {
-  if (window.location.pathname.includes('admin.html') && !isLoggedIn()) {
-    window.location.href = 'login.html';
-  }
+  autoCheck();
 }

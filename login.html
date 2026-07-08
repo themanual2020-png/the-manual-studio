@@ -150,14 +150,20 @@
 
   <script src="./auth.js"></script>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const errorEl = document.getElementById('error');
+      const submitBtn = e.target.querySelector('button[type="submit"]');
 
-      if (login(username, password)) {
+      errorEl.classList.remove('show');
+      submitBtn.disabled = true;
+      const ok = await login(username, password);
+      submitBtn.disabled = false;
+
+      if (ok) {
         window.location.href = 'admin.html';
       } else {
         errorEl.textContent = 'Username หรือ Password ผิด';
@@ -167,9 +173,11 @@
     });
 
     // If already logged in, redirect to admin
-    if (isLoggedIn()) {
-      window.location.href = 'admin.html';
-    }
+    (async () => {
+      if (await isLoggedIn()) {
+        window.location.href = 'admin.html';
+      }
+    })();
   </script>
 </body>
 </html>
