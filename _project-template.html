@@ -86,10 +86,8 @@
   .block-inner.narrow { max-width: 800px; }
 
   .block-text h3 { font-family: 'Archivo', 'Prompt', sans-serif; font-size: clamp(22px,3vw,32px); font-weight: 800; margin: 0 0 20px; letter-spacing: -.01em; }
-  .block-text p { font-size: clamp(16px,1.6vw,19px); line-height: 1.75; font-weight: 300; margin: 0; text-align: justify; text-indent: 1.5em; }
+  .block-text p { font-size: clamp(16px,1.6vw,19px); line-height: 1.75; font-weight: 300; margin: 0; }
   .block-text p + p { margin-top: 1.2em; }
-  .block-text h2.block-subhead { font-family: 'Archivo', 'Prompt', sans-serif; font-size: clamp(24px,3.2vw,36px); font-weight: 800; text-align: center; letter-spacing: -.01em; margin: 1.4em 0 1em; }
-  .block-text h2.block-subhead:first-child { margin-top: 0; }
 
   .block-image img { width: 100%; height: auto; border-radius: 8px; display: block; }
   .block-image figcaption { font-size: 13px; color: #9a958a; margin-top: 10px; font-weight: 300; }
@@ -434,18 +432,13 @@
     const escaped = escapeHtml(body).replace(/\r\n/g, '\n');
     return escaped
       .split(/\n{2,}/)
-      .map(para => para.trim())
-      .filter(para => para)
-      .map(para => {
-        const heading = para.match(/^##\s+([\s\S]+)$/);
-        const inline = s => s
-          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*([^*]+)\*/g, '<em>$1</em>');
-        if (heading) {
-          return `<h2 class="block-subhead">${inline(heading[1])}</h2>`;
-        }
-        return `<p>${inline(para).replace(/\n/g, '<br>')}</p>`;
-      })
+      .map(para => para
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>')
+      )
+      .filter(para => para.trim())
+      .map(para => `<p>${para}</p>`)
       .join('');
   }
 
