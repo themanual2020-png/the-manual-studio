@@ -408,6 +408,7 @@
   .mp-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .mp-folder-thumb { display:flex; align-items:center; justify-content:center; font-size:36px; background:#333336; }
   .mp-item-name { color:#e5e5ea; font-size:11px; text-align:center; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-family:'Archivo',sans-serif; }
+  .mp-item-path { color:#8e8e93; font-size:9.5px; text-align:center; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-family:'Archivo',sans-serif; }
   .mp-footer { padding:12px 18px; display:flex; justify-content:center; background:#2c2c2e; }
   .mp-loadmore { padding:8px 24px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; background:#3a3a3c; border:none; border-radius:8px; cursor:pointer; color:#fff; }
   .mp-loadmore:hover { background:#48484a; }
@@ -1498,7 +1499,8 @@ let _mpAllFiles = [];
 let _mpOffset = 0;
 let _mpPath = '';
 let _mpFullyLoaded = false;
-let _mpLoadingAll = false;
+let _mpSearchResults = null;
+let _mpSearchTimer = null;
 const MP_PAGE = 50;
 
 async function openMediaPicker(callback) {
@@ -1507,10 +1509,19 @@ async function openMediaPicker(callback) {
   _mpOffset = 0;
   _mpPath = '';
   _mpFullyLoaded = false;
+  _mpSearchResults = null;
   document.getElementById('media-picker').classList.add('active');
   document.getElementById('mp-search').value = '';
   document.getElementById('mp-footer').style.display = 'none';
   await fetchMediaFiles(true);
+}
+
+function mpSortItems(items) {
+  return [...items].sort((a, b) => {
+    const aFolder = !a.id, bFolder = !b.id;
+    if (aFolder !== bFolder) return aFolder ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 function closeMediaPicker() {
@@ -1541,20 +1552,46 @@ async function fetchMediaFiles(reset = false) {
 
 function loadMoreMedia() { fetchMediaFiles(false); }
 
-// ค้นหาต้องเห็นทุกไฟล์/โฟลเดอร์ในชั้นนี้ ไม่ใช่แค่ 50 รายการแรกที่โหลดไว้
-async function mpEnsureFullyLoaded() {
-  if (_mpFullyLoaded || _mpLoadingAll) return;
-  _mpLoadingAll = true;
-  document.getElementById('mp-grid').innerHTML = '<div class="mp-loading">กำลังค้นหา...</div>';
-  while (!_mpFullyLoaded) {
-    await fetchMediaFiles(false);
+async function mpListFolder(prefix) {
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/list/images`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`, 'apikey': CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prefix, limit: 1000, sortBy: { column: 'name', order: 'asc' } })
+  });
+  const raw = await res.json();
+  return Array.isArray(raw) ? raw.filter(f => f.name !== '.emptyFolderPlaceholder') : [];
+}
+
+// ค้นหาทุกโฟลเดอร์ทั้งบัคเก็ต ไม่ใช่แค่ชั้นที่กำลังเปิดอยู่ — แก้ปัญหาค้นหาแล้วเจอบ้างไม่เจอบ้าง
+async function mpSearchAll(term) {
+  const grid = document.getElementById('mp-grid');
+  grid.innerHTML = '<div class="mp-loading">กำลังค้นหา...</div>';
+  const results = [];
+  const queue = [''];
+  while (queue.length) {
+    const prefix = queue.shift();
+    const items = await mpListFolder(prefix);
+    for (const f of items) {
+      const isFolder = !f.id;
+      const relPath = prefix + f.name;
+      if (isFolder) queue.push(relPath + '/');
+      if (f.name.toLowerCase().includes(term)) {
+        results.push({ ...f, isFolder, relPath });
+      }
+    }
   }
-  _mpLoadingAll = false;
+  _mpSearchResults = mpSortItems(results);
   renderMediaGrid();
+}
+
+function mpSearchDebounced(term) {
+  clearTimeout(_mpSearchTimer);
+  _mpSearchTimer = setTimeout(() => mpSearchAll(term), 300);
 }
 
 function openMpFolder(name) {
   _mpPath = _mpPath + name + '/';
+  _mpSearchResults = null;
   document.getElementById('mp-search').value = '';
   fetchMediaFiles(true);
 }
@@ -1563,17 +1600,26 @@ function mpGoUp() {
   const parts = _mpPath.split('/').filter(Boolean);
   parts.pop();
   _mpPath = parts.length ? parts.join('/') + '/' : '';
+  _mpSearchResults = null;
+  document.getElementById('mp-search').value = '';
+  fetchMediaFiles(true);
+}
+
+function mpOpenSearchResultFolder(relPath) {
+  _mpPath = relPath + '/';
+  _mpSearchResults = null;
   document.getElementById('mp-search').value = '';
   fetchMediaFiles(true);
 }
 
 function renderMediaGrid() {
-  const search = document.getElementById('mp-search').value.toLowerCase();
+  const search = document.getElementById('mp-search').value.trim().toLowerCase();
   const grid = document.getElementById('mp-grid');
-  const items = search ? _mpAllFiles.filter(f => f.name.toLowerCase().includes(search)) : _mpAllFiles;
+  const searching = search && _mpSearchResults !== null;
+  const items = searching ? _mpSearchResults : mpSortItems(_mpAllFiles);
 
   const crumb = document.getElementById('mp-breadcrumb');
-  if (_mpPath) {
+  if (_mpPath && !searching) {
     crumb.style.display = '';
     crumb.innerHTML = `<button type="button" class="mp-up-btn" onclick="mpGoUp()">← ${escHtml(_mpPath.slice(0, -1))}</button>`;
   } else {
@@ -1584,20 +1630,23 @@ function renderMediaGrid() {
   if (!items.length) { grid.innerHTML = '<div class="mp-empty">ไม่พบไฟล์</div>'; return; }
 
   grid.innerHTML = items.map(f => {
-    const isFolder = !f.id;
+    const isFolder = searching ? f.isFolder : !f.id;
+    const relPath = searching ? f.relPath : (_mpPath + f.name);
     if (isFolder) {
-      return `<div class="mp-item" onclick="openMpFolder('${escAttr(f.name)}')">
+      const onclick = searching ? `mpOpenSearchResultFolder('${escAttr(relPath)}')` : `openMpFolder('${escAttr(f.name)}')`;
+      return `<div class="mp-item" onclick="${onclick}">
         <div class="mp-thumb mp-folder-thumb">📁</div>
         <div class="mp-item-name">${escHtml(f.name)}</div>
       </div>`;
     }
-    const fullPath = _mpPath + f.name;
-    const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${fullPath}`;
+    const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${relPath}`;
     const thumbUrl = proxyImg(fullUrl);
     const shortName = f.name.replace(/\.[^.]+$/, '');
+    const folderHint = searching && relPath.includes('/') ? `<div class="mp-item-path">📁 ${escHtml(relPath.slice(0, relPath.lastIndexOf('/')))}</div>` : '';
     return `<div class="mp-item" onclick="selectMedia('${fullUrl}')">
       <div class="mp-thumb"><img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'"></div>
       <div class="mp-item-name">${escHtml(shortName)}</div>
+      ${folderHint}
     </div>`;
   }).join('');
 }
@@ -1608,9 +1657,11 @@ function selectMedia(url) {
 }
 
 document.getElementById('mp-search').addEventListener('input', e => {
-  if (e.target.value.trim()) {
-    mpEnsureFullyLoaded();
+  const term = e.target.value.trim().toLowerCase();
+  if (term) {
+    mpSearchDebounced(term);
   } else {
+    _mpSearchResults = null;
     renderMediaGrid();
   }
 });
