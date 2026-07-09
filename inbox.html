@@ -359,17 +359,20 @@
   }
 
   document.getElementById('btn-add-page').addEventListener('click', async () => {
-    const token = prompt('วาง Page Access Token ที่ได้จาก Meta Developer Console:');
+    const pageId = prompt('วาง Page ID (ตัวเลขที่โชว์ใต้ชื่อเพจในหน้า Meta Developer Console):');
+    if (!pageId) return;
+    const token = prompt('วาง Page Access Token ของเพจนี้:');
     if (!token) return;
     try {
       const res = await fetch('/api/meta-register-page', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: token.trim() }),
+        body: JSON.stringify({ page_id: pageId.trim(), access_token: token.trim() }),
       });
       const result = await res.json();
       if (res.ok && result.ok) {
-        alert(`เพิ่มเพจสำเร็จ: ${result.page.page_name}${result.page.ig_account_id ? ' (เชื่อม Instagram แล้ว)' : ' (ยังไม่เชื่อม Instagram)'}`);
+        const name = result.page.page_name || result.page.page_id;
+        alert(`เพิ่มเพจสำเร็จ: ${name}${result.page.ig_account_id ? ' (เชื่อม Instagram แล้ว)' : ' (ยังไม่เชื่อม Instagram)'}`);
       } else {
         alert(`เพิ่มเพจไม่สำเร็จ: ${result.error || 'unknown error'}`);
       }
