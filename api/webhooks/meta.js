@@ -89,6 +89,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  console.log('meta webhook payload:', JSON.stringify(payload));
+
   const platform = payload.object === 'instagram' ? 'instagram' : 'facebook';
   const entries = Array.isArray(payload.entry) ? payload.entry : [];
 
