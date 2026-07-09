@@ -248,11 +248,33 @@
     await loadThread();
   }
 
-  async function loadThread() {
+  async function loadThread(fullRender = true) {
     if (!state.selectedId) return;
     const data = await apiGet(`/api/inbox-thread?conversation_id=${encodeURIComponent(state.selectedId)}`);
     state.messages = data.messages || [];
-    renderThreadDetail();
+    if (fullRender) {
+      renderThreadDetail();
+    } else {
+      updateMessagesOnly();
+    }
+  }
+
+  function messageHtml(m) {
+    return `
+      <div class="msg ${m.direction === 'inbound' ? 'msg-inbound' : 'msg-outbound'} ${m.sender_type === 'ai_auto' ? 'ai-auto' : ''}">
+        <div class="msg-sender">${senderLabel(m)}</div>
+        <div>${escapeHtml(m.content)}</div>
+      </div>
+    `;
+  }
+
+  // Only refreshes the message list, leaving the composer (and whatever the
+  // admin is mid-typing) untouched — used by the background poll.
+  function updateMessagesOnly() {
+    const scrollEl = document.getElementById('messages-scroll');
+    if (!scrollEl) return;
+    scrollEl.innerHTML = state.messages.map(messageHtml).join('') || '<p class="empty-state">ยังไม่มีข้อความ</p>';
+    scrollEl.scrollTop = scrollEl.scrollHeight;
   }
 
   function renderThreadDetail() {
@@ -264,12 +286,7 @@
       return;
     }
 
-    const messagesHtml = state.messages.map((m) => `
-      <div class="msg ${m.direction === 'inbound' ? 'msg-inbound' : 'msg-outbound'} ${m.sender_type === 'ai_auto' ? 'ai-auto' : ''}">
-        <div class="msg-sender">${senderLabel(m)}</div>
-        <div>${escapeHtml(m.content)}</div>
-      </div>
-    `).join('');
+    const messagesHtml = state.messages.map(messageHtml).join('');
 
     const canSend = conversation.platform === 'line';
     el.innerHTML = `
@@ -280,7 +297,7 @@
       <div class="messages-scroll" id="messages-scroll">${messagesHtml || '<p class="empty-state">ยังไม่มีข้อความ</p>'}</div>
       ${canSend ? `
         <div class="composer">
-          <textarea id="reply-text" placeholder="พิมพ์ข้อความตอบลูกค้า..."></textarea>
+          <textarea id="reply-text" placeholder="พิมพ์ข้อความตอบลูกค้า... (Enter = ส่ง, Shift+Enter = ขึ้นบรรทัดใหม่)"></textarea>
           <div class="composer-actions">
             <button class="btn-primary btn-sm" id="btn-send-reply">ส่งข้อความ</button>
           </div>
@@ -297,6 +314,12 @@
 
     if (canSend) {
       document.getElementById('btn-send-reply').addEventListener('click', () => sendReply(conversation.id));
+      document.getElementById('reply-text').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendReply(conversation.id);
+        }
+      });
     }
   }
 
@@ -347,7 +370,7 @@
     await loadConversations();
     setInterval(async () => {
       await loadConversations();
-      if (state.selectedId) await loadThread();
+      if (state.selectedId) await loadThread(false);
     }, POLL_MS);
   }
 
