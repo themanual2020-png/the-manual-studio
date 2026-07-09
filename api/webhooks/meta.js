@@ -14,13 +14,23 @@ function readRawBody(req) {
   });
 }
 
-async function findOrCreateConversation(platform, userId) {
+// entry.id is the FB Page ID for Messenger events, or the linked Instagram
+// Business Account ID for Instagram events — meta_pages is keyed by both,
+// since a page's own IG account uses the same Page Access Token to send.
+async function lookupPage(entryId) {
+  const rows = await supabaseRequest(
+    `/meta_pages?or=(page_id.eq.${encodeURIComponent(entryId)},ig_account_id.eq.${encodeURIComponent(entryId)})&select=page_id,access_token`
+  );
+  return (rows && rows[0]) || null;
+}
+
+async function findOrCreateConversation(platform, userId, entryId, page) {
   const existing = await supabaseRequest(
     `/conversations?platform=eq.${platform}&platform_thread_id=eq.${encodeURIComponent(userId)}`
   );
   if (existing && existing[0]) return existing[0];
 
-  const profile = await getProfile(userId).catch(() => null);
+  const profile = page ? await getProfile(userId, page.access_token).catch(() => null) : null;
   const profileName = profile && (profile.first_name || profile.last_name)
     ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
     : null;
@@ -31,6 +41,7 @@ async function findOrCreateConversation(platform, userId) {
     body: JSON.stringify({
       platform,
       platform_thread_id: userId,
+      platform_page_id: entryId,
       customer_name: profileName || (platform === 'instagram' ? 'Instagram user' : 'Facebook user'),
       customer_avatar_url: (profile && profile.profile_pic) || null,
       status: 'open',
@@ -83,6 +94,13 @@ module.exports = async function handler(req, res) {
 
   for (const entry of entries) {
     const messagingEvents = Array.isArray(entry.messaging) ? entry.messaging : [];
+    if (!messagingEvents.length) continue;
+
+    const page = await lookupPage(entry.id).catch(() => null);
+    if (!page) {
+      console.error(`meta webhook: no registered page/token for entry.id=${entry.id} — add it via /api/meta-register-page`);
+    }
+
     for (const event of messagingEvents) {
       // Skip echoes of our own outbound sends and non-text events (attachments, reads, etc.)
       if (!event.message || event.message.is_echo || !event.message.text) continue;
@@ -95,7 +113,7 @@ module.exports = async function handler(req, res) {
         );
         if (existingMsg && existingMsg.length > 0) continue; // already processed (webhook retry)
 
-        const conversation = await findOrCreateConversation(platform, senderId);
+        const conversation = await findOrCreateConversation(platform, senderId, entry.id, page);
 
         await supabaseRequest('/messages', {
           method: 'POST',

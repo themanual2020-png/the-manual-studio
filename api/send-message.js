@@ -35,7 +35,15 @@ module.exports = async function handler(req, res) {
     if (conversation.platform === 'line') {
       await pushMessage(conversation.platform_thread_id, content);
     } else if (conversation.platform === 'facebook' || conversation.platform === 'instagram') {
-      await sendMetaMessage(conversation.platform_thread_id, content);
+      const pageRows = await supabaseRequest(
+        `/meta_pages?or=(page_id.eq.${encodeURIComponent(conversation.platform_page_id)},ig_account_id.eq.${encodeURIComponent(conversation.platform_page_id)})&select=access_token`
+      );
+      const page = pageRows && pageRows[0];
+      if (!page) {
+        res.status(400).json({ error: 'this Facebook/Instagram page has no access token registered yet' });
+        return;
+      }
+      await sendMetaMessage(conversation.platform_thread_id, content, page.access_token);
     } else {
       res.status(400).json({ error: `sending not yet supported for ${conversation.platform}` });
       return;
