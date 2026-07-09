@@ -288,7 +288,7 @@
 
     const messagesHtml = state.messages.map(messageHtml).join('');
 
-    const canSend = conversation.platform === 'line';
+    const canSend = ['line', 'facebook', 'instagram'].includes(conversation.platform);
     el.innerHTML = `
       <div class="thread-detail-header">
         <h2>${escapeHtml(conversation.customer_name || 'Unknown')}</h2>

@@ -1,6 +1,7 @@
 const { requireSession } = require('../lib/auth/verify-session');
 const { supabaseRequest } = require('../lib/supabase/service-client');
 const { pushMessage } = require('../lib/line/client');
+const { sendMessage: sendMetaMessage } = require('../lib/meta/client');
 
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
@@ -33,6 +34,8 @@ module.exports = async function handler(req, res) {
 
     if (conversation.platform === 'line') {
       await pushMessage(conversation.platform_thread_id, content);
+    } else if (conversation.platform === 'facebook' || conversation.platform === 'instagram') {
+      await sendMetaMessage(conversation.platform_thread_id, content);
     } else {
       res.status(400).json({ error: `sending not yet supported for ${conversation.platform}` });
       return;
