@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Prompt:wght@400;500&display=swap" rel="stylesheet">
-<script src="./auth.js"></script>
+<script src="./auth.js" defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -1319,10 +1319,10 @@ async function saveProject() {
 async function checkApiStatus() {
   const el = document.getElementById('api-status');
   try {
-    await apiFetch('/projects?limit=1');
+    projects = await apiFetch('/projects?order=sort_order.asc.nullslast,created_at.desc');
     el.innerHTML = '✓ Connected to Supabase';
     el.className = 'api-status connected';
-    loadProjects();
+    renderProjects();
   } catch (e) {
     el.innerHTML = '✗ Cannot connect to Supabase';
     el.className = 'api-status disconnected';
