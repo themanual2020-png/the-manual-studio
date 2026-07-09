@@ -271,19 +271,60 @@
       </div>
     `).join('');
 
+    const canSend = conversation.platform === 'line';
     el.innerHTML = `
       <div class="thread-detail-header">
         <h2>${escapeHtml(conversation.customer_name || 'Unknown')}</h2>
         <span class="badge badge-${conversation.platform}">${PLATFORM_LABELS[conversation.platform] || conversation.platform}</span>
       </div>
       <div class="messages-scroll" id="messages-scroll">${messagesHtml || '<p class="empty-state">ยังไม่มีข้อความ</p>'}</div>
-      <div class="composer">
-        <p class="empty-state" style="padding:0;">การส่งข้อความจริงสำหรับ ${PLATFORM_LABELS[conversation.platform]} จะเปิดใช้งานใน Phase ถัดไป</p>
-      </div>
+      ${canSend ? `
+        <div class="composer">
+          <textarea id="reply-text" placeholder="พิมพ์ข้อความตอบลูกค้า..."></textarea>
+          <div class="composer-actions">
+            <button class="btn-primary btn-sm" id="btn-send-reply">ส่งข้อความ</button>
+          </div>
+        </div>
+      ` : `
+        <div class="composer">
+          <p class="empty-state" style="padding:0;">การส่งข้อความจริงสำหรับ ${PLATFORM_LABELS[conversation.platform]} จะเปิดใช้งานใน Phase ถัดไป</p>
+        </div>
+      `}
     `;
 
     const scrollEl = document.getElementById('messages-scroll');
     if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+
+    if (canSend) {
+      document.getElementById('btn-send-reply').addEventListener('click', () => sendReply(conversation.id));
+    }
+  }
+
+  async function sendReply(conversationId) {
+    const textarea = document.getElementById('reply-text');
+    const content = textarea.value.trim();
+    if (!content) return;
+    const btn = document.getElementById('btn-send-reply');
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation_id: conversationId, content }),
+      });
+      if (res.status === 401) {
+        window.location.href = 'login.html';
+        return;
+      }
+      if (!res.ok) throw new Error(`request failed: ${res.status}`);
+      await loadConversations();
+      await loadThread();
+    } catch (err) {
+      console.error(err);
+      alert('ส่งข้อความไม่สำเร็จ ลองใหม่อีกครั้ง');
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   function senderLabel(m) {
