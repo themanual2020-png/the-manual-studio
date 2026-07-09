@@ -728,6 +728,15 @@ const CONFIG = {
   SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw'
 };
 
+// เลี่ยงยิง egress ตรงจาก Supabase — ให้ผ่านแคชของเราเองแทน (โหลดจาก Supabase แค่ครั้งแรกครั้งเดียว)
+function proxyImg(url) {
+  if (!url) return url;
+  if (url.includes('pzrjboiioplhijzyfdmf.supabase.co/storage/')) {
+    return `/api/img?src=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 let projects = [];
 let currentEditId = null;
 let galleryImages = [];
@@ -964,7 +973,7 @@ function updateHeroPreview() {
     return;
   }
 
-  const previewUrl = convertGDriveLink(url);
+  const previewUrl = proxyImg(convertGDriveLink(url));
   img.src = previewUrl;
   container.style.display = 'block';
 }
@@ -1019,7 +1028,7 @@ function renderBlockFields(b, i) {
     </div>`;
 
   if (type === 'image') {
-    const prev = b.image_url ? `<img src="${escHtml(b.image_url)}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(b.image_url)}')" onerror="this.style.display='none'">` : '';
+    const prev = b.image_url ? `<img src="${escHtml(proxyImg(b.image_url))}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(proxyImg(b.image_url))}')" onerror="this.style.display='none'">` : '';
     return `
     <div class="form-group" style="margin-bottom:10px">
       <label>Image URL</label>
@@ -1042,7 +1051,7 @@ function renderBlockFields(b, i) {
     <div class="slider-url-list" id="slider-urls-${i}">
       ${imgs.map((url, j) => `
         <div class="slider-url-row">
-          ${url ? `<img src="${escHtml(url)}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(url)}')" onerror="this.style.display='none'">` : ''}
+          ${url ? `<img src="${escHtml(proxyImg(url))}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(proxyImg(url))}')" onerror="this.style.display='none'">` : ''}
           <input type="text" value="${escHtml(url)}" oninput="updateSliderImg(${i},${j},this.value)" placeholder="https://... (รูปที่ ${j+1})">
           <button type="button" class="browse-btn" onclick="openMediaPicker(url=>{updateSliderImg(${i},${j},url);renderBlocks();})">Browse</button>
           <button type="button" class="block-move-btn" style="color:#b3261e;flex-shrink:0" onclick="removeSliderImg(${i},${j})">✕</button>
@@ -1099,7 +1108,7 @@ function renderBlockFields(b, i) {
     const imgs = Array.isArray(b.images) ? b.images : [''];
     const rows = imgs.map((url, j) => `
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-        ${url ? `<img src="${escHtml(convertGDriveLink(url))}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(convertGDriveLink(url))}')" onerror="this.style.display='none'">` : ''}
+        ${url ? `<img src="${escHtml(proxyImg(convertGDriveLink(url)))}" class="img-preview-thumb" onclick="openImgLightbox('${escAttr(proxyImg(convertGDriveLink(url)))}')" onerror="this.style.display='none'">` : ''}
         <input type="text" value="${escHtml(url)}" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #d2cec5;border-radius:6px;" placeholder="https://... (Supabase, Google Drive)"
           oninput="updateGalleryImg(${i},${j},this.value)">
         <button type="button" class="browse-btn" onclick="openMediaPicker(url=>{updateGalleryImg(${i},${j},url);renderBlocks();})">Browse</button>
@@ -1370,7 +1379,7 @@ function renderProjects() {
     const imgs = Array.isArray(p.gallery_images) ? p.gallery_images : [];
     const firstImg = p.hero_placeholder || (imgs[0] && imgs[0].url) || '';
     const thumbHtml = firstImg
-      ? `<img class="project-card-thumb" src="${escHtml(firstImg)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="project-card-thumb-placeholder" style="display:none">📷</div>`
+      ? `<img class="project-card-thumb" src="${escHtml(proxyImg(firstImg))}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="project-card-thumb-placeholder" style="display:none">📷</div>`
       : `<div class="project-card-thumb-placeholder">📷</div>`;
     const sects = Array.isArray(p.project_sections) ? p.project_sections : [];
 
@@ -1585,7 +1594,7 @@ function renderMediaGrid() {
     }
     const fullPath = _mpPath + f.name;
     const fullUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/images/${fullPath}`;
-    const thumbUrl = `${CONFIG.SUPABASE_URL}/storage/v1/render/image/public/images/${fullPath}?width=300&height=200&resize=cover&quality=65`;
+    const thumbUrl = proxyImg(fullUrl);
     const shortName = f.name.replace(/\.[^.]+$/, '');
     return `<div class="mp-item" onclick="selectMedia('${fullUrl}')">
       <div class="mp-thumb"><img src="${thumbUrl}" loading="lazy" alt="" onerror="this.src='${fullUrl}'"></div>
