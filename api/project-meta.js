@@ -3,7 +3,7 @@ const path = require('path');
 
 const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw';
-const BASE_URL = 'https://themanualstudio.vercel.app';
+const BASE_URL = 'https://themanualth.co';
 
 function escapeXml(s) {
   return String(s)
