@@ -38,11 +38,12 @@ class SupabaseClient {
   }
 
   // Get published projects only (public site)
-  async getPublishedProjects() {
+  async getPublishedProjects(fields = '*') {
+    const select = encodeURIComponent(fields);
     try {
-      return await this.request('/projects?published=neq.false&order=sort_order.asc.nullslast,created_at.desc');
+      return await this.request(`/projects?select=${select}&published=neq.false&order=sort_order.asc.nullslast,created_at.desc`);
     } catch {
-      return this.request('/projects?order=sort_order.asc.nullslast,created_at.desc');
+      return this.request(`/projects?select=${select}&order=sort_order.asc.nullslast,created_at.desc`);
     }
   }
 

@@ -385,7 +385,7 @@
 
   async function loadMoreProjects(currentId) {
     try {
-      const all = await supabase.getPublishedProjects();
+      const all = await supabase.getPublishedProjects('project_id,title,cat_label,hero_placeholder');
       const others = all.filter(p => p.project_id !== currentId);
       if (!others.length) return;
 
