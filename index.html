@@ -81,6 +81,9 @@
   }
   .tms-card:hover img { transform: scale(1.06); }
 
+  @media (max-width: 1024px) and (min-width: 701px) {
+    #tms-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
   @media (max-width: 700px) {
     body { overflow-x: hidden; }
     #tms-nav { padding: 16px 20px !important; gap: 20px !important; }
@@ -183,7 +186,7 @@
       </div>
     </div>
 
-    <div id="tms-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(16px, 3vw, 40px);">
+    <div id="tms-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 40px);">
 
       <article data-card data-cat="interior" class="tms-card" data-project-id="sukhumvit-residence" data-reveal>
         <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
