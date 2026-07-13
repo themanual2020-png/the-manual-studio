@@ -8,7 +8,7 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://pzrjboiioplhijzyfd
 const supabaseKey = process.env.VITE_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw';
 
 // inject ทุกไฟล์ HTML
-const htmlFiles = ['index.html', '_project-template.html', 'admin.html', 'about.html', 'login.html'];
+const htmlFiles = ['_home-template.html', '_project-template.html', 'admin.html', '_about-template.html', 'login.html'];
 
 htmlFiles.forEach(file => {
   const filePath = path.join(__dirname, '..', file);

@@ -4,6 +4,12 @@
   "functions": {
     "api/project-meta.js": {
       "includeFiles": "_project-template.html"
+    },
+    "api/home-meta.js": {
+      "includeFiles": "_home-template.html"
+    },
+    "api/about-meta.js": {
+      "includeFiles": "_about-template.html"
     }
   },
   "rewrites": [
@@ -14,6 +20,18 @@
     {
       "source": "/project.html",
       "destination": "/api/project-meta"
+    },
+    {
+      "source": "/",
+      "destination": "/api/home-meta"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/api/home-meta"
+    },
+    {
+      "source": "/about.html",
+      "destination": "/api/about-meta"
     }
   ]
 }

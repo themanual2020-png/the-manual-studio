@@ -506,6 +506,7 @@
     .form-row { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
     #analytics-columns { grid-template-columns: 1fr; }
+    #seo-columns { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -518,6 +519,7 @@
       <button class="btn-primary" id="btn-add-project">+ Add Project</button>
       <button class="btn-secondary" onclick="openCatModal()">Categories</button>
       <button class="btn-secondary" id="btn-analytics" onclick="toggleAnalyticsView()">📊 Analytics</button>
+      <button class="btn-secondary" id="btn-seo" onclick="toggleSeoView()">🔍 SEO</button>
       <button class="btn-secondary" onclick="backToProjectsView()">← Back</button>
       <button class="btn-secondary" onclick="logout()">Logout</button>
     </div>
@@ -567,6 +569,44 @@
       <div>
         <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">แหล่งที่มา (Traffic Source)</h3>
         <div id="analytics-by-source"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="seo-view" style="display:none;">
+    <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">แก้ไข Title / Description / Keywords ของหน้า Home และ About ที่ใช้แสดงผลใน Google และตอนแชร์ลิงก์ (Facebook, LINE)</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="seo-columns">
+      <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า Home</h3>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="seo-home-title">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="seo-home-description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Keywords</label>
+          <textarea id="seo-home-keywords" rows="3"></textarea>
+        </div>
+        <button type="button" class="btn-primary" onclick="saveSeoSettings('home')">Save</button>
+      </div>
+      <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า About</h3>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="seo-about-title">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="seo-about-description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Keywords</label>
+          <textarea id="seo-about-keywords" rows="3"></textarea>
+        </div>
+        <button type="button" class="btn-primary" onclick="saveSeoSettings('about')">Save</button>
       </div>
     </div>
   </div>
@@ -745,8 +785,10 @@ let analyticsEvents = [];
 
 // ===== ANALYTICS =====
 function backToProjectsView() {
-  const view = document.getElementById('analytics-view');
-  if (view.style.display !== 'none') toggleAnalyticsView();
+  const analyticsView = document.getElementById('analytics-view');
+  if (analyticsView.style.display !== 'none') toggleAnalyticsView();
+  const seoView = document.getElementById('seo-view');
+  if (seoView.style.display !== 'none') toggleSeoView();
 }
 
 function toggleAnalyticsView() {
@@ -757,6 +799,48 @@ function toggleAnalyticsView() {
   if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
   document.getElementById('btn-analytics').textContent = isShowing ? '📊 Analytics' : '📋 Projects';
   if (!isShowing) loadAnalytics();
+}
+
+// ===== SEO SETTINGS =====
+function toggleSeoView() {
+  const view = document.getElementById('seo-view');
+  const isShowing = view.style.display !== 'none';
+  view.style.display = isShowing ? 'none' : 'block';
+  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
+  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
+  document.getElementById('btn-seo').textContent = isShowing ? '🔍 SEO' : '📋 Projects';
+  if (!isShowing) loadSeoSettings();
+}
+
+async function loadSeoSettings() {
+  try {
+    const rows = await apiFetch('/site_settings?select=page,title,description,keywords');
+    rows.forEach(row => {
+      const titleEl = document.getElementById(`seo-${row.page}-title`);
+      const descEl = document.getElementById(`seo-${row.page}-description`);
+      const kwEl = document.getElementById(`seo-${row.page}-keywords`);
+      if (titleEl) titleEl.value = row.title || '';
+      if (descEl) descEl.value = row.description || '';
+      if (kwEl) kwEl.value = row.keywords || '';
+    });
+  } catch (e) {
+    showAlert('โหลด SEO settings ไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+async function saveSeoSettings(page) {
+  const title = document.getElementById(`seo-${page}-title`).value.trim();
+  const description = document.getElementById(`seo-${page}-description`).value.trim();
+  const keywords = document.getElementById(`seo-${page}-keywords`).value.trim();
+  try {
+    await apiFetch(`/site_settings?page=eq.${page}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title, description, keywords }),
+    });
+    showAlert('บันทึก SEO settings แล้ว ✓', 'success');
+  } catch (e) {
+    showAlert('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+  }
 }
 
 async function loadAnalytics() {
