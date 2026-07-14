@@ -495,6 +495,18 @@
   .cat-add-row input { flex:1; padding:9px 12px; border:1px solid #e2dfd8; border-radius:6px; font-size:13px; font-family:inherit; }
   .cat-add-row input:focus { outline:none; border-color:#15140f; }
 
+  .analytics-card { background:#fff; border:1px solid #e2dfd8; border-radius:10px; padding:20px; }
+  .analytics-card-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; margin:0 0 16px; }
+  .analytics-bar-row { margin-bottom:10px; }
+  .analytics-bar-row:last-child { margin-bottom:0; }
+  .analytics-more-btn { background:none; border:none; padding:8px 0 0; margin-top:2px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; color:#9a958a; cursor:pointer; text-decoration:underline; }
+  .analytics-more-btn:hover { color:#15140f; }
+
+  @media (max-width: 900px) {
+    #analytics-columns-main { grid-template-columns: 1fr; }
+    #analytics-columns-secondary { grid-template-columns: 1fr; }
+  }
+
   @media (max-width: 700px) {
     .admin-container { padding: 20px 16px; }
     .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -505,7 +517,6 @@
     .form-actions { padding: 16px 20px 20px; }
     .form-row { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
-    #analytics-columns { grid-template-columns: 1fr; }
     #seo-columns { grid-template-columns: 1fr; }
   }
 </style>
@@ -563,25 +574,28 @@
       <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;" id="analytics-columns">
-      <div>
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Page Views ตามหน้า</h3>
-        <div id="analytics-by-page"></div>
-      </div>
-      <div>
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Project ที่ถูกดูมากที่สุด</h3>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;margin-bottom:20px;" id="analytics-columns-main">
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">Project ที่ถูกดูมากที่สุด</h3>
         <div id="analytics-by-project"></div>
       </div>
-      <div>
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">แหล่งที่มา (Traffic Source)</h3>
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">Page Views ตามหน้า</h3>
+        <div id="analytics-by-page"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;" id="analytics-columns-secondary">
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">แหล่งที่มา (Traffic Source)</h3>
         <div id="analytics-by-source"></div>
       </div>
-      <div>
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">อุปกรณ์ (Device)</h3>
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">อุปกรณ์ (Device)</h3>
         <div id="analytics-by-device"></div>
       </div>
-      <div>
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">จังหวัด / เมือง</h3>
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">จังหวัด / เมือง</h3>
         <div id="analytics-by-city"></div>
       </div>
     </div>
@@ -968,20 +982,27 @@ function renderAnalyticsByProject(events) {
   renderAnalyticsBarList('analytics-by-project', named);
 }
 
-function renderAnalyticsBarList(elId, counts) {
+function renderAnalyticsBarList(elId, counts, limit) {
+  limit = limit || 8;
   const el = document.getElementById(elId);
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (!entries.length) { el.innerHTML = '<p style="color:#9a958a;font-size:13px;">ไม่มีข้อมูล</p>'; return; }
+  if (!entries.length) { el.innerHTML = '<p style="color:#9a958a;font-size:13px;margin:0;">ไม่มีข้อมูล</p>'; return; }
   const max = entries[0][1];
-  el.innerHTML = entries.map(([label, count]) => `
-    <div style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-        <span>${escHtml(label)}</span><span style="font-weight:600;">${count}</span>
+  const barRow = ([label, count]) => `
+    <div class="analytics-bar-row">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;gap:8px;">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(label)}</span><span style="font-weight:600;flex-shrink:0;">${count}</span>
       </div>
-      <div style="background:#e2dfd8;border-radius:4px;height:8px;overflow:hidden;">
+      <div style="background:#e2dfd8;border-radius:4px;height:6px;overflow:hidden;">
         <div style="background:#15140f;height:100%;width:${(count / max * 100).toFixed(0)}%;"></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  const visible = entries.slice(0, limit);
+  const hidden = entries.slice(limit);
+  el.innerHTML = visible.map(barRow).join('') + (hidden.length
+    ? `<div id="${elId}-more" style="display:none;">${hidden.map(barRow).join('')}</div>
+       <button type="button" class="analytics-more-btn" onclick="this.previousElementSibling.style.display='block';this.style.display='none';">+ ${hidden.length} รายการเพิ่มเติม</button>`
+    : '');
 }
 
 function exportAnalyticsCSV() {
