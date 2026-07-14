@@ -838,6 +838,7 @@ function toggleAnalyticsView() {
   const isShowing = view.style.display !== 'none';
   view.style.display = isShowing ? 'none' : 'block';
   document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
+  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
   if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
   document.getElementById('btn-analytics').textContent = isShowing ? '📊 Analytics' : '📋 Projects';
   if (!isShowing) loadAnalytics();
@@ -849,6 +850,7 @@ function toggleSeoView() {
   const isShowing = view.style.display !== 'none';
   view.style.display = isShowing ? 'none' : 'block';
   document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
+  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
   if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
   document.getElementById('btn-seo').textContent = isShowing ? '🔍 SEO' : '📋 Projects';
   if (!isShowing) loadSeoSettings();
