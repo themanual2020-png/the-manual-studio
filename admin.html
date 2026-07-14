@@ -495,6 +495,8 @@
   .cat-add-row input { flex:1; padding:9px 12px; border:1px solid #e2dfd8; border-radius:6px; font-size:13px; font-family:inherit; }
   .cat-add-row input:focus { outline:none; border-color:#15140f; }
 
+  .filter-tab { padding:8px 14px; border:1px solid #e2dfd8; border-radius:6px; background:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; letter-spacing:.04em; color:#6b675f; cursor:pointer; }
+  .filter-tab.active { background:#15140f; color:#fff; border-color:#15140f; }
   .analytics-card { background:#fff; border:1px solid #e2dfd8; border-radius:10px; padding:20px; }
   .analytics-card-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; margin:0 0 16px; }
   .analytics-bar-row { margin-bottom:10px; }
@@ -545,6 +547,18 @@
   <div id="sort-save-bar">
     <span>↕ ลากการ์ดเพื่อเรียงลำดับ — มีการเปลี่ยนแปลง</span>
     <button onclick="saveOrder()">บันทึกลำดับ</button>
+  </div>
+
+  <div id="project-filter-bar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+    <div style="display:flex;gap:6px;">
+      <button type="button" class="filter-tab active" data-status="all" onclick="setProjectFilterStatus('all')">ทั้งหมด</button>
+      <button type="button" class="filter-tab" data-status="live" onclick="setProjectFilterStatus('live')">● Live</button>
+      <button type="button" class="filter-tab" data-status="draft" onclick="setProjectFilterStatus('draft')">◐ Draft</button>
+    </div>
+    <select id="project-filter-cat" onchange="setProjectFilterCat(this.value)" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:12px;">
+      <option value="all">ทุกประเภท</option>
+    </select>
+    <span id="project-filter-count" style="font-size:12px;color:#9a958a;font-family:'Archivo',sans-serif;"></span>
   </div>
 
   <div id="projects-container" class="projects-grid">
@@ -1037,6 +1051,7 @@ function openCatModal() {
 function closeCatModal() {
   document.getElementById('cat-modal').classList.remove('active');
   populateCatSelect(document.getElementById('cat_label').value);
+  populateFilterCatSelect();
 }
 function renderCatList() {
   const cats = getCategories();
@@ -1531,15 +1546,62 @@ async function togglePublished(id, currentlyPublished) {
   }
 }
 
+// ===== PROJECT FILTERS =====
+let projectFilterStatus = 'all';
+let projectFilterCat = 'all';
+
+function setProjectFilterStatus(status) {
+  projectFilterStatus = status;
+  document.querySelectorAll('.filter-tab[data-status]').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  renderProjects();
+}
+
+function setProjectFilterCat(cat) {
+  projectFilterCat = cat;
+  renderProjects();
+}
+
+function populateFilterCatSelect() {
+  const sel = document.getElementById('project-filter-cat');
+  if (!sel) return;
+  const cats = getCategories();
+  sel.innerHTML = '<option value="all">ทุกประเภท</option>' + cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+  sel.value = projectFilterCat;
+}
+
+function getFilteredProjects() {
+  return projects.filter(p => {
+    if (projectFilterStatus === 'live' && p.published === false) return false;
+    if (projectFilterStatus === 'draft' && p.published !== false) return false;
+    if (projectFilterCat !== 'all' && (p.cat_label || '') !== projectFilterCat) return false;
+    return true;
+  });
+}
+
 // ===== RENDER PROJECTS =====
 function renderProjects() {
   const c = document.getElementById('projects-container');
+  populateFilterCatSelect();
+
   if (!projects.length) {
     c.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">No projects yet. <a href="#" onclick="openAddModal();return false;">Add one</a></p>';
+    document.getElementById('project-filter-count').textContent = '';
     return;
   }
 
-  c.innerHTML = projects.map((p, idx) => {
+  const filterActive = projectFilterStatus !== 'all' || projectFilterCat !== 'all';
+  const list = getFilteredProjects();
+  document.getElementById('project-filter-count').textContent = filterActive ? `แสดง ${list.length} จาก ${projects.length} โปรเจกต์` : '';
+
+  if (!list.length) {
+    c.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">ไม่มีโปรเจกต์ที่ตรงกับตัวกรอง</p>';
+    return;
+  }
+
+  if (filterActive) document.getElementById('sort-save-bar').style.display = 'none';
+
+  c.innerHTML = list.map((p) => {
+    const idx = projects.indexOf(p);
     const imgs = Array.isArray(p.gallery_images) ? p.gallery_images : [];
     const firstImg = p.hero_placeholder || (imgs[0] && imgs[0].url) || '';
     const thumbHtml = firstImg
@@ -1548,10 +1610,10 @@ function renderProjects() {
     const sects = Array.isArray(p.project_sections) ? p.project_sections : [];
 
     const isDraft = p.published === false;
-    return `<div class="project-card" draggable="true" data-idx="${idx}" data-id="${p.id}">
+    return `<div class="project-card" draggable="${filterActive ? 'false' : 'true'}" data-idx="${idx}" data-id="${p.id}">
       <div style="position:relative;">
         ${thumbHtml}
-        <div class="drag-handle" title="ลากเพื่อเรียง">⠿</div>
+        ${filterActive ? '' : '<div class="drag-handle" title="ลากเพื่อเรียง">⠿</div>'}
         <div style="position:absolute;top:10px;left:10px;">
           ${isDraft ? '<span class="badge-draft">DRAFT</span>' : '<span class="badge-published">LIVE</span>'}
         </div>
@@ -1574,7 +1636,7 @@ function renderProjects() {
     </div>`;
   }).join('');
 
-  initDragAndDrop();
+  if (!filterActive) initDragAndDrop();
 }
 
 // ===== DRAG AND DROP =====
