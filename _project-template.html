@@ -628,8 +628,6 @@
 <!-- Own Analytics (Supabase) -->
 <script>
 (function () {
-  const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
-  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6cmpib2lpb3BsaGlqenlmZG1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjMzMjAsImV4cCI6MjA5ODM5OTMyMH0.jxxENlcyfRrigb3nrEkxjclJqPYEa-WnPyJd_IuRxyw';
   function getVisitorId() {
     let id = localStorage.getItem('tms_vid');
     if (!id) { id = crypto.randomUUID(); localStorage.setItem('tms_vid', id); }
@@ -657,14 +655,9 @@
   const trafficSource = getTrafficSource();
   const deviceType = getDeviceType();
   window.tmsTrack = function (eventType, projectId) {
-    fetch(SUPA_URL + '/rest/v1/analytics_events', {
+    fetch('/api/track', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPA_KEY,
-        'apikey': SUPA_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         event_type: eventType,
         page: 'project.html',
