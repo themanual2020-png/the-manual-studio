@@ -600,7 +600,7 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;" id="analytics-columns-secondary">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:20px;" id="analytics-columns-secondary">
       <div class="analytics-card">
         <h3 class="analytics-card-title">แหล่งที่มา (Traffic Source)</h3>
         <div id="analytics-by-source"></div>
@@ -612,6 +612,13 @@
       <div class="analytics-card">
         <h3 class="analytics-card-title">จังหวัด / เมือง</h3>
         <div id="analytics-by-city"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:20px;">
+      <div class="analytics-card">
+        <h3 class="analytics-card-title">Project ที่มาจาก Google (SEO)</h3>
+        <div id="analytics-by-seo-project"></div>
       </div>
     </div>
   </div>
@@ -936,6 +943,7 @@ async function loadAnalytics() {
   renderAnalyticsBySource(analyticsEvents);
   renderAnalyticsByDevice(analyticsEvents);
   renderAnalyticsByCity(analyticsEvents);
+  renderAnalyticsBySeoProject(analyticsEvents);
 }
 
 function renderAnalyticsBySource(events) {
@@ -963,6 +971,20 @@ function renderAnalyticsByCity(events) {
     counts[key] = (counts[key] || 0) + 1;
   });
   renderAnalyticsBarList('analytics-by-city', counts);
+}
+
+function renderAnalyticsBySeoProject(events) {
+  const counts = {};
+  events.filter(e => e.event_type === 'view_project' && e.source === 'Google (SEO)').forEach(e => {
+    const key = e.project_id || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const named = {};
+  Object.entries(counts).forEach(([pid, count]) => {
+    const p = projects.find(x => x.project_id === pid);
+    named[p ? p.title : pid] = count;
+  });
+  renderAnalyticsBarList('analytics-by-seo-project', named);
 }
 
 function renderAnalyticsSummary(events) {
