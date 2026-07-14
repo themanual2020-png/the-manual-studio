@@ -542,13 +542,19 @@
 
   <div id="analytics-view" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <label style="font-family:'Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
-        <select id="analytics-range" onchange="loadAnalytics()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+        <select id="analytics-range" onchange="onAnalyticsRangeChange()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
           <option value="7">7 วันล่าสุด</option>
           <option value="30" selected>30 วันล่าสุด</option>
           <option value="90">90 วันล่าสุด</option>
+          <option value="custom">กำหนดเอง...</option>
         </select>
+        <span id="analytics-custom-range" style="display:none;gap:8px;align-items:center;">
+          <input type="date" id="analytics-date-from" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+          <span style="color:#9a958a;font-size:13px;">ถึง</span>
+          <input type="date" id="analytics-date-to" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+        </span>
       </div>
       <button class="btn-secondary btn-sm" onclick="exportAnalyticsCSV()">⬇ Export CSV</button>
     </div>
@@ -557,7 +563,7 @@
       <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;" id="analytics-columns">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;" id="analytics-columns">
       <div>
         <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">Page Views ตามหน้า</h3>
         <div id="analytics-by-page"></div>
@@ -569,6 +575,10 @@
       <div>
         <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">แหล่งที่มา (Traffic Source)</h3>
         <div id="analytics-by-source"></div>
+      </div>
+      <div>
+        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 14px;">อุปกรณ์ (Device)</h3>
+        <div id="analytics-by-device"></div>
       </div>
     </div>
   </div>
@@ -843,13 +853,38 @@ async function saveSeoSettings(page) {
   }
 }
 
+function onAnalyticsRangeChange() {
+  const isCustom = document.getElementById('analytics-range').value === 'custom';
+  const customEl = document.getElementById('analytics-custom-range');
+  customEl.style.display = isCustom ? 'inline-flex' : 'none';
+  if (isCustom) {
+    const fromEl = document.getElementById('analytics-date-from');
+    const toEl = document.getElementById('analytics-date-to');
+    if (!toEl.value) toEl.value = new Date().toISOString().slice(0, 10);
+    if (!fromEl.value) fromEl.value = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  }
+  loadAnalytics();
+}
+
 async function loadAnalytics() {
   const summaryEl = document.getElementById('analytics-summary');
   summaryEl.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>';
-  const days = parseInt(document.getElementById('analytics-range').value, 10);
-  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const rangeVal = document.getElementById('analytics-range').value;
+  let cutoff, until;
+  if (rangeVal === 'custom') {
+    const fromVal = document.getElementById('analytics-date-from').value;
+    const toVal = document.getElementById('analytics-date-to').value;
+    cutoff = fromVal ? new Date(fromVal + 'T00:00:00').toISOString() : new Date(0).toISOString();
+    until = toVal ? new Date(toVal + 'T23:59:59.999').toISOString() : new Date().toISOString();
+  } else {
+    const days = parseInt(rangeVal, 10);
+    cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  }
   try {
-    analyticsEvents = await apiFetch(`/analytics_events?created_at=gte.${encodeURIComponent(cutoff)}&order=created_at.desc&limit=10000`);
+    let query = `/analytics_events?created_at=gte.${encodeURIComponent(cutoff)}`;
+    if (until) query += `&created_at=lte.${encodeURIComponent(until)}`;
+    query += `&order=created_at.desc&limit=10000`;
+    analyticsEvents = await apiFetch(query);
   } catch (e) {
     summaryEl.innerHTML = `<p style="grid-column:1/-1;color:#b3261e;padding:20px;">Error: ${escHtml(e.message)}</p>`;
     document.getElementById('analytics-by-page').innerHTML = '';
@@ -860,6 +895,7 @@ async function loadAnalytics() {
   renderAnalyticsByPage(analyticsEvents);
   renderAnalyticsByProject(analyticsEvents);
   renderAnalyticsBySource(analyticsEvents);
+  renderAnalyticsByDevice(analyticsEvents);
 }
 
 function renderAnalyticsBySource(events) {
@@ -869,6 +905,15 @@ function renderAnalyticsBySource(events) {
     counts[key] = (counts[key] || 0) + 1;
   });
   renderAnalyticsBarList('analytics-by-source', counts);
+}
+
+function renderAnalyticsByDevice(events) {
+  const counts = {};
+  events.filter(e => e.event_type === 'page_view').forEach(e => {
+    const key = e.device_type || 'Unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  renderAnalyticsBarList('analytics-by-device', counts);
 }
 
 function renderAnalyticsSummary(events) {
@@ -927,7 +972,7 @@ function renderAnalyticsBarList(elId, counts) {
 
 function exportAnalyticsCSV() {
   if (!analyticsEvents.length) { showAlert('ไม่มีข้อมูลให้ export', 'error'); return; }
-  const headers = ['event_type', 'page', 'project_id', 'source', 'visitor_id', 'created_at'];
+  const headers = ['event_type', 'page', 'project_id', 'source', 'device_type', 'visitor_id', 'created_at'];
   const rows = analyticsEvents.map(e => headers.map(h => JSON.stringify(e[h] ?? '')).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });

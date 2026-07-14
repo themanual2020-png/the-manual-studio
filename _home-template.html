@@ -554,7 +554,11 @@
       return host;
     } catch (e) { return 'Other'; }
   }
+  function getDeviceType() {
+    return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
+  }
   const trafficSource = getTrafficSource();
+  const deviceType = getDeviceType();
   window.tmsTrack = function (eventType, projectId) {
     fetch(SUPA_URL + '/rest/v1/analytics_events', {
       method: 'POST',
@@ -570,6 +574,7 @@
         project_id: projectId || null,
         visitor_id: getVisitorId(),
         source: trafficSource,
+        device_type: deviceType,
       }),
     }).catch(function () {});
   };
