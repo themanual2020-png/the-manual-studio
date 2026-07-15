@@ -25,7 +25,7 @@
   }
 
   .admin-header h1 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 32px; }
-  .admin-actions { display: flex; gap: 12px; }
+  .admin-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
   button {
     font-family: 'Archivo', sans-serif;
@@ -49,7 +49,7 @@
 
   .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: 24px;
     margin-bottom: 40px;
   }
@@ -512,14 +512,27 @@
   @media (max-width: 700px) {
     .admin-container { padding: 20px 16px; }
     .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .admin-header h1 { font-size: 24px; }
+    .admin-actions { gap: 8px; width: 100%; }
+    .admin-actions button { padding: 10px 14px; font-size: 12px; }
     .modal-content { margin-top: 0; border-radius: 8px; }
     .tab-pane { padding: 20px 20px; }
     .modal-header { padding: 20px 20px 0; }
     .tabs { padding: 12px 20px 0; }
-    .form-actions { padding: 16px 20px 20px; }
+    .form-actions { padding: 16px 20px 20px; flex-wrap: wrap; }
     .form-row { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
     #seo-columns { grid-template-columns: 1fr; }
+    .projects-grid { grid-template-columns: 1fr; gap: 16px; }
+    .project-card-thumb, .project-card-thumb-placeholder { height: 200px; }
+    .project-card-body { padding: 16px; }
+    .project-actions { flex-wrap: wrap; }
+    .project-actions button { flex: 1 1 auto; min-width: 90px; }
+    #project-filter-bar { gap: 8px; }
+    #project-filter-cat { flex: 1 1 100%; }
+    #sort-save-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .mp-header { flex-wrap: wrap; }
+    .mp-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; padding: 14px; }
   }
 </style>
 </head>
