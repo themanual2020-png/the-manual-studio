@@ -17,6 +17,7 @@ module.exports = async function handler(req, res) {
 
   const staticUrls = [
     { loc: `${BASE_URL}/`, changefreq: 'weekly', priority: '1.0' },
+    { loc: `${BASE_URL}/work.html`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${BASE_URL}/about.html`, changefreq: 'monthly', priority: '0.8' },
   ];
 

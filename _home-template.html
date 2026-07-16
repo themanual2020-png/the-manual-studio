@@ -134,9 +134,6 @@
     .hlc-cap { left: 16px; right: 16px; bottom: 16px; }
   }
 
-  @media (max-width: 1024px) and (min-width: 701px) {
-    #tms-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  }
   @media (max-width: 700px) {
     body { overflow-x: hidden; }
     #tms-nav { padding: 16px 20px !important; gap: 20px !important; }
@@ -149,12 +146,6 @@
     #hero-cat-line { font-size: 10px !important; }
     #tms-root > section:not(#top),
     #tms-root > footer { padding-left: 20px !important; padding-right: 20px !important; }
-    #tms-grid { grid-template-columns: 1fr !important; }
-    #tms-filters { gap: 6px !important; flex-wrap: wrap !important; }
-    #tms-filters button { padding: 7px 12px !important; font-size: 11px !important; letter-spacing: .06em !important; }
-    #tms-grid article { margin-bottom: 8px; }
-    #tms-grid article > div:last-child > div:first-child { font-size: 16px !important; }
-    #tms-grid article > div:last-child > div:last-child { font-size: 13px !important; }
     #contact-grid { grid-template-columns: 1fr !important; word-break: break-word; }
     #contact-grid input, #contact-grid textarea { width: 100% !important; box-sizing: border-box !important; }
   }
@@ -170,7 +161,7 @@
       <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .22em; color: #fff;">THE MANUAL</span>
     </a>
     <div style="display: flex; align-items: center; gap: 34px;">
-      <a href="#work" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: #fff !important; text-decoration: none !important;">WORK</a>
+      <a href="work.html" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: #fff !important; text-decoration: none !important;">WORK</a>
       <a href="about.html" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: rgba(255,255,255,0.6) !important; text-decoration: none !important;">ABOUT</a>
       <a href="#contact" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: #fff !important; text-decoration: none !important;">CONTACT</a>
     </div>
@@ -233,138 +224,14 @@
     </div>
   </section>
 
-  <!-- Work -->
-  <section id="work" style="padding: clamp(40px, 6vh, 80px) 40px clamp(80px, 12vh, 140px); border-top: 1px solid #e2dfd8;">
-    <div style="margin-bottom: 44px;">
-      <div data-reveal style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
-        <div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">SELECTED WORK</span>
-          <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(40px, 7vw, 96px); line-height: .9; letter-spacing: -.01em; margin: 14px 0 0;">ผลงาน</h2>
-        </div>
-      </div>
-      <div id="tms-filters" data-reveal style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px;">
-        <button data-filter="all" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #15140f; background: #15140f; color: #f5f4f1; cursor: pointer; transition: all .35s ease;">ALL · ทั้งหมด</button>
-        <button data-filter="interior" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">INTERIOR &amp; EXTERIOR</button>
-        <button data-filter="event" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">EVENT</button>
-        <button data-filter="doc" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">DOCUMENTARY</button>
-        <button data-filter="presentation" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">PRESENTATION</button>
-      </div>
+  <!-- Work CTA -->
+  <section id="work" style="padding: clamp(70px, 10vh, 130px) 40px; border-top: 1px solid #e2dfd8; text-align: center;">
+    <div style="max-width: 620px; margin: 0 auto;" data-reveal>
+      <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">SELECTED WORK</span>
+      <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(36px, 6vw, 72px); line-height: .95; letter-spacing: -.01em; margin: 14px 0 20px;">ผลงานทั้งหมดของเรา</h2>
+      <p style="font-size: clamp(15px, 1.4vw, 18px); color: rgba(21,20,15,.6); font-weight: 300; line-height: 1.7; margin: 0 0 32px;">รวมผลงานถ่ายภาพและวิดีโอทั้งหมด ตั้งแต่งานอินทีเรียดีไซน์ อีเว้นท์ สารคดี ไปจนถึงงานนำเสนอแบรนด์</p>
+      <a href="work.html" style="display: inline-flex; align-items: center; gap: 10px; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .12em; background: #15140f; color: #f5f4f1; border-radius: 999px; padding: 16px 32px; text-decoration: none;">ดูผลงานทั้งหมด →</a>
     </div>
-
-    <div id="tms-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 40px);">
-
-      <article data-card data-cat="interior" class="tms-card" data-project-id="sukhumvit-residence" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Sukhumvit Residence</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">บ้านพักอาศัย · Interior &amp; Exterior</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'25</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="interior" class="tms-card" data-project-id="riverside-hotel" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Riverside Hotel</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">โรงแรม · Interior &amp; Exterior</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'25</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="doc" class="tms-card" data-project-id="siam-profile" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Siam Group — Profile</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">วิดีโอโปรไฟล์ · Documentary</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'25</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="event" class="tms-card" data-project-id="annual-gala-2025" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Annual Gala 2025</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">งานกาลาดินเนอร์ · Event</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'25</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="presentation" class="tms-card" data-project-id="investor-story" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Investor Story</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">วิดีโอนำเสนอ · Presentation</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'24</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="doc" class="tms-card" data-project-id="the-craftsman" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">The Craftsman</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">สารคดีชีวิต · Documentary</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'24</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="interior" class="tms-card" data-project-id="lobby-lounge" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Lobby &amp; Lounge</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">พื้นที่ส่วนกลาง · Interior</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'24</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="event" class="tms-card" data-project-id="product-launch-night" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Product Launch Night</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">เปิดตัวสินค้า · Event</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'24</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="presentation" class="tms-card" data-project-id="brand-presentation" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">PHOTO + VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Brand Presentation</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">งานนำเสนอแบรนด์ · Presentation</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'24</span>
-        </div>
-      </article>
-
-      <article data-card data-cat="doc" class="tms-card" data-project-id="factory-story" data-reveal>
-        <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-          <div style="position: absolute; inset: 0; background: #e5e4e1;"></div>
-          <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">VIDEO</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 16px;">
-          <div><div style="font-size: 19px; font-weight: 600;">Factory Story</div><div style="color: #9a958a; font-size: 14px; font-weight: 300;">สารคดีองค์กร · Documentary</div></div>
-          <span style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #9a958a;">'23</span>
-        </div>
-      </article>
-
-    </div>
-    <div id="tms-empty" style="display: none; text-align: center; padding: 60px 0; color: #9a958a; font-weight: 300;">ยังไม่มีผลงานในหมวดนี้</div>
   </section>
 
   <!-- Contact -->
@@ -477,7 +344,6 @@
 
   // Load projects from Supabase
   let allProjects = [];
-  let currentFilter = 'all';
 
   function proxyImg(url) {
     if (!url) return url;
@@ -508,7 +374,6 @@
       allProjects = [];
     }
 
-    renderProjects();
     renderHighlightCarousel();
   }
 
@@ -627,62 +492,6 @@
     applyTransforms();
     resetTimer();
   }
-
-  function renderProjects() {
-    const grid = document.getElementById('tms-grid');
-
-    // Map Supabase response to card format
-    const cards = allProjects.map((p, idx) => {
-      const catLabel = p.cat_label || p.catLabel || 'OTHER';
-      const catValue = catLabel.includes('INTERIOR') ? 'interior' :
-                       catLabel.includes('EVENT') ? 'event' :
-                       catLabel.includes('DOCUMENTARY') ? 'doc' :
-                       catLabel.includes('PRESENTATION') ? 'presentation' : 'all';
-
-      return `
-        <article data-card data-cat="${catValue}" data-reveal class="tms-card" style="cursor: pointer;" data-project-id="${p.project_id}">
-          <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-            ${p.hero_placeholder ? `<img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
-            <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">${p.type_label || 'MEDIA'}</span>
-          </div>
-          <div style="margin-top: 16px;">
-            <div style="font-size: 19px; font-weight: 600;">${p.title}</div>
-            <div style="color: #9a958a; font-size: 14px; font-weight: 300;">${p.subtitle}</div>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    grid.innerHTML = cards;
-  }
-
-  function applyFilter(f) {
-    currentFilter = f;
-    let shown = 0;
-    document.querySelectorAll('[data-card]').forEach(card => {
-      const match = f === 'all' || card.getAttribute('data-cat') === f;
-      card.style.display = match ? '' : 'none';
-      if (match) shown++;
-    });
-    document.getElementById('tms-empty').style.display = shown === 0 ? 'block' : 'none';
-    document.querySelectorAll('#tms-filters button').forEach(b => {
-      const active = b.getAttribute('data-filter') === f;
-      b.style.background = active ? '#15140f' : 'transparent';
-      b.style.color = active ? '#f5f4f1' : '#15140f';
-      b.style.borderColor = active ? '#15140f' : '#d2cec5';
-    });
-  }
-
-  document.getElementById('tms-filters').addEventListener('click', e => {
-    const btn = e.target.closest('button[data-filter]');
-    if (btn) applyFilter(btn.getAttribute('data-filter'));
-  });
-
-  // Card click → project page
-  document.getElementById('tms-grid').addEventListener('click', e => {
-    const card = e.target.closest('[data-project-id]');
-    if (card) window.location.href = `project.html?id=${encodeURIComponent(card.getAttribute('data-project-id'))}`;
-  });
 
   // Load projects on page load (wait for Supabase to initialize)
   if (document.readyState === 'loading') {
