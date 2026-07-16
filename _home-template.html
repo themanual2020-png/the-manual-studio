@@ -82,6 +82,14 @@
   .tms-card:hover img { transform: scale(1.06); }
 
   /* Highlight carousel */
+  .hlc-bg-noise {
+    background-color: #15140f;
+    background-image:
+      radial-gradient(ellipse at center, rgba(255,255,255,.05) 0%, rgba(0,0,0,.25) 78%),
+      url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iMjIwIj4KPGZpbHRlciBpZD0ibiI+CjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjg1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIiByZXN1bHQ9InQiLz4KPGZlQ29sb3JNYXRyaXggaW49InQiIHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiLz4KPC9maWx0ZXI+CjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIvPgo8L3N2Zz4=");
+    background-size: cover, 220px 220px;
+    background-blend-mode: normal, overlay;
+  }
   .hlc-stage {
     position: relative;
     height: clamp(360px, 48vw, 620px);
@@ -213,7 +221,7 @@
   </section>
 
   <!-- Highlight -->
-  <section id="highlight" style="padding: clamp(40px, 5vh, 64px) 40px; background: #15140f;">
+  <section id="highlight" class="hlc-bg-noise" style="padding: clamp(40px, 5vh, 64px) 40px;">
     <div style="max-width: 1200px; margin: 0 auto;">
       <div data-reveal>
         <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">FEATURED</span>
