@@ -81,11 +81,31 @@
   }
   .tms-card:hover img { transform: scale(1.06); }
 
+  /* Highlight carousel */
+  @keyframes hl-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .hl-track-wrap { overflow: hidden; min-height: clamp(195px, 22.5vw, 315px); }
+  .hl-track { display: flex; gap: 20px; width: max-content; animation: hl-scroll 45s linear infinite; }
+  .hl-track-wrap:hover .hl-track { animation-play-state: paused; }
+  .hl-card {
+    position: relative; flex-shrink: 0;
+    width: clamp(260px, 30vw, 420px); aspect-ratio: 4/3;
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    background: #232019;
+  }
+  .hl-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s cubic-bezier(.16,1,.3,1); }
+  .hl-card:hover img { transform: scale(1.06); }
+  .hl-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,9,7,.75) 0%, rgba(10,9,7,.05) 55%); pointer-events: none; }
+  .hl-card-text { position: absolute; left: 18px; right: 18px; bottom: 16px; color: #f5f4f1; }
+  .hl-card-text .hl-cat { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; color: rgba(245,244,241,.7); text-transform: uppercase; }
+  .hl-card-text .hl-title { font-family: 'Archivo', sans-serif; font-size: 19px; font-weight: 700; margin-top: 4px; }
+
   @media (max-width: 1024px) and (min-width: 701px) {
     #tms-grid { grid-template-columns: repeat(2, 1fr) !important; }
   }
   @media (max-width: 700px) {
     body { overflow-x: hidden; }
+    .hl-track { gap: 12px; animation-duration: 32s; }
+    .hl-card { width: clamp(220px, 72vw, 300px); }
     #tms-nav { padding: 16px 20px !important; gap: 20px !important; }
     #tms-nav div { gap: 20px !important; }
     #tms-nav span { display: none !important; }
@@ -139,6 +159,17 @@
     </div>
     <div style="position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); width: 22px; height: 34px; border: 1.5px solid rgba(245,244,241,.6); border-radius: 12px; display: flex; justify-content: center; padding-top: 6px; pointer-events: none;">
       <span style="width: 3px; height: 6px; border-radius: 2px; background: rgba(245,244,241,.85); animation: tms-scrolldot 1.8s infinite;"></span>
+    </div>
+  </section>
+
+  <!-- Highlights -->
+  <section id="highlights" style="background: #15140f; padding: clamp(48px, 7vh, 80px) 0; overflow: hidden;">
+    <div style="padding: 0 40px; margin-bottom: 28px;">
+      <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: rgba(245,244,241,.55);">FEATURED</span>
+      <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 48px); line-height: 1; letter-spacing: -.01em; margin: 12px 0 0; color: #f5f4f1;">ผลงานเด่น</h2>
+    </div>
+    <div class="hl-track-wrap">
+      <div class="hl-track" id="hl-track"></div>
     </div>
   </section>
 
@@ -444,6 +475,33 @@
     }
 
     renderProjects();
+    renderHighlights();
+  }
+
+  function renderHighlights() {
+    const track = document.getElementById('hl-track');
+    if (!track) return;
+    const featured = allProjects.slice(0, 5).filter(p => p.hero_placeholder);
+    if (!featured.length) {
+      document.getElementById('highlights').style.display = 'none';
+      return;
+    }
+    const cardHtml = (p) => `
+      <div class="hl-card" data-project-id="${p.project_id}">
+        <img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}" loading="lazy">
+        <div class="hl-card-overlay"></div>
+        <div class="hl-card-text">
+          <div class="hl-cat">${p.cat_label || ''}</div>
+          <div class="hl-title">${p.title}</div>
+        </div>
+      </div>
+    `;
+    // Duplicate the set so the marquee loop is seamless (translateX -50%).
+    track.innerHTML = featured.map(cardHtml).join('') + featured.map(cardHtml).join('');
+    track.addEventListener('click', e => {
+      const card = e.target.closest('[data-project-id]');
+      if (card) window.location.href = `project.html?id=${encodeURIComponent(card.getAttribute('data-project-id'))}`;
+    });
   }
 
   function renderProjects() {
