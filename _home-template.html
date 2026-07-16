@@ -84,7 +84,7 @@
   /* Highlight carousel */
   .hlc-stage {
     position: relative;
-    height: clamp(300px, 42vw, 540px);
+    height: clamp(360px, 48vw, 620px);
     overflow: hidden;
     cursor: grab;
     user-select: none;
@@ -94,8 +94,8 @@
   .hlc-slide {
     position: absolute;
     top: 50%; left: 50%;
-    width: min(880px, 70vw);
-    height: 88%;
+    width: min(980px, 76vw);
+    height: 94%;
     border-radius: 18px;
     overflow: hidden;
     background: #000;
@@ -130,7 +130,7 @@
   .hlc-dot.active span { animation: hlc-fill 5s linear forwards; }
   @keyframes hlc-fill { to { transform: scaleX(1); } }
   @media (max-width: 700px) {
-    .hlc-slide { width: 82vw; height: 82%; }
+    .hlc-slide { width: 86vw; height: 88%; }
     .hlc-cap { left: 16px; right: 16px; bottom: 16px; }
   }
 
@@ -186,18 +186,6 @@
     </div>
   </section>
 
-  <!-- Highlight -->
-  <section id="highlight" style="padding: clamp(60px, 8vh, 100px) 40px; background: #15140f;">
-    <div style="max-width: 1200px; margin: 0 auto;">
-      <div data-reveal>
-        <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">FEATURED</span>
-        <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(40px, 7vw, 80px); line-height: .95; letter-spacing: -.01em; margin: 14px 0 32px; color: #f5f4f1;">Highlight</h2>
-      </div>
-      <div class="hlc-stage" id="hlc-stage"></div>
-      <div class="hlc-dots" id="hlc-dots"></div>
-    </div>
-  </section>
-
   <!-- Intro -->
   <section style="padding: clamp(80px, 12vh, 140px) 40px;">
     <div style="max-width: 1080px; margin: 0 auto;">
@@ -221,6 +209,18 @@
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- Highlight -->
+  <section id="highlight" style="padding: clamp(40px, 5vh, 64px) 40px; background: #15140f;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div data-reveal>
+        <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">FEATURED</span>
+        <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(40px, 7vw, 80px); line-height: .95; letter-spacing: -.01em; margin: 14px 0 24px; color: #f5f4f1;">Highlight</h2>
+      </div>
+      <div class="hlc-stage" id="hlc-stage"></div>
+      <div class="hlc-dots" id="hlc-dots"></div>
     </div>
   </section>
 
@@ -382,7 +382,7 @@
     const dotsEl = document.getElementById('hlc-dots');
     if (!stage || !dotsEl) return;
 
-    const featured = allProjects.slice(0, 5).filter(p => p.hero_placeholder);
+    const featured = allProjects.slice(0, 7).filter(p => p.hero_placeholder);
     if (!featured.length) {
       document.getElementById('highlight').style.display = 'none';
       return;
