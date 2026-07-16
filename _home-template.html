@@ -104,14 +104,19 @@
     top: 50%; left: 50%;
     width: min(980px, 76vw);
     height: 94%;
-    border-radius: 18px;
-    overflow: hidden;
-    background: #000;
-    box-shadow: 0 40px 80px -30px rgba(0,0,0,.6);
     transition: transform .55s cubic-bezier(.22,.68,.2,1), opacity .55s ease;
     will-change: transform, opacity;
   }
   .hlc-slide.dragging-now { transition: none; }
+  .hlc-slide-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,.6);
+    transform: translateZ(0);
+  }
   .hlc-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-user-drag: none; }
   .hlc-fade {
     position: absolute; inset: 0;
@@ -401,11 +406,13 @@
 
     stage.innerHTML = featured.map(p => `
       <div class="hlc-slide" data-project-id="${p.project_id}">
-        <img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}">
-        <div class="hlc-fade"></div>
-        <div class="hlc-cap">
-          <div class="hlc-cat">${p.cat_label || ''}</div>
-          <div class="hlc-line">${p.title}</div>
+        <div class="hlc-slide-inner">
+          <img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}">
+          <div class="hlc-fade"></div>
+          <div class="hlc-cap">
+            <div class="hlc-cat">${p.cat_label || ''}</div>
+            <div class="hlc-line">${p.title}</div>
+          </div>
         </div>
       </div>
     `).join('');
