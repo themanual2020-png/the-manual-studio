@@ -6,7 +6,7 @@
 <title>Admin — The Manual Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Prompt:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./auth.js" defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -581,7 +581,7 @@
   <div id="analytics-view" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <label style="font-family:'Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
+        <label style="font-family:'Prompt','Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
         <select id="analytics-range" onchange="onAnalyticsRangeChange()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
           <option value="today" selected>วันนี้</option>
           <option value="7">7 วันล่าสุด</option>
@@ -640,7 +640,7 @@
     <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">แก้ไข Title / Description / Keywords ของหน้า Home และ About ที่ใช้แสดงผลใน Google และตอนแชร์ลิงก์ (Facebook, LINE)</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="seo-columns">
       <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า Home</h3>
+        <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า Home</h3>
         <div class="form-group">
           <label>Title</label>
           <input type="text" id="seo-home-title">
@@ -656,7 +656,7 @@
         <button type="button" class="btn-primary" onclick="saveSeoSettings('home')">Save</button>
       </div>
       <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
-        <h3 style="font-family:'Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า About</h3>
+        <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า About</h3>
         <div class="form-group">
           <label>Title</label>
           <input type="text" id="seo-about-title">
@@ -1268,7 +1268,7 @@ function renderBlockFields(b, i) {
   if (type === 'slider') {
     const imgs = Array.isArray(b.images) ? b.images : [''];
     return `
-    <label style="font-family:'Archivo',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;color:#9a958a;text-transform:uppercase;display:block;margin-bottom:8px">รูปภาพ (ใส่ทีละ URL)</label>
+    <label style="font-family:'Prompt','Archivo',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;color:#9a958a;text-transform:uppercase;display:block;margin-bottom:8px">รูปภาพ (ใส่ทีละ URL)</label>
     <div class="slider-url-list" id="slider-urls-${i}">
       ${imgs.map((url, j) => `
         <div class="slider-url-row">

@@ -90,7 +90,7 @@
       <span data-reveal style="display: block; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">SELECTED WORK</span>
       <h1 data-reveal style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(48px, 8vw, 108px); line-height: .9; letter-spacing: -.01em; margin: 14px 0 32px;">ผลงานทั้งหมด</h1>
       <div id="tms-filters" data-reveal style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <button data-filter="all" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #15140f; background: #15140f; color: #f5f4f1; cursor: pointer; transition: all .35s ease;">ALL · ทั้งหมด</button>
+        <button data-filter="all" style="font-family: 'Prompt', 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #15140f; background: #15140f; color: #f5f4f1; cursor: pointer; transition: all .35s ease;">ALL · ทั้งหมด</button>
         <button data-filter="interior" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">INTERIOR &amp; EXTERIOR</button>
         <button data-filter="event" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">EVENT</button>
         <button data-filter="doc" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">DOCUMENTARY</button>
@@ -182,7 +182,7 @@
         <article data-card data-cat="${catValue}" data-reveal class="tms-card" style="cursor: pointer;" data-project-id="${p.project_id}">
           <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
             ${p.hero_placeholder ? `<img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
-            <span style="position: absolute; top: 14px; left: 14px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">${p.type_label || 'MEDIA'}</span>
+            <span style="position: absolute; top: 14px; left: 14px; font-family: 'Prompt', 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">${p.type_label || 'MEDIA'}</span>
           </div>
           <div style="margin-top: 16px;">
             <div style="font-size: 19px; font-weight: 600;">${p.title}</div>
