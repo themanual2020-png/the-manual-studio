@@ -898,7 +898,7 @@ async function saveSeoSettings(page) {
   const description = document.getElementById(`seo-${page}-description`).value.trim();
   const keywords = document.getElementById(`seo-${page}-keywords`).value.trim();
   try {
-    await apiFetch(`/site_settings?page=eq.${page}`, {
+    await adminFetch(`/api/admin/site-settings?page=${encodeURIComponent(page)}`, {
       method: 'PATCH',
       body: JSON.stringify({ title, description, keywords }),
     });
@@ -1161,6 +1161,22 @@ async function apiFetch(path, opts = {}) {
   }
   if (res.status === 204) return null;
   return res.json();
+}
+
+// Writes go through session-gated server endpoints (service role key never
+// touches the browser) instead of straight to Supabase with the anon key.
+async function adminFetch(path, opts = {}) {
+  const res = await fetch(path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || res.statusText);
+  }
+  if (res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 // ===== CONVERT GOOGLE DRIVE LINK =====
@@ -1517,15 +1533,14 @@ async function saveProject() {
 
   try {
     if (currentEditId) {
-      await apiFetch(`/projects?id=eq.${currentEditId}`, {
+      await adminFetch(`/api/admin/projects?id=${encodeURIComponent(currentEditId)}`, {
         method: 'PATCH',
         body: JSON.stringify(formData),
       });
       showAlert('Project updated! ✓', 'success');
     } else {
-      await apiFetch('/projects', {
+      await adminFetch('/api/admin/projects', {
         method: 'POST',
-        headers: { 'Prefer': 'return=representation' },
         body: JSON.stringify(formData),
       });
       showAlert('Project created! ✓', 'success');
@@ -1564,7 +1579,7 @@ async function loadProjects() {
 async function deleteProject(id, title) {
   if (!confirm(`Delete "${title}"?`)) return;
   try {
-    await apiFetch(`/projects?id=eq.${id}`, { method: 'DELETE' });
+    await adminFetch(`/api/admin/projects?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
     showAlert('Project deleted', 'success');
     loadProjects();
   } catch (e) {
@@ -1575,7 +1590,7 @@ async function deleteProject(id, title) {
 // ===== TOGGLE PUBLISHED =====
 async function togglePublished(id, currentlyPublished) {
   try {
-    await apiFetch(`/projects?id=eq.${id}`, {
+    await adminFetch(`/api/admin/projects?id=${encodeURIComponent(id)}`, {
       method: 'PATCH',
       body: JSON.stringify({ published: !currentlyPublished }),
     });
@@ -1721,12 +1736,10 @@ async function saveOrder() {
   const bar = document.getElementById('sort-save-bar');
   bar.querySelector('button').textContent = 'กำลังบันทึก...';
   try {
-    await Promise.all(projects.map((p, idx) =>
-      apiFetch(`/projects?id=eq.${p.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ sort_order: idx }),
-      })
-    ));
+    await adminFetch('/api/admin/projects-reorder', {
+      method: 'POST',
+      body: JSON.stringify({ order: projects.map((p, idx) => ({ id: p.id, sort_order: idx })) }),
+    });
     orderChanged = false;
     bar.style.display = 'none';
     showAlert('บันทึกลำดับเรียบร้อย', 'success');
