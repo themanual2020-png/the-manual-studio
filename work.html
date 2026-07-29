@@ -231,6 +231,8 @@
 
 <!-- Vercel Analytics -->
 <script defer src="/_vercel/insights/script.js"></script>
+<!-- Cookie consent (must load before analytics below) -->
+<script src="./cookie-consent.js"></script>
 <!-- Own Analytics (Supabase) -->
 <script>
 (function () {
@@ -261,6 +263,7 @@
   const trafficSource = getTrafficSource();
   const deviceType = getDeviceType();
   window.tmsTrack = function (eventType, projectId) {
+    if (!tmsHasAnalyticsConsent()) return;
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

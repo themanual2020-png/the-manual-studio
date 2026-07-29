@@ -263,6 +263,7 @@
         <input type="hidden" name="access_key" value="12303091-8ff4-4f22-9f45-d8d73d2a25a1">
         <input type="hidden" name="subject" value="New Contact — The Manual Studio">
         <input type="hidden" name="from_name" value="The Manual Studio Website">
+        <input type="checkbox" name="botcheck" style="display:none;" tabindex="-1" autocomplete="off">
         <input type="text" name="name" required placeholder="ชื่อ / Name" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
         <input type="tel" name="phone" placeholder="เบอร์โทร / Phone" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
         <input type="email" name="email" placeholder="อีเมล / Email" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
@@ -273,10 +274,20 @@
     </div>
   </section>
   <script>
+  const contactFormLoadedAt = Date.now();
   document.getElementById('contact-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('contact-submit');
     const msg = document.getElementById('contact-msg');
+    // Silently drop obvious bot submissions: honeypot filled, or submitted
+    // implausibly fast for a human to have read and filled the form.
+    if (this.botcheck.checked || Date.now() - contactFormLoadedAt < 1500) {
+      msg.textContent = '✓ ส่งข้อความแล้ว ขอบคุณครับ เราจะติดต่อกลับเร็วๆ นี้';
+      msg.style.color = '#155724';
+      msg.style.display = 'block';
+      this.reset();
+      return;
+    }
     btn.textContent = 'กำลังส่ง...';
     btn.style.opacity = '.6';
     btn.disabled = true;
@@ -534,6 +545,8 @@
 
 <!-- Vercel Analytics -->
 <script defer src="/_vercel/insights/script.js"></script>
+<!-- Cookie consent (must load before analytics below) -->
+<script src="./cookie-consent.js"></script>
 <!-- Own Analytics (Supabase) -->
 <script>
 (function () {
@@ -564,6 +577,7 @@
   const trafficSource = getTrafficSource();
   const deviceType = getDeviceType();
   window.tmsTrack = function (eventType, projectId) {
+    if (!tmsHasAnalyticsConsent()) return;
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
