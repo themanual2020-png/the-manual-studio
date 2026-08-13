@@ -1,9 +1,38 @@
 // Session-gated proxy for writing to the `projects` table. Uses the Supabase
 // service role key (server-only, bypasses RLS) so the browser never holds a
 // key capable of writing — only a logged-in admin session can reach this.
+//
+// POST ?action=reorder handles the bulk sort_order update (merged in here,
+// rather than its own file, to stay under Vercel Hobby's 12-function cap).
 const { requireSession } = require('../../lib/auth/verify-session');
 
 const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
+
+async function handleReorder(req, res, key) {
+  const order = req.body && req.body.order;
+  if (!Array.isArray(order)) {
+    res.status(400).json({ error: 'invalid body' });
+    return;
+  }
+  try {
+    await Promise.all(
+      order.map(({ id, sort_order }) =>
+        fetch(`${SUPA_URL}/rest/v1/projects?id=eq.${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: key,
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sort_order }),
+        })
+      )
+    );
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}
 
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
@@ -14,8 +43,14 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { id } = req.query;
+  const { id, action } = req.query;
   const method = req.method;
+
+  if (method === 'POST' && action === 'reorder') {
+    await handleReorder(req, res, key);
+    return;
+  }
+
   let path = '/rest/v1/projects';
   const headers = {
     apikey: key,
