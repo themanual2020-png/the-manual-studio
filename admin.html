@@ -569,6 +569,48 @@
   .jobs-status-dot.pending { background:#e6a817; }
   .jobs-status-dot.in_progress { background:#0d6efd; }
   .jobs-status-dot.done { background:#28a745; }
+
+  .job-tags-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .job-tag-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; font-family:'Prompt','Archivo',sans-serif; }
+  .job-tag-chip button { background:none; border:none; padding:0; margin:0; font-size:12px; line-height:1; cursor:pointer; opacity:.7; }
+  .job-tag-chip button:hover { opacity:1; }
+  .job-assignee-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px 3px 3px; border-radius:999px; background:#f0ede8; color:#15140f; }
+  .job-assignee-avatar { width:18px; height:18px; border-radius:50%; background:#15140f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; }
+  .job-assignee-chip button { background:none; border:none; padding:0; font-size:12px; cursor:pointer; opacity:.6; }
+  .job-priority-dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .job-priority-dot.high { background:#b3261e; }
+  .job-priority-dot.medium { background:#c98a1a; }
+  .job-priority-dot.low { background:#9a958a; }
+  .job-modal-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:28px; margin-top:14px; }
+  .job-subtask-row { display:flex; align-items:center; gap:8px; font-size:13px; }
+  .job-subtask-row input[type="checkbox"] { width:15px; height:15px; flex-shrink:0; }
+  .job-subtask-row span { flex:1; }
+  .job-subtask-row.done span { text-decoration:line-through; color:#9a958a; }
+  .job-subtask-row button { background:none; border:none; color:#b3261e; cursor:pointer; font-size:14px; padding:0 4px; opacity:.6; }
+  .job-subtask-row button:hover { opacity:1; }
+  .job-attachment-row { display:flex; align-items:center; gap:8px; font-size:12.5px; padding:6px 10px; background:#f5f4f1; border-radius:6px; }
+  .job-attachment-row a { flex:1; color:#15140f; text-decoration:underline; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .job-attachment-row button { background:none; border:none; color:#b3261e; cursor:pointer; font-size:13px; padding:0 2px; }
+
+  .jobs-tray-group { margin-bottom:24px; }
+  .jobs-tray-group-title { display:flex; align-items:center; gap:8px; font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#9a958a; margin-bottom:10px; }
+  .jobs-tray-group-title .dot { width:7px; height:7px; border-radius:50%; }
+  .jobs-tray-card { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid #e2dfd8; border-left:3px solid transparent; border-radius:8px; margin-bottom:8px; cursor:pointer; background:#fff; }
+  .jobs-tray-card:hover { border-color:#15140f; }
+  .jobs-tray-card .title { flex:1; font-weight:600; font-size:13.5px; }
+  .jobs-tray-card .meta { font-size:11.5px; color:#9a958a; white-space:nowrap; }
+
+  .kanban-board { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start; }
+  .kanban-col { background:#f0ede8; border-radius:10px; padding:14px; min-height:120px; }
+  .kanban-col-header { display:flex; justify-content:space-between; align-items:center; font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b675f; margin-bottom:12px; }
+  .kanban-col.dragover { outline:2px dashed #15140f; outline-offset:-2px; }
+  .kanban-card { background:#fff; border:1px solid #e2dfd8; border-radius:8px; padding:12px; margin-bottom:10px; cursor:grab; }
+  .kanban-card:hover { border-color:#15140f; }
+  .kanban-card.dragging { opacity:.4; }
+  .kanban-card-title { font-weight:600; font-size:13px; margin-bottom:8px; }
+  .kanban-card-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .kanban-card-date { font-size:11px; color:#9a958a; }
+
   .analytics-card { background:#fff; border:1px solid #e2dfd8; border-radius:10px; padding:20px; }
   .analytics-card-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; margin:0 0 16px; }
   .analytics-bar-row { margin-bottom:10px; }
@@ -708,7 +750,8 @@
         <div class="admin-page-actions">
           <div style="display:flex;gap:6px;">
             <button type="button" class="filter-tab active" data-jobview="month" onclick="setJobViewMode('month')">เดือน</button>
-            <button type="button" class="filter-tab" data-jobview="list" onclick="setJobViewMode('list')">รายการ</button>
+            <button type="button" class="filter-tab" data-jobview="tray" onclick="setJobViewMode('tray')">ถาดงาน</button>
+            <button type="button" class="filter-tab" data-jobview="kanban" onclick="setJobViewMode('kanban')">คัมบัง</button>
           </div>
           <button class="btn-primary btn-sm" onclick="openJobModal()">+ เพิ่มงาน</button>
         </div>
@@ -723,8 +766,12 @@
         <div id="jobs-calendar-grid" class="jobs-calendar-grid"></div>
       </div>
 
-      <div id="jobs-list-view" style="display:none;">
-        <div id="jobs-list"></div>
+      <div id="jobs-tray-view" style="display:none;">
+        <div id="jobs-tray"></div>
+      </div>
+
+      <div id="jobs-kanban-view" style="display:none;">
+        <div id="jobs-kanban" class="kanban-board"></div>
       </div>
     </div>
 
@@ -836,9 +883,12 @@
 
 <!-- Job Modal -->
 <div id="job-modal" class="modal">
-  <div class="modal-content" style="max-width:480px;">
+  <div class="modal-content" style="max-width:800px;">
     <div class="modal-header">
-      <h2 id="job-modal-title">เพิ่มงาน</h2>
+      <div>
+        <div id="job-modal-tags" class="job-tags-row"></div>
+        <h2 id="job-modal-title" style="margin-top:6px;">เพิ่มงาน</h2>
+      </div>
       <button class="close-modal" onclick="closeJobModal()">&times;</button>
     </div>
     <div class="tab-pane active">
@@ -847,27 +897,104 @@
           <label>ชื่องาน</label>
           <input type="text" id="job_title" required placeholder="เช่น ถ่ายภาพ Wendy's House">
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>วันที่เริ่มต้น</label>
-            <input type="date" id="job_date" required onchange="onJobStartDateChange()">
+
+        <div class="job-modal-grid">
+          <div>
+            <div class="form-group">
+              <label>รายละเอียด</label>
+              <textarea id="job_notes" rows="3" placeholder="โน้ตเพิ่มเติม..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>วันที่เริ่มต้น</label>
+                <input type="date" id="job_date" required onchange="onJobStartDateChange()">
+              </div>
+              <div class="form-group">
+                <label>วันที่สิ้นสุด</label>
+                <input type="date" id="job_end_date" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>สถานะ</label>
+                <select id="job_status">
+                  <option value="pending">รอดำเนินการ</option>
+                  <option value="in_progress">กำลังทำ</option>
+                  <option value="done">เสร็จแล้ว</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>ความสำคัญ</label>
+                <select id="job_priority">
+                  <option value="high">🔴 สูง</option>
+                  <option value="medium" selected>🟡 กลาง</option>
+                  <option value="low">⚪ ต่ำ</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>แท็ก</label>
+              <div id="job-tags-list" class="job-tags-row"></div>
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <input type="text" id="job_tag_input" placeholder="พิมพ์ชื่อแท็กแล้วกด Enter" style="flex:1;padding:8px 10px;border:1px solid #e2dfd8;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addJobTag();}">
+                <select id="job_tag_color" style="padding:8px;border:1px solid #e2dfd8;border-radius:6px;">
+                  <option value="#b3261e">🔴</option>
+                  <option value="#c98a1a" selected>🟠</option>
+                  <option value="#1a7a4a">🟢</option>
+                  <option value="#0d6efd">🔵</option>
+                  <option value="#6b34b8">🟣</option>
+                </select>
+                <button type="button" class="btn-secondary btn-sm" onclick="addJobTag()">+</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>ผู้รับผิดชอบ</label>
+              <div id="job-assignees-list" class="job-tags-row"></div>
+              <div style="display:flex;gap:6px;margin-top:6px;">
+                <input type="text" id="job_assignee_input" placeholder="พิมพ์ชื่อแล้วกด Enter" style="flex:1;padding:8px 10px;border:1px solid #e2dfd8;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addJobAssignee();}">
+                <button type="button" class="btn-secondary btn-sm" onclick="addJobAssignee()">+</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>งบประมาณ (บาท)</label>
+                <input type="number" id="job_budget" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label>ลิงก์</label>
+                <input type="url" id="job_link" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>ไฟล์แนบ</label>
+              <div id="job-attachments-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px;"></div>
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="job_attachment_name" placeholder="ชื่อไฟล์" style="flex:1;padding:8px 10px;border:1px solid #e2dfd8;border-radius:6px;font-size:13px;">
+                <input type="url" id="job_attachment_url" placeholder="ลิงก์ไฟล์" style="flex:1;padding:8px 10px;border:1px solid #e2dfd8;border-radius:6px;font-size:13px;">
+                <button type="button" class="btn-secondary btn-sm" onclick="addJobAttachment()">+</button>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label>วันที่สิ้นสุด</label>
-            <input type="date" id="job_end_date" required>
+
+          <div>
+            <div class="form-group">
+              <label>งานย่อย <span id="job-subtasks-progress" style="text-transform:none;font-weight:400;color:#9a958a;"></span></label>
+              <div id="job-subtasks-bar-outer" style="background:#e2dfd8;border-radius:4px;height:6px;overflow:hidden;margin-bottom:12px;">
+                <div id="job-subtasks-bar-inner" style="background:#15140f;height:100%;width:0%;"></div>
+              </div>
+              <div id="job-subtasks-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="job_subtask_input" placeholder="เพิ่มงานย่อย..." style="flex:1;padding:8px 10px;border:1px solid #e2dfd8;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addJobSubtask();}">
+                <button type="button" class="btn-secondary btn-sm" onclick="addJobSubtask()">+</button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>สถานะ</label>
-          <select id="job_status">
-            <option value="pending">รอดำเนินการ</option>
-            <option value="in_progress">กำลังทำ</option>
-            <option value="done">เสร็จแล้ว</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>รายละเอียด (ไม่บังคับ)</label>
-          <textarea id="job_notes" rows="4" placeholder="โน้ตเพิ่มเติม..."></textarea>
         </div>
       </form>
     </div>
@@ -1238,13 +1365,19 @@ let jobs = [];
 let jobViewMode = 'month';
 let jobCalendarDate = new Date();
 let currentEditJobId = null;
+let jobModalTags = [];
+let jobModalAssignees = [];
+let jobModalSubtasks = [];
+let jobModalAttachments = [];
 const JOB_STATUS_LABEL = { pending: 'รอดำเนินการ', in_progress: 'กำลังทำ', done: 'เสร็จแล้ว' };
+const JOB_PRIORITY_COLOR = { high: '#b3261e', medium: '#c98a1a', low: '#9a958a' };
 
 function setJobViewMode(mode) {
   jobViewMode = mode;
   document.querySelectorAll('[data-jobview]').forEach(b => b.classList.toggle('active', b.dataset.jobview === mode));
   document.getElementById('jobs-month-view').style.display = mode === 'month' ? '' : 'none';
-  document.getElementById('jobs-list-view').style.display = mode === 'list' ? '' : 'none';
+  document.getElementById('jobs-tray-view').style.display = mode === 'tray' ? '' : 'none';
+  document.getElementById('jobs-kanban-view').style.display = mode === 'kanban' ? '' : 'none';
   renderJobs();
 }
 
@@ -1259,12 +1392,26 @@ async function loadJobs() {
 
 function renderJobs() {
   if (jobViewMode === 'month') renderJobsCalendar();
-  else renderJobsList();
+  else if (jobViewMode === 'tray') renderJobsTray();
+  else renderJobsKanban();
 }
 
 function shiftJobMonth(delta) {
   jobCalendarDate = new Date(jobCalendarDate.getFullYear(), jobCalendarDate.getMonth() + delta, 1);
   renderJobsCalendar();
+}
+
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
+}
+
+function jobTagChipsHtml(job, limit) {
+  return (job.tags || []).slice(0, limit).map(t => `<span class="job-tag-chip" style="background:${t.color}22;color:${t.color};">${escHtml(t.label)}</span>`).join('');
+}
+
+function jobAssigneeAvatarsHtml(job, limit) {
+  return (job.assignees || []).slice(0, limit).map(a => `<span class="job-assignee-avatar" title="${escHtml(a)}">${escHtml(initials(a))}</span>`).join('');
 }
 
 function renderJobsCalendar() {
@@ -1311,21 +1458,123 @@ function renderJobsCalendar() {
   document.getElementById('jobs-calendar-grid').innerHTML = html;
 }
 
-function renderJobsList() {
-  const sorted = [...jobs].sort((a, b) => a.date.localeCompare(b.date));
-  const el = document.getElementById('jobs-list');
-  if (!sorted.length) {
-    el.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;">ยังไม่มีงานในคิว</p>';
+function renderJobsTray() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const weekAheadStr = addDaysStr(todayStr, 7);
+  const groups = {
+    overdue: { label: 'เลยกำหนด', color: '#b3261e', items: [] },
+    today: { label: 'วันนี้', color: '#c98a1a', items: [] },
+    week: { label: 'สัปดาห์นี้', color: '#0d6efd', items: [] },
+    later: { label: 'ภายหลัง', color: '#9a958a', items: [] },
+  };
+  jobs.forEach(j => {
+    if (j.status === 'done') return; // finished jobs don't clutter the tray
+    const due = j.end_date || j.date;
+    if (due < todayStr) groups.overdue.items.push(j);
+    else if (due === todayStr) groups.today.items.push(j);
+    else if (due <= weekAheadStr) groups.week.items.push(j);
+    else groups.later.items.push(j);
+  });
+
+  const el = document.getElementById('jobs-tray');
+  const nonEmpty = Object.values(groups).filter(g => g.items.length);
+  if (!nonEmpty.length) {
+    el.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;">ไม่มีงานค้างอยู่ 🎉</p>';
     return;
   }
-  el.innerHTML = sorted.map(j => `
-    <div class="jobs-list-item" onclick="openJobModal('${j.id}')">
-      <span class="jobs-status-dot ${j.status}"></span>
-      <span class="jobs-list-date">${formatThaiDateRange(j.date, j.end_date)}</span>
-      <span class="jobs-list-title">${escHtml(j.title)}</span>
-      <span style="font-size:12px;color:#9a958a;">${JOB_STATUS_LABEL[j.status] || j.status}</span>
+
+  el.innerHTML = nonEmpty.map(g => `
+    <div class="jobs-tray-group">
+      <div class="jobs-tray-group-title"><span class="dot" style="background:${g.color};"></span>${g.label} <span style="color:#c7c2b8;">· ${g.items.length}</span></div>
+      ${g.items.sort((a, b) => a.date.localeCompare(b.date)).map(j => jobTrayCardHtml(j)).join('')}
     </div>
   `).join('');
+}
+
+function jobTrayCardHtml(j) {
+  const priorityColor = JOB_PRIORITY_COLOR[j.priority || 'medium'];
+  return `
+    <div class="jobs-tray-card" style="border-left-color:${priorityColor};" onclick="openJobModal('${j.id}')">
+      <span class="jobs-status-dot ${j.status}"></span>
+      <span class="title">${escHtml(j.title)}</span>
+      ${jobTagChipsHtml(j, 2)}
+      <span style="display:flex;gap:2px;">${jobAssigneeAvatarsHtml(j, 3)}</span>
+      <span class="meta">${formatThaiDateRange(j.date, j.end_date)}</span>
+    </div>
+  `;
+}
+
+function renderJobsKanban() {
+  const cols = [
+    { status: 'pending', label: 'รอดำเนินการ' },
+    { status: 'in_progress', label: 'กำลังทำ' },
+    { status: 'done', label: 'เสร็จแล้ว' },
+  ];
+  const el = document.getElementById('jobs-kanban');
+  el.innerHTML = cols.map(c => {
+    const colJobs = jobs.filter(j => j.status === c.status);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header"><span>${c.label}</span><span>${colJobs.length}</span></div>
+        <div class="kanban-col-body" data-status="${c.status}">
+          ${colJobs.map(j => kanbanCardHtml(j)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  initKanbanDragAndDrop();
+}
+
+function kanbanCardHtml(j) {
+  const tagsHtml = jobTagChipsHtml(j, 3);
+  return `
+    <div class="kanban-card" draggable="true" data-id="${j.id}" onclick="openJobModal('${j.id}')">
+      ${tagsHtml ? `<div class="job-tags-row" style="margin-bottom:6px;">${tagsHtml}</div>` : ''}
+      <div class="kanban-card-title">${escHtml(j.title)}</div>
+      <div class="kanban-card-meta">
+        <span class="kanban-card-date">${formatThaiDateRange(j.date, j.end_date)}</span>
+        <span style="display:flex;gap:2px;">${jobAssigneeAvatarsHtml(j, 3)}</span>
+      </div>
+    </div>
+  `;
+}
+
+function initKanbanDragAndDrop() {
+  let dragId = null;
+  document.querySelectorAll('.kanban-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragId = card.dataset.id;
+      card.classList.add('dragging');
+      e.stopPropagation();
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+  document.querySelectorAll('.kanban-col-body').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault();
+      col.closest('.kanban-col').classList.add('dragover');
+    });
+    col.addEventListener('dragleave', () => col.closest('.kanban-col').classList.remove('dragover'));
+    col.addEventListener('drop', async e => {
+      e.preventDefault();
+      col.closest('.kanban-col').classList.remove('dragover');
+      if (!dragId) return;
+      const newStatus = col.dataset.status;
+      const job = jobs.find(j => String(j.id) === String(dragId));
+      if (!job || job.status === newStatus) return;
+      job.status = newStatus;
+      renderJobsKanban();
+      try {
+        await adminFetch(`/api/admin/job-queue?id=${encodeURIComponent(dragId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: newStatus }),
+        });
+      } catch (err) {
+        showAlert('อัปเดตสถานะไม่สำเร็จ: ' + err.message, 'error');
+        loadJobs();
+      }
+    });
+  });
 }
 
 function formatThaiDate(dateStr) {
@@ -1352,6 +1601,102 @@ function onJobStartDateChange() {
   if (!endEl.value || endEl.value < startEl.value) endEl.value = startEl.value;
 }
 
+// ----- Tags -----
+function jobTagChipEditHtml(tag, idx) {
+  return `<span class="job-tag-chip" style="background:${tag.color}22;color:${tag.color};">${escHtml(tag.label)}<button type="button" onclick="removeJobTag(${idx})">&times;</button></span>`;
+}
+function renderJobTagsUI() {
+  document.getElementById('job-modal-tags').innerHTML = jobModalTags.map(t => `<span class="job-tag-chip" style="background:${t.color}22;color:${t.color};">${escHtml(t.label)}</span>`).join('');
+  document.getElementById('job-tags-list').innerHTML = jobModalTags.map((t, i) => jobTagChipEditHtml(t, i)).join('');
+}
+function addJobTag() {
+  const input = document.getElementById('job_tag_input');
+  const label = input.value.trim();
+  if (!label) return;
+  const color = document.getElementById('job_tag_color').value;
+  jobModalTags.push({ label, color });
+  input.value = '';
+  renderJobTagsUI();
+}
+function removeJobTag(i) {
+  jobModalTags.splice(i, 1);
+  renderJobTagsUI();
+}
+
+// ----- Assignees -----
+function renderJobAssigneesUI() {
+  document.getElementById('job-assignees-list').innerHTML = jobModalAssignees.map((name, i) => `
+    <span class="job-assignee-chip"><span class="job-assignee-avatar">${escHtml(initials(name))}</span>${escHtml(name)}<button type="button" onclick="removeJobAssignee(${i})">&times;</button></span>
+  `).join('');
+}
+function addJobAssignee() {
+  const input = document.getElementById('job_assignee_input');
+  const name = input.value.trim();
+  if (!name) return;
+  jobModalAssignees.push(name);
+  input.value = '';
+  renderJobAssigneesUI();
+}
+function removeJobAssignee(i) {
+  jobModalAssignees.splice(i, 1);
+  renderJobAssigneesUI();
+}
+
+// ----- Subtasks -----
+function renderJobSubtasksUI() {
+  const total = jobModalSubtasks.length;
+  const done = jobModalSubtasks.filter(s => s.done).length;
+  document.getElementById('job-subtasks-progress').textContent = total ? `${done}/${total}` : '';
+  document.getElementById('job-subtasks-bar-inner').style.width = total ? `${(done / total * 100).toFixed(0)}%` : '0%';
+  document.getElementById('job-subtasks-list').innerHTML = jobModalSubtasks.map((s, i) => `
+    <div class="job-subtask-row${s.done ? ' done' : ''}">
+      <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleJobSubtask(${i})">
+      <span>${escHtml(s.title)}</span>
+      <button type="button" onclick="removeJobSubtask(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+function addJobSubtask() {
+  const input = document.getElementById('job_subtask_input');
+  const title = input.value.trim();
+  if (!title) return;
+  jobModalSubtasks.push({ title, done: false });
+  input.value = '';
+  renderJobSubtasksUI();
+}
+function toggleJobSubtask(i) {
+  jobModalSubtasks[i].done = !jobModalSubtasks[i].done;
+  renderJobSubtasksUI();
+}
+function removeJobSubtask(i) {
+  jobModalSubtasks.splice(i, 1);
+  renderJobSubtasksUI();
+}
+
+// ----- Attachments -----
+function renderJobAttachmentsUI() {
+  document.getElementById('job-attachments-list').innerHTML = jobModalAttachments.map((a, i) => `
+    <div class="job-attachment-row">
+      📎 <a href="${escHtml(a.url)}" target="_blank" rel="noopener">${escHtml(a.name || a.url)}</a>
+      <button type="button" onclick="removeJobAttachment(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+function addJobAttachment() {
+  const nameInput = document.getElementById('job_attachment_name');
+  const urlInput = document.getElementById('job_attachment_url');
+  const url = urlInput.value.trim();
+  if (!url) return;
+  jobModalAttachments.push({ name: nameInput.value.trim() || url, url });
+  nameInput.value = '';
+  urlInput.value = '';
+  renderJobAttachmentsUI();
+}
+function removeJobAttachment(i) {
+  jobModalAttachments.splice(i, 1);
+  renderJobAttachmentsUI();
+}
+
 function openJobModal(idOrNull, presetDate) {
   const job = idOrNull ? jobs.find(j => String(j.id) === String(idOrNull)) : null;
   currentEditJobId = job ? job.id : null;
@@ -1361,7 +1706,20 @@ function openJobModal(idOrNull, presetDate) {
   document.getElementById('job_date').value = startDate;
   document.getElementById('job_end_date').value = job ? (job.end_date || job.date) : startDate;
   document.getElementById('job_status').value = job ? job.status : 'pending';
+  document.getElementById('job_priority').value = job ? (job.priority || 'medium') : 'medium';
   document.getElementById('job_notes').value = job ? (job.notes || '') : '';
+  document.getElementById('job_budget').value = job && job.budget != null ? job.budget : '';
+  document.getElementById('job_link').value = job ? (job.link || '') : '';
+
+  jobModalTags = job && Array.isArray(job.tags) ? JSON.parse(JSON.stringify(job.tags)) : [];
+  jobModalAssignees = job && Array.isArray(job.assignees) ? [...job.assignees] : [];
+  jobModalSubtasks = job && Array.isArray(job.subtasks) ? JSON.parse(JSON.stringify(job.subtasks)) : [];
+  jobModalAttachments = job && Array.isArray(job.attachments) ? JSON.parse(JSON.stringify(job.attachments)) : [];
+  renderJobTagsUI();
+  renderJobAssigneesUI();
+  renderJobSubtasksUI();
+  renderJobAttachmentsUI();
+
   document.getElementById('job-delete-btn').style.display = job ? '' : 'none';
   document.getElementById('job-modal').classList.add('active');
 }
@@ -1376,7 +1734,11 @@ async function saveJob() {
   const date = document.getElementById('job_date').value;
   let end_date = document.getElementById('job_end_date').value;
   const status = document.getElementById('job_status').value;
+  const priority = document.getElementById('job_priority').value;
   const notes = document.getElementById('job_notes').value.trim();
+  const budgetRaw = document.getElementById('job_budget').value;
+  const budget = budgetRaw === '' ? null : Number(budgetRaw);
+  const link = document.getElementById('job_link').value.trim();
   if (!title || !date || !end_date) {
     showAlert('กรุณากรอกชื่องานและวันที่', 'error');
     return;
@@ -1385,7 +1747,11 @@ async function saveJob() {
     showAlert('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น', 'error');
     return;
   }
-  const payload = { title, date, end_date, status, notes };
+  const payload = {
+    title, date, end_date, status, priority, notes, budget, link,
+    tags: jobModalTags, assignees: jobModalAssignees,
+    subtasks: jobModalSubtasks, attachments: jobModalAttachments,
+  };
   try {
     if (currentEditJobId) {
       await adminFetch(`/api/admin/job-queue?id=${encodeURIComponent(currentEditJobId)}`, {
