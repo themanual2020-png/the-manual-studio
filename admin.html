@@ -511,7 +511,7 @@
   .jobs-chip.done { background:#d4edda; color:#155724; }
   .jobs-list-item { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid #e2dfd8; border-radius:8px; margin-bottom:10px; cursor:pointer; background:#fff; }
   .jobs-list-item:hover { border-color:#15140f; }
-  .jobs-list-date { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#9a958a; min-width:90px; }
+  .jobs-list-date { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#9a958a; min-width:150px; }
   .jobs-list-title { flex:1; font-weight:600; }
   .jobs-status-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
   .jobs-status-dot.pending { background:#e6a817; }
@@ -734,17 +734,21 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>วันที่</label>
-            <input type="date" id="job_date" required>
+            <label>วันที่เริ่มต้น</label>
+            <input type="date" id="job_date" required onchange="onJobStartDateChange()">
           </div>
           <div class="form-group">
-            <label>สถานะ</label>
-            <select id="job_status">
-              <option value="pending">รอดำเนินการ</option>
-              <option value="in_progress">กำลังทำ</option>
-              <option value="done">เสร็จแล้ว</option>
-            </select>
+            <label>วันที่สิ้นสุด</label>
+            <input type="date" id="job_end_date" required>
           </div>
+        </div>
+        <div class="form-group">
+          <label>สถานะ</label>
+          <select id="job_status">
+            <option value="pending">รอดำเนินการ</option>
+            <option value="in_progress">กำลังทำ</option>
+            <option value="done">เสร็จแล้ว</option>
+          </select>
         </div>
         <div class="form-group">
           <label>รายละเอียด (ไม่บังคับ)</label>
@@ -1054,7 +1058,16 @@ function renderJobsCalendar() {
 
   const jobsByDate = {};
   jobs.forEach(j => {
-    (jobsByDate[j.date] = jobsByDate[j.date] || []).push(j);
+    const end = j.end_date || j.date;
+    let cur = j.date;
+    // Fan a multi-day job out across every date in its range (capped so a
+    // malformed end_date can't spin this loop for a very long time).
+    let guard = 0;
+    while (cur <= end && guard < 366) {
+      (jobsByDate[cur] = jobsByDate[cur] || []).push(j);
+      cur = addDaysStr(cur, 1);
+      guard++;
+    }
   });
 
   const firstDow = new Date(y, m, 1).getDay();
@@ -1091,7 +1104,7 @@ function renderJobsList() {
   el.innerHTML = sorted.map(j => `
     <div class="jobs-list-item" onclick="openJobModal('${j.id}')">
       <span class="jobs-status-dot ${j.status}"></span>
-      <span class="jobs-list-date">${formatThaiDate(j.date)}</span>
+      <span class="jobs-list-date">${formatThaiDateRange(j.date, j.end_date)}</span>
       <span class="jobs-list-title">${escHtml(j.title)}</span>
       <span style="font-size:12px;color:#9a958a;">${JOB_STATUS_LABEL[j.status] || j.status}</span>
     </div>
@@ -1104,12 +1117,32 @@ function formatThaiDate(dateStr) {
   return `${d} ${monthShort[m - 1]} ${y + 543}`;
 }
 
+function formatThaiDateRange(startStr, endStr) {
+  if (!endStr || endStr === startStr) return formatThaiDate(startStr);
+  return `${formatThaiDate(startStr)} - ${formatThaiDate(endStr)}`;
+}
+
+function addDaysStr(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+}
+
+function onJobStartDateChange() {
+  const startEl = document.getElementById('job_date');
+  const endEl = document.getElementById('job_end_date');
+  // Keep end date valid: if it's before the (new) start date, bump it up to match.
+  if (!endEl.value || endEl.value < startEl.value) endEl.value = startEl.value;
+}
+
 function openJobModal(idOrNull, presetDate) {
   const job = idOrNull ? jobs.find(j => String(j.id) === String(idOrNull)) : null;
   currentEditJobId = job ? job.id : null;
+  const startDate = job ? job.date : (presetDate || new Date().toISOString().slice(0, 10));
   document.getElementById('job-modal-title').textContent = job ? 'แก้ไขงาน' : 'เพิ่มงาน';
   document.getElementById('job_title').value = job ? job.title : '';
-  document.getElementById('job_date').value = job ? job.date : (presetDate || new Date().toISOString().slice(0, 10));
+  document.getElementById('job_date').value = startDate;
+  document.getElementById('job_end_date').value = job ? (job.end_date || job.date) : startDate;
   document.getElementById('job_status').value = job ? job.status : 'pending';
   document.getElementById('job_notes').value = job ? (job.notes || '') : '';
   document.getElementById('job-delete-btn').style.display = job ? '' : 'none';
@@ -1124,13 +1157,18 @@ function closeJobModal() {
 async function saveJob() {
   const title = document.getElementById('job_title').value.trim();
   const date = document.getElementById('job_date').value;
+  let end_date = document.getElementById('job_end_date').value;
   const status = document.getElementById('job_status').value;
   const notes = document.getElementById('job_notes').value.trim();
-  if (!title || !date) {
+  if (!title || !date || !end_date) {
     showAlert('กรุณากรอกชื่องานและวันที่', 'error');
     return;
   }
-  const payload = { title, date, status, notes };
+  if (end_date < date) {
+    showAlert('วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น', 'error');
+    return;
+  }
+  const payload = { title, date, end_date, status, notes };
   try {
     if (currentEditJobId) {
       await adminFetch(`/api/admin/job-queue?id=${encodeURIComponent(currentEditJobId)}`, {
