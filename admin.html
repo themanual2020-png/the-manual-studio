@@ -497,6 +497,26 @@
 
   .filter-tab { padding:8px 14px; border:1px solid #e2dfd8; border-radius:6px; background:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; letter-spacing:.04em; color:#6b675f; cursor:pointer; }
   .filter-tab.active { background:#15140f; color:#fff; border-color:#15140f; }
+
+  .jobs-calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .jobs-cal-dow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; text-align:center; padding-bottom:6px; }
+  .jobs-cal-day { min-height:96px; border:1px solid #e2dfd8; border-radius:8px; padding:6px; background:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px; }
+  .jobs-cal-day:hover { border-color:#15140f; }
+  .jobs-cal-day.empty { background:transparent; border:none; cursor:default; }
+  .jobs-cal-day.today { border-color:#15140f; box-shadow:inset 0 0 0 1px #15140f; }
+  .jobs-cal-daynum { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#15140f; }
+  .jobs-chip { font-size:10.5px; padding:2px 6px; border-radius:5px; font-family:'Prompt','Archivo',sans-serif; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .jobs-chip.pending { background:#fff3cd; color:#856404; }
+  .jobs-chip.in_progress { background:#cfe2ff; color:#084298; }
+  .jobs-chip.done { background:#d4edda; color:#155724; }
+  .jobs-list-item { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid #e2dfd8; border-radius:8px; margin-bottom:10px; cursor:pointer; background:#fff; }
+  .jobs-list-item:hover { border-color:#15140f; }
+  .jobs-list-date { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#9a958a; min-width:90px; }
+  .jobs-list-title { flex:1; font-weight:600; }
+  .jobs-status-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .jobs-status-dot.pending { background:#e6a817; }
+  .jobs-status-dot.in_progress { background:#0d6efd; }
+  .jobs-status-dot.done { background:#28a745; }
   .analytics-card { background:#fff; border:1px solid #e2dfd8; border-radius:10px; padding:20px; }
   .analytics-card-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; margin:0 0 16px; }
   .analytics-bar-row { margin-bottom:10px; }
@@ -546,6 +566,7 @@
       <button class="btn-secondary" onclick="openCatModal()">Categories</button>
       <button class="btn-secondary" id="btn-analytics" onclick="toggleAnalyticsView()">📊 Analytics</button>
       <button class="btn-secondary" id="btn-seo" onclick="toggleSeoView()">🔍 SEO</button>
+      <button class="btn-secondary" id="btn-jobs" onclick="toggleJobsView()">📅 คิวงาน</button>
       <button class="btn-secondary" onclick="backToProjectsView()">← Back</button>
       <button class="btn-secondary" onclick="logout()">Logout</button>
     </div>
@@ -671,6 +692,70 @@
         </div>
         <button type="button" class="btn-primary" onclick="saveSeoSettings('about')">Save</button>
       </div>
+    </div>
+  </div>
+
+  <div id="jobs-view" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;gap:6px;">
+        <button type="button" class="filter-tab active" data-jobview="month" onclick="setJobViewMode('month')">เดือน</button>
+        <button type="button" class="filter-tab" data-jobview="list" onclick="setJobViewMode('list')">รายการ</button>
+      </div>
+      <button class="btn-primary btn-sm" onclick="openJobModal()">+ เพิ่มงาน</button>
+    </div>
+
+    <div id="jobs-month-view">
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+        <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(-1)">‹</button>
+        <span id="jobs-month-label" style="font-family:'Prompt','Archivo',sans-serif;font-weight:700;font-size:16px;min-width:160px;text-align:center;"></span>
+        <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(1)">›</button>
+      </div>
+      <div id="jobs-calendar-grid" class="jobs-calendar-grid"></div>
+    </div>
+
+    <div id="jobs-list-view" style="display:none;">
+      <div id="jobs-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Job Modal -->
+<div id="job-modal" class="modal">
+  <div class="modal-content" style="max-width:480px;">
+    <div class="modal-header">
+      <h2 id="job-modal-title">เพิ่มงาน</h2>
+      <button class="close-modal" onclick="closeJobModal()">&times;</button>
+    </div>
+    <div class="tab-pane active">
+      <form id="job-form" onsubmit="return false;">
+        <div class="form-group">
+          <label>ชื่องาน</label>
+          <input type="text" id="job_title" required placeholder="เช่น ถ่ายภาพ Wendy's House">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>วันที่</label>
+            <input type="date" id="job_date" required>
+          </div>
+          <div class="form-group">
+            <label>สถานะ</label>
+            <select id="job_status">
+              <option value="pending">รอดำเนินการ</option>
+              <option value="in_progress">กำลังทำ</option>
+              <option value="done">เสร็จแล้ว</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>รายละเอียด (ไม่บังคับ)</label>
+          <textarea id="job_notes" rows="4" placeholder="โน้ตเพิ่มเติม..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="form-actions" id="job-form-actions">
+      <button class="btn-danger" id="job-delete-btn" style="display:none;margin-right:auto;" onclick="deleteJob()">Delete</button>
+      <button class="btn-secondary" onclick="closeJobModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveJob()">Save</button>
     </div>
   </div>
 </div>
@@ -852,6 +937,8 @@ function backToProjectsView() {
   if (analyticsView.style.display !== 'none') toggleAnalyticsView();
   const seoView = document.getElementById('seo-view');
   if (seoView.style.display !== 'none') toggleSeoView();
+  const jobsView = document.getElementById('jobs-view');
+  if (jobsView.style.display !== 'none') toggleJobsView();
 }
 
 function toggleAnalyticsView() {
@@ -905,6 +992,176 @@ async function saveSeoSettings(page) {
     showAlert('บันทึก SEO settings แล้ว ✓', 'success');
   } catch (e) {
     showAlert('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+// ===== JOB QUEUE =====
+let jobs = [];
+let jobViewMode = 'month';
+let jobCalendarDate = new Date();
+let currentEditJobId = null;
+const JOB_STATUS_LABEL = { pending: 'รอดำเนินการ', in_progress: 'กำลังทำ', done: 'เสร็จแล้ว' };
+
+function toggleJobsView() {
+  const view = document.getElementById('jobs-view');
+  const isShowing = view.style.display !== 'none';
+  if (!isShowing) {
+    const analyticsView = document.getElementById('analytics-view');
+    if (analyticsView.style.display !== 'none') toggleAnalyticsView();
+    const seoView = document.getElementById('seo-view');
+    if (seoView.style.display !== 'none') toggleSeoView();
+  }
+  view.style.display = isShowing ? 'none' : 'block';
+  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
+  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
+  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
+  document.getElementById('btn-jobs').textContent = isShowing ? '📅 คิวงาน' : '📋 Projects';
+  if (!isShowing) loadJobs();
+}
+
+function setJobViewMode(mode) {
+  jobViewMode = mode;
+  document.querySelectorAll('[data-jobview]').forEach(b => b.classList.toggle('active', b.dataset.jobview === mode));
+  document.getElementById('jobs-month-view').style.display = mode === 'month' ? '' : 'none';
+  document.getElementById('jobs-list-view').style.display = mode === 'list' ? '' : 'none';
+  renderJobs();
+}
+
+async function loadJobs() {
+  try {
+    jobs = await adminFetch('/api/admin/job-queue');
+    renderJobs();
+  } catch (e) {
+    showAlert('โหลดคิวงานไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function renderJobs() {
+  if (jobViewMode === 'month') renderJobsCalendar();
+  else renderJobsList();
+}
+
+function shiftJobMonth(delta) {
+  jobCalendarDate = new Date(jobCalendarDate.getFullYear(), jobCalendarDate.getMonth() + delta, 1);
+  renderJobsCalendar();
+}
+
+function renderJobsCalendar() {
+  const y = jobCalendarDate.getFullYear();
+  const m = jobCalendarDate.getMonth();
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  document.getElementById('jobs-month-label').textContent = `${monthNames[m]} ${y + 543}`;
+
+  const jobsByDate = {};
+  jobs.forEach(j => {
+    (jobsByDate[j.date] = jobsByDate[j.date] || []).push(j);
+  });
+
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const dowLabels = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  let html = dowLabels.map(d => `<div class="jobs-cal-dow">${d}</div>`).join('');
+
+  for (let i = 0; i < firstDow; i++) html += `<div class="jobs-cal-day empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayJobs = jobsByDate[dateStr] || [];
+    const isToday = dateStr === todayStr;
+    const chips = dayJobs.slice(0, 3).map(j => `<div class="jobs-chip ${j.status}" title="${escHtml(j.title)}" onclick="event.stopPropagation(); openJobModal('${j.id}')">${escHtml(j.title)}</div>`).join('');
+    const more = dayJobs.length > 3 ? `<div style="font-size:10px;color:#9a958a;">+${dayJobs.length - 3} เพิ่มเติม</div>` : '';
+    html += `<div class="jobs-cal-day${isToday ? ' today' : ''}" onclick="openJobModal(null,'${dateStr}')">
+      <div class="jobs-cal-daynum">${d}</div>
+      ${chips}${more}
+    </div>`;
+  }
+
+  document.getElementById('jobs-calendar-grid').innerHTML = html;
+}
+
+function renderJobsList() {
+  const sorted = [...jobs].sort((a, b) => a.date.localeCompare(b.date));
+  const el = document.getElementById('jobs-list');
+  if (!sorted.length) {
+    el.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;">ยังไม่มีงานในคิว</p>';
+    return;
+  }
+  el.innerHTML = sorted.map(j => `
+    <div class="jobs-list-item" onclick="openJobModal('${j.id}')">
+      <span class="jobs-status-dot ${j.status}"></span>
+      <span class="jobs-list-date">${formatThaiDate(j.date)}</span>
+      <span class="jobs-list-title">${escHtml(j.title)}</span>
+      <span style="font-size:12px;color:#9a958a;">${JOB_STATUS_LABEL[j.status] || j.status}</span>
+    </div>
+  `).join('');
+}
+
+function formatThaiDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const monthShort = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${d} ${monthShort[m - 1]} ${y + 543}`;
+}
+
+function openJobModal(idOrNull, presetDate) {
+  const job = idOrNull ? jobs.find(j => String(j.id) === String(idOrNull)) : null;
+  currentEditJobId = job ? job.id : null;
+  document.getElementById('job-modal-title').textContent = job ? 'แก้ไขงาน' : 'เพิ่มงาน';
+  document.getElementById('job_title').value = job ? job.title : '';
+  document.getElementById('job_date').value = job ? job.date : (presetDate || new Date().toISOString().slice(0, 10));
+  document.getElementById('job_status').value = job ? job.status : 'pending';
+  document.getElementById('job_notes').value = job ? (job.notes || '') : '';
+  document.getElementById('job-delete-btn').style.display = job ? '' : 'none';
+  document.getElementById('job-modal').classList.add('active');
+}
+
+function closeJobModal() {
+  document.getElementById('job-modal').classList.remove('active');
+  currentEditJobId = null;
+}
+
+async function saveJob() {
+  const title = document.getElementById('job_title').value.trim();
+  const date = document.getElementById('job_date').value;
+  const status = document.getElementById('job_status').value;
+  const notes = document.getElementById('job_notes').value.trim();
+  if (!title || !date) {
+    showAlert('กรุณากรอกชื่องานและวันที่', 'error');
+    return;
+  }
+  const payload = { title, date, status, notes };
+  try {
+    if (currentEditJobId) {
+      await adminFetch(`/api/admin/job-queue?id=${encodeURIComponent(currentEditJobId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      showAlert('บันทึกงานแล้ว ✓', 'success');
+    } else {
+      await adminFetch('/api/admin/job-queue', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      showAlert('เพิ่มงานแล้ว ✓', 'success');
+    }
+    closeJobModal();
+    loadJobs();
+  } catch (e) {
+    showAlert('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+async function deleteJob() {
+  if (!currentEditJobId) return;
+  if (!confirm('ลบงานนี้?')) return;
+  try {
+    await adminFetch(`/api/admin/job-queue?id=${encodeURIComponent(currentEditJobId)}`, { method: 'DELETE' });
+    showAlert('ลบงานแล้ว', 'success');
+    closeJobModal();
+    loadJobs();
+  } catch (e) {
+    showAlert('ลบไม่สำเร็จ: ' + e.message, 'error');
   }
 }
 
