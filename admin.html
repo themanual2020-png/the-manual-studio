@@ -13,19 +13,71 @@
   html { scroll-behavior: smooth; }
   body { margin: 0; background: #f5f4f1; font-family: 'Prompt', system-ui, sans-serif; color: #15140f; }
 
-  .admin-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+  .admin-shell { display: flex; min-height: 100vh; align-items: stretch; }
 
-  .admin-header {
+  .admin-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #15140f;
+    color: #f5f4f1;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    border-bottom: 2px solid #e2dfd8;
-    padding-bottom: 20px;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
   }
+  .admin-sidebar-brand {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    padding: 0 10px 24px;
+  }
+  .admin-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    color: rgba(245,244,241,.7);
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-align: left;
+    padding: 11px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .admin-nav-item:hover { background: rgba(245,244,241,.08); color: #fff; }
+  .admin-nav-item.active { background: #f5f4f1; color: #15140f; }
+  .admin-sidebar-logout {
+    background: transparent;
+    border: 1px solid rgba(245,244,241,.25);
+    color: rgba(245,244,241,.7);
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .admin-sidebar-logout:hover { border-color: #fff; color: #fff; }
 
-  .admin-header h1 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 32px; }
-  .admin-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .admin-main { flex: 1; min-width: 0; padding: 32px 32px 60px; max-width: 1280px; }
+  .admin-page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .admin-page-title { margin: 0; font-family: 'Archivo', sans-serif; font-size: 28px; }
+  .admin-page-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .dashboard-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .dashboard-stat-card { background: #fff; border: 1px solid #e2dfd8; border-radius: 10px; padding: 18px; }
+  .dashboard-stat-value { font-size: 28px; font-weight: 700; font-family: 'Archivo', sans-serif; }
+  .dashboard-stat-label { font-size: 12px; color: #9a958a; margin-top: 4px; }
+  .dashboard-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+  .dashboard-side-stack { display: flex; flex-direction: column; gap: 20px; }
+  #seo-columns { grid-template-columns: 1fr 1fr; }
 
   button {
     font-family: 'Archivo', sans-serif;
@@ -529,12 +581,20 @@
     #analytics-columns-secondary { grid-template-columns: 1fr; }
   }
 
+  @media (max-width: 900px) {
+    .admin-shell { flex-direction: column; }
+    .admin-sidebar { width: 100%; height: auto; position: static; flex-direction: row; align-items: center; padding: 12px 16px; overflow-x: auto; }
+    .admin-sidebar-brand { padding: 0 14px 0 0; white-space: nowrap; }
+    .admin-nav { flex-direction: row; flex: none; }
+    .admin-nav-item { white-space: nowrap; }
+    .admin-sidebar-logout { margin-left: auto; white-space: nowrap; }
+    .admin-main { padding: 20px 16px 48px; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+  }
   @media (max-width: 700px) {
-    .admin-container { padding: 20px 16px; }
-    .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .admin-header h1 { font-size: 24px; }
-    .admin-actions { gap: 8px; width: 100%; }
-    .admin-actions button { padding: 10px 14px; font-size: 12px; }
+    .admin-page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .admin-page-title { font-size: 22px; }
+    .admin-page-actions { gap: 8px; width: 100%; }
     .modal-content { margin-top: 0; border-radius: 8px; }
     .tab-pane { padding: 20px 20px; }
     .modal-header { padding: 20px 20px 0; }
@@ -558,165 +618,220 @@
 </head>
 <body>
 
-<div class="admin-container">
-  <div class="admin-header">
-    <h1>📋 Admin Panel</h1>
-    <div class="admin-actions">
-      <button class="btn-primary" id="btn-add-project">+ Add Project</button>
-      <button class="btn-secondary" onclick="openCatModal()">Categories</button>
-      <button class="btn-secondary" id="btn-analytics" onclick="toggleAnalyticsView()">📊 Analytics</button>
-      <button class="btn-secondary" id="btn-seo" onclick="toggleSeoView()">🔍 SEO</button>
-      <button class="btn-secondary" id="btn-jobs" onclick="toggleJobsView()">📅 คิวงาน</button>
-      <button class="btn-secondary" onclick="backToProjectsView()">← Back</button>
-      <button class="btn-secondary" onclick="logout()">Logout</button>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">📋 Admin Panel</div>
+    <nav class="admin-nav">
+      <button class="admin-nav-item" data-page="dashboard" onclick="navigateTo('dashboard')">🏠 หน้าแรก</button>
+      <button class="admin-nav-item" data-page="projects" onclick="navigateTo('projects')">🖼️ ผลงาน</button>
+      <button class="admin-nav-item" data-page="jobs" onclick="navigateTo('jobs')">📅 คิวงาน</button>
+      <button class="admin-nav-item" data-page="analytics" onclick="navigateTo('analytics')">📊 Analytics</button>
+      <button class="admin-nav-item" data-page="seo" onclick="navigateTo('seo')">🔍 SEO</button>
+    </nav>
+    <button class="admin-sidebar-logout" onclick="logout()">Logout</button>
+  </aside>
+
+  <main class="admin-main">
+    <div id="api-status" class="api-status disconnected">
+      <span class="spinner"></span> Checking Supabase connection...
     </div>
-  </div>
 
-  <div id="api-status" class="api-status disconnected">
-    <span class="spinner"></span> Checking Supabase connection...
-  </div>
+    <div id="alerts"></div>
 
-  <div id="alerts"></div>
+    <!-- ===== Dashboard ===== -->
+    <div id="page-dashboard" class="admin-page">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">หน้าแรก</h1>
+      </div>
 
-  <div id="sort-save-bar">
-    <span>↕ ลากการ์ดเพื่อเรียงลำดับ — มีการเปลี่ยนแปลง</span>
-    <button onclick="saveOrder()">บันทึกลำดับ</button>
-  </div>
+      <div id="dashboard-stats" class="dashboard-stats-grid">
+        <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
+      </div>
 
-  <div id="project-filter-bar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
-    <div style="display:flex;gap:6px;">
-      <button type="button" class="filter-tab active" data-status="all" onclick="setProjectFilterStatus('all')">ทั้งหมด</button>
-      <button type="button" class="filter-tab" data-status="live" onclick="setProjectFilterStatus('live')">● Live</button>
-      <button type="button" class="filter-tab" data-status="draft" onclick="setProjectFilterStatus('draft')">◐ Draft</button>
+      <div class="dashboard-grid">
+        <div class="analytics-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3 class="analytics-card-title" style="margin:0;">คิวงานเดือนนี้</h3>
+            <span id="dash-calendar-label" style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;color:#9a958a;"></span>
+          </div>
+          <div id="dash-calendar-grid" class="jobs-calendar-grid"></div>
+        </div>
+        <div class="dashboard-side-stack">
+          <div class="analytics-card">
+            <h3 class="analytics-card-title">งานที่ใกล้ถึงกำหนด</h3>
+            <div id="dash-upcoming-jobs"></div>
+          </div>
+          <div class="analytics-card">
+            <h3 class="analytics-card-title">Project ยอดนิยม (30 วันล่าสุด)</h3>
+            <div id="dash-top-projects"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <select id="project-filter-cat" onchange="setProjectFilterCat(this.value)" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:12px;">
-      <option value="all">ทุกประเภท</option>
-    </select>
-    <span id="project-filter-count" style="font-size:12px;color:#9a958a;font-family:'Archivo',sans-serif;"></span>
-  </div>
 
-  <div id="projects-container" class="projects-grid">
-    <p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">Loading projects...</p>
-  </div>
+    <!-- ===== Projects ===== -->
+    <div id="page-projects" class="admin-page" style="display:none;">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">ผลงาน</h1>
+        <div class="admin-page-actions">
+          <button class="btn-primary" id="btn-add-project">+ Add Project</button>
+          <button class="btn-secondary" onclick="openCatModal()">Categories</button>
+        </div>
+      </div>
 
-  <div id="analytics-view" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <label style="font-family:'Prompt','Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
-        <select id="analytics-range" onchange="onAnalyticsRangeChange()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
-          <option value="today" selected>วันนี้</option>
-          <option value="7">7 วันล่าสุด</option>
-          <option value="30">30 วันล่าสุด</option>
-          <option value="90">90 วันล่าสุด</option>
-          <option value="custom">กำหนดเอง...</option>
+      <div id="sort-save-bar">
+        <span>↕ ลากการ์ดเพื่อเรียงลำดับ — มีการเปลี่ยนแปลง</span>
+        <button onclick="saveOrder()">บันทึกลำดับ</button>
+      </div>
+
+      <div id="project-filter-bar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="filter-tab active" data-status="all" onclick="setProjectFilterStatus('all')">ทั้งหมด</button>
+          <button type="button" class="filter-tab" data-status="live" onclick="setProjectFilterStatus('live')">● Live</button>
+          <button type="button" class="filter-tab" data-status="draft" onclick="setProjectFilterStatus('draft')">◐ Draft</button>
+        </div>
+        <select id="project-filter-cat" onchange="setProjectFilterCat(this.value)" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:12px;">
+          <option value="all">ทุกประเภท</option>
         </select>
-        <span id="analytics-custom-range" style="display:none;gap:8px;align-items:center;">
-          <input type="date" id="analytics-date-from" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
-          <span style="color:#9a958a;font-size:13px;">ถึง</span>
-          <input type="date" id="analytics-date-to" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
-        </span>
+        <span id="project-filter-count" style="font-size:12px;color:#9a958a;font-family:'Archivo',sans-serif;"></span>
       </div>
-      <button class="btn-secondary btn-sm" onclick="exportAnalyticsCSV()">⬇ Export CSV</button>
-    </div>
 
-    <div id="analytics-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:32px;">
-      <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;margin-bottom:20px;" id="analytics-columns-main">
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">Project ที่ถูกดูมากที่สุด</h3>
-        <div id="analytics-by-project"></div>
-      </div>
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">Page Views ตามหน้า</h3>
-        <div id="analytics-by-page"></div>
+      <div id="projects-container" class="projects-grid">
+        <p style="text-align:center;color:#9a958a;padding:40px;grid-column:1/-1;">Loading projects...</p>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:20px;" id="analytics-columns-secondary">
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">แหล่งที่มา (Traffic Source)</h3>
-        <div id="analytics-by-source"></div>
-      </div>
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">อุปกรณ์ (Device)</h3>
-        <div id="analytics-by-device"></div>
-      </div>
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">จังหวัด / เมือง</h3>
-        <div id="analytics-by-city"></div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr;gap:20px;">
-      <div class="analytics-card">
-        <h3 class="analytics-card-title">Project ที่มาจาก Google (SEO)</h3>
-        <div id="analytics-by-seo-project"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="seo-view" style="display:none;">
-    <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">แก้ไข Title / Description / Keywords ของหน้า Home และ About ที่ใช้แสดงผลใน Google และตอนแชร์ลิงก์ (Facebook, LINE)</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="seo-columns">
-      <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
-        <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า Home</h3>
-        <div class="form-group">
-          <label>Title</label>
-          <input type="text" id="seo-home-title">
+    <!-- ===== Job Queue ===== -->
+    <div id="page-jobs" class="admin-page" style="display:none;">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">คิวงาน</h1>
+        <div class="admin-page-actions">
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="filter-tab active" data-jobview="month" onclick="setJobViewMode('month')">เดือน</button>
+            <button type="button" class="filter-tab" data-jobview="list" onclick="setJobViewMode('list')">รายการ</button>
+          </div>
+          <button class="btn-primary btn-sm" onclick="openJobModal()">+ เพิ่มงาน</button>
         </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea id="seo-home-description" rows="4"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Keywords</label>
-          <textarea id="seo-home-keywords" rows="3"></textarea>
-        </div>
-        <button type="button" class="btn-primary" onclick="saveSeoSettings('home')">Save</button>
       </div>
-      <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
-        <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า About</h3>
-        <div class="form-group">
-          <label>Title</label>
-          <input type="text" id="seo-about-title">
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea id="seo-about-description" rows="4"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Keywords</label>
-          <textarea id="seo-about-keywords" rows="3"></textarea>
-        </div>
-        <button type="button" class="btn-primary" onclick="saveSeoSettings('about')">Save</button>
-      </div>
-    </div>
-  </div>
 
-  <div id="jobs-view" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-      <div style="display:flex;gap:6px;">
-        <button type="button" class="filter-tab active" data-jobview="month" onclick="setJobViewMode('month')">เดือน</button>
-        <button type="button" class="filter-tab" data-jobview="list" onclick="setJobViewMode('list')">รายการ</button>
+      <div id="jobs-month-view">
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+          <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(-1)">‹</button>
+          <span id="jobs-month-label" style="font-family:'Prompt','Archivo',sans-serif;font-weight:700;font-size:16px;min-width:160px;text-align:center;"></span>
+          <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(1)">›</button>
+        </div>
+        <div id="jobs-calendar-grid" class="jobs-calendar-grid"></div>
       </div>
-      <button class="btn-primary btn-sm" onclick="openJobModal()">+ เพิ่มงาน</button>
+
+      <div id="jobs-list-view" style="display:none;">
+        <div id="jobs-list"></div>
+      </div>
     </div>
 
-    <div id="jobs-month-view">
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
-        <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(-1)">‹</button>
-        <span id="jobs-month-label" style="font-family:'Prompt','Archivo',sans-serif;font-weight:700;font-size:16px;min-width:160px;text-align:center;"></span>
-        <button type="button" class="btn-secondary btn-sm" onclick="shiftJobMonth(1)">›</button>
+    <!-- ===== Analytics ===== -->
+    <div id="page-analytics" class="admin-page" style="display:none;">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">Analytics</h1>
       </div>
-      <div id="jobs-calendar-grid" class="jobs-calendar-grid"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="font-family:'Prompt','Archivo',sans-serif;font-size:12px;font-weight:600;color:#9a958a;">ช่วงเวลา:</label>
+          <select id="analytics-range" onchange="onAnalyticsRangeChange()" style="padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+            <option value="today" selected>วันนี้</option>
+            <option value="7">7 วันล่าสุด</option>
+            <option value="30">30 วันล่าสุด</option>
+            <option value="90">90 วันล่าสุด</option>
+            <option value="custom">กำหนดเอง...</option>
+          </select>
+          <span id="analytics-custom-range" style="display:none;gap:8px;align-items:center;">
+            <input type="date" id="analytics-date-from" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+            <span style="color:#9a958a;font-size:13px;">ถึง</span>
+            <input type="date" id="analytics-date-to" onchange="loadAnalytics()" style="padding:7px 10px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+          </span>
+        </div>
+        <button class="btn-secondary btn-sm" onclick="exportAnalyticsCSV()">⬇ Export CSV</button>
+      </div>
+
+      <div id="analytics-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:32px;">
+        <p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:20px;">Loading...</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;margin-bottom:20px;" id="analytics-columns-main">
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">Project ที่ถูกดูมากที่สุด</h3>
+          <div id="analytics-by-project"></div>
+        </div>
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">Page Views ตามหน้า</h3>
+          <div id="analytics-by-page"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:20px;" id="analytics-columns-secondary">
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">แหล่งที่มา (Traffic Source)</h3>
+          <div id="analytics-by-source"></div>
+        </div>
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">อุปกรณ์ (Device)</h3>
+          <div id="analytics-by-device"></div>
+        </div>
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">จังหวัด / เมือง</h3>
+          <div id="analytics-by-city"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr;gap:20px;">
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">Project ที่มาจาก Google (SEO)</h3>
+          <div id="analytics-by-seo-project"></div>
+        </div>
+      </div>
     </div>
 
-    <div id="jobs-list-view" style="display:none;">
-      <div id="jobs-list"></div>
+    <!-- ===== SEO ===== -->
+    <div id="page-seo" class="admin-page" style="display:none;">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">SEO</h1>
+      </div>
+      <p style="font-size:13px;color:#9a958a;margin:0 0 20px;">แก้ไข Title / Description / Keywords ของหน้า Home และ About ที่ใช้แสดงผลใน Google และตอนแชร์ลิงก์ (Facebook, LINE)</p>
+      <div style="display:grid;gap:24px;" id="seo-columns">
+        <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
+          <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า Home</h3>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="seo-home-title">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="seo-home-description" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Keywords</label>
+            <textarea id="seo-home-keywords" rows="3"></textarea>
+          </div>
+          <button type="button" class="btn-primary" onclick="saveSeoSettings('home')">Save</button>
+        </div>
+        <div class="seo-card" style="border:1px solid #e2dfd8;border-radius:10px;padding:20px;">
+          <h3 style="font-family:'Prompt','Archivo',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin:0 0 16px;">หน้า About</h3>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="seo-about-title">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="seo-about-description" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Keywords</label>
+            <textarea id="seo-about-keywords" rows="3"></textarea>
+          </div>
+          <button type="button" class="btn-primary" onclick="saveSeoSettings('about')">Save</button>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- Job Modal -->
@@ -935,38 +1050,157 @@ let galleryImages = [];
 let projectSections = [];
 let analyticsEvents = [];
 
-// ===== ANALYTICS =====
-function backToProjectsView() {
-  const analyticsView = document.getElementById('analytics-view');
-  if (analyticsView.style.display !== 'none') toggleAnalyticsView();
-  const seoView = document.getElementById('seo-view');
-  if (seoView.style.display !== 'none') toggleSeoView();
-  const jobsView = document.getElementById('jobs-view');
-  if (jobsView.style.display !== 'none') toggleJobsView();
+// ===== ROUTER =====
+const ADMIN_PAGES = ['dashboard', 'projects', 'jobs', 'analytics', 'seo'];
+
+function navigateTo(page) {
+  if (!ADMIN_PAGES.includes(page)) page = 'dashboard';
+  if (window.location.hash.slice(1) === page) { renderAdminPage(); return; }
+  window.location.hash = page;
 }
 
-function toggleAnalyticsView() {
-  const view = document.getElementById('analytics-view');
-  const isShowing = view.style.display !== 'none';
-  view.style.display = isShowing ? 'none' : 'block';
-  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
-  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
-  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
-  document.getElementById('btn-analytics').textContent = isShowing ? '📊 Analytics' : '📋 Projects';
-  if (!isShowing) loadAnalytics();
+function renderAdminPage() {
+  const page = ADMIN_PAGES.includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'dashboard';
+  ADMIN_PAGES.forEach(p => {
+    document.getElementById(`page-${p}`).style.display = p === page ? '' : 'none';
+  });
+  document.querySelectorAll('.admin-nav-item[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+
+  if (page === 'dashboard') loadDashboard();
+  else if (page === 'jobs') loadJobs();
+  else if (page === 'analytics') loadAnalytics();
+  else if (page === 'seo') loadSeoSettings();
+}
+
+window.addEventListener('hashchange', renderAdminPage);
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  await loadJobs();
+  renderDashboardStats();
+  renderDashboardCalendar();
+  renderDashboardUpcomingJobs();
+  loadDashboardAnalytics();
+}
+
+function renderDashboardStats() {
+  const total = projects.length;
+  const live = projects.filter(p => p.published !== false).length;
+  const draft = total - live;
+  const pendingJobs = jobs.filter(j => j.status !== 'done').length;
+  document.getElementById('dashboard-stats').innerHTML = `
+    <div class="dashboard-stat-card">
+      <div class="dashboard-stat-value">${total}</div>
+      <div class="dashboard-stat-label">โปรเจกต์ทั้งหมด</div>
+    </div>
+    <div class="dashboard-stat-card">
+      <div class="dashboard-stat-value">${live}</div>
+      <div class="dashboard-stat-label">เผยแพร่แล้ว (Live)</div>
+    </div>
+    <div class="dashboard-stat-card">
+      <div class="dashboard-stat-value">${draft}</div>
+      <div class="dashboard-stat-label">ฉบับร่าง (Draft)</div>
+    </div>
+    <div class="dashboard-stat-card">
+      <div class="dashboard-stat-value">${pendingJobs}</div>
+      <div class="dashboard-stat-label">งานค้างในคิว</div>
+    </div>
+    <div class="dashboard-stat-card">
+      <div class="dashboard-stat-value" id="dash-stat-views">…</div>
+      <div class="dashboard-stat-label">เข้าชมวันนี้</div>
+    </div>
+  `;
+}
+
+function renderDashboardCalendar() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  document.getElementById('dash-calendar-label').textContent = `${monthNames[m]} ${y + 543}`;
+
+  const jobsByDate = {};
+  jobs.forEach(j => {
+    const end = j.end_date || j.date;
+    let cur = j.date;
+    let guard = 0;
+    while (cur <= end && guard < 366) {
+      (jobsByDate[cur] = jobsByDate[cur] || []).push(j);
+      cur = addDaysStr(cur, 1);
+      guard++;
+    }
+  });
+
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayStr = now.toISOString().slice(0, 10);
+  const dowLabels = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  let html = dowLabels.map(d => `<div class="jobs-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) html += `<div class="jobs-cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayJobs = jobsByDate[dateStr] || [];
+    const isToday = dateStr === todayStr;
+    const chips = dayJobs.slice(0, 2).map(j => `<div class="jobs-chip ${j.status}" title="${escHtml(j.title)}" onclick="event.stopPropagation(); openJobModal('${j.id}')">${escHtml(j.title)}</div>`).join('');
+    const more = dayJobs.length > 2 ? `<div style="font-size:10px;color:#9a958a;">+${dayJobs.length - 2}</div>` : '';
+    html += `<div class="jobs-cal-day${isToday ? ' today' : ''}" onclick="navigateTo('jobs')">
+      <div class="jobs-cal-daynum">${d}</div>
+      ${chips}${more}
+    </div>`;
+  }
+  document.getElementById('dash-calendar-grid').innerHTML = html;
+}
+
+function renderDashboardUpcomingJobs() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcoming = jobs
+    .filter(j => j.status !== 'done' && (j.end_date || j.date) >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5);
+  const el = document.getElementById('dash-upcoming-jobs');
+  if (!upcoming.length) {
+    el.innerHTML = '<p style="color:#9a958a;font-size:13px;margin:0;">ไม่มีงานที่ใกล้ถึงกำหนด</p>';
+    return;
+  }
+  el.innerHTML = upcoming.map(j => `
+    <div class="jobs-list-item" style="margin-bottom:8px;padding:10px 12px;" onclick="openJobModal('${j.id}')">
+      <span class="jobs-status-dot ${j.status}"></span>
+      <span class="jobs-list-date" style="min-width:110px;font-size:11px;">${formatThaiDateRange(j.date, j.end_date)}</span>
+      <span class="jobs-list-title" style="font-size:13px;">${escHtml(j.title)}</span>
+    </div>
+  `).join('');
+}
+
+async function loadDashboardAnalytics() {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEvents = await apiFetch(`/analytics_events?created_at=gte.${encodeURIComponent(todayStart.toISOString())}&select=event_type`);
+    const views = todayEvents.filter(e => e.event_type === 'page_view').length;
+    const el = document.getElementById('dash-stat-views');
+    if (el) el.textContent = views;
+  } catch (e) {
+    const el = document.getElementById('dash-stat-views');
+    if (el) el.textContent = '-';
+  }
+
+  try {
+    const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const events30 = await apiFetch(`/analytics_events?created_at=gte.${encodeURIComponent(since30)}&event_type=eq.view_project&select=project_id`);
+    const counts = {};
+    events30.forEach(e => { if (e.project_id) counts[e.project_id] = (counts[e.project_id] || 0) + 1; });
+    const named = {};
+    Object.entries(counts).forEach(([pid, count]) => {
+      const p = projects.find(x => x.project_id === pid);
+      named[p ? p.title : pid] = count;
+    });
+    renderAnalyticsBarList('dash-top-projects', named, 5);
+  } catch (e) {
+    document.getElementById('dash-top-projects').innerHTML = `<p style="color:#b3261e;font-size:13px;">Error: ${escHtml(e.message)}</p>`;
+  }
 }
 
 // ===== SEO SETTINGS =====
-function toggleSeoView() {
-  const view = document.getElementById('seo-view');
-  const isShowing = view.style.display !== 'none';
-  view.style.display = isShowing ? 'none' : 'block';
-  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
-  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
-  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
-  document.getElementById('btn-seo').textContent = isShowing ? '🔍 SEO' : '📋 Projects';
-  if (!isShowing) loadSeoSettings();
-}
 
 async function loadSeoSettings() {
   try {
@@ -1005,23 +1239,6 @@ let jobViewMode = 'month';
 let jobCalendarDate = new Date();
 let currentEditJobId = null;
 const JOB_STATUS_LABEL = { pending: 'รอดำเนินการ', in_progress: 'กำลังทำ', done: 'เสร็จแล้ว' };
-
-function toggleJobsView() {
-  const view = document.getElementById('jobs-view');
-  const isShowing = view.style.display !== 'none';
-  if (!isShowing) {
-    const analyticsView = document.getElementById('analytics-view');
-    if (analyticsView.style.display !== 'none') toggleAnalyticsView();
-    const seoView = document.getElementById('seo-view');
-    if (seoView.style.display !== 'none') toggleSeoView();
-  }
-  view.style.display = isShowing ? 'none' : 'block';
-  document.getElementById('projects-container').style.display = isShowing ? '' : 'none';
-  document.getElementById('project-filter-bar').style.display = isShowing ? '' : 'none';
-  if (!isShowing) document.getElementById('sort-save-bar').style.display = 'none';
-  document.getElementById('btn-jobs').textContent = isShowing ? '📅 คิวงาน' : '📋 Projects';
-  if (!isShowing) loadJobs();
-}
 
 function setJobViewMode(mode) {
   jobViewMode = mode;
@@ -2067,7 +2284,7 @@ document.getElementById('btn-add-project').addEventListener('click', openAddModa
 setupPublishedToggle();
 populateCatSelect('');
 
-checkApiStatus();
+checkApiStatus().then(renderAdminPage);
 
 // ===== MEDIA PICKER =====
 let _mpCallback = null;
