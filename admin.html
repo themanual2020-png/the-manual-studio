@@ -660,10 +660,10 @@
     .dashboard-stat-card { padding: 12px; }
 
     .jobs-calendar-grid { gap: 3px; }
-    .jobs-cal-day { min-height: 64px; padding: 3px; border-radius: 6px; gap: 2px; }
-    .jobs-cal-daynum { font-size: 10.5px; }
+    .jobs-cal-day { height: 60px; min-width: 0; padding: 3px; border-radius: 6px; gap: 2px; overflow: hidden; }
+    .jobs-cal-daynum { font-size: 10.5px; flex-shrink: 0; }
     .jobs-cal-dow { font-size: 9.5px; padding-bottom: 3px; }
-    .jobs-chip { font-size: 8px; line-height: 1.3; padding: 1px 3px; border-radius: 3px; }
+    .jobs-chip { font-size: 8px; line-height: 1.3; padding: 1px 3px; border-radius: 3px; min-width: 0; max-width: 100%; }
 
     .job-modal-grid { grid-template-columns: 1fr; gap: 20px; margin-top: 10px; }
 
