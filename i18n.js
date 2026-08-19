@@ -4,6 +4,23 @@
   const STORAGE_KEY = 'tms_lang';
 
   const DICT = {
+    home_intro_desc: {
+      th: 'เราเชี่ยวชาญด้านการถ่ายภาพและวิดีโออสังหาริมทรัพย์และสารคดี — บันทึกพื้นที่ ผู้คน และช่วงเวลาที่มีความหมาย ทุกโปรเจกต์ถูกสร้างสรรค์ให้กลายเป็นบันทึกที่คงอยู่ สะท้อนตัวตนและบอกเล่าเรื่องราวเฉพาะของคุณ',
+      en: 'We specialize in real estate and documentary photography and video — capturing spaces, people, and moments with meaning. Every project is crafted to become a lasting record that reflects your identity and tells your unique story.',
+    },
+    home_intro_memo: {
+      th: 'จุดเริ่มต้นของทุกเรื่องราว เราสังเกต บันทึก และรักษาช่วงเวลาไว้อย่างตรงไปตรงมา เหมือนที่มันเป็นจริงๆ',
+      en: 'The beginning of every story. We observe, document, and preserve moments with honesty, just as they are.',
+    },
+    home_intro_memories: {
+      th: 'ทุกบันทึกกลายเป็นความทรงจำ ที่บรรจุอารมณ์ ประสบการณ์ และตัวตนของช่วงเวลานั้นไว้',
+      en: 'Every record becomes a memory, carrying the emotions, experiences, and identity of a particular moment.',
+    },
+    home_intro_memorial: {
+      th: 'ความทรงจำดำรงอยู่เกินกว่าปัจจุบัน กลายเป็นบันทึกที่มีความหมาย เชื่อมโยงคนรุ่นต่างๆ และรักษาเรื่องราวไว้เพื่ออนาคต',
+      en: 'Memories endure beyond the present, becoming meaningful records that connect generations and preserve stories for the future.',
+    },
+
     home_hero_subtitle: {
       th: 'บันทึกของเวลา — เปลี่ยนทุกพื้นที่และทุกช่วงเวลา ให้กลายเป็นความทรงจำที่คงอยู่ตลอดไป',
       en: 'A record of time — transforming every space and every moment into memories that last forever.',
