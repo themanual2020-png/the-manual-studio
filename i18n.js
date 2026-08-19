@@ -61,6 +61,22 @@
     project_lb_close: { th: 'ปิด', en: 'Close' },
     project_lb_prev: { th: 'ก่อนหน้า', en: 'Previous' },
     project_lb_next: { th: 'ถัดไป', en: 'Next' },
+    project_photo_word: { th: 'ภาพที่', en: 'Photo' },
+    project_gallery_word: { th: 'แกลเลอรี', en: 'Gallery photo' },
+    project_meta_fallback: { th: '— ผลงานโดย The Manual Studio', en: '— by The Manual Studio' },
+
+    cookie_notice: {
+      th: 'เว็บไซต์นี้ใช้คุกกี้และเก็บข้อมูลการเข้าชม (เช่น หน้าที่เข้าชม อุปกรณ์ และที่มาของการเข้าชม) เพื่อพัฒนาประสบการณ์การใช้งานและวิเคราะห์ผลการเข้าชมเว็บไซต์',
+      en: 'This site uses cookies and collects visit data (such as pages viewed, device, and traffic source) to improve your experience and analyze site performance.',
+    },
+    cookie_more: { th: 'ดูรายละเอียด', en: 'Learn more' },
+    cookie_decline: { th: 'ปฏิเสธ', en: 'Decline' },
+    cookie_accept: { th: 'ยอมรับทั้งหมด', en: 'Accept All' },
+    cookie_details_label: { th: 'ข้อมูลที่เราเก็บ:', en: 'What we collect:' },
+    cookie_details_text: {
+      th: 'รหัสผู้เข้าชมแบบไม่ระบุตัวตน (เก็บใน localStorage), หน้าที่เข้าชม, แหล่งที่มาของการเข้าชม (เช่น Google, Facebook), ประเภทอุปกรณ์ และจังหวัด/ประเทศโดยประมาณจาก IP — ใช้เพื่อวิเคราะห์และปรับปรุงเว็บไซต์เท่านั้น ไม่ขายหรือแบ่งปันข้อมูลนี้ให้บุคคลที่สาม หากกด "ปฏิเสธ" เราจะไม่เก็บข้อมูลการเข้าชมเพื่อการวิเคราะห์ (คุกกี้ที่จำเป็นต่อระบบ เช่น การเข้าสู่ระบบผู้ดูแล ยังคงต้องใช้งานตามปกติ)',
+      en: 'An anonymous visitor ID (stored in localStorage), pages viewed, traffic source (e.g. Google, Facebook), device type, and an approximate region/country from your IP — used only to analyze and improve the site. We never sell or share this data with third parties. If you choose "Decline," we won’t collect analytics data (essential cookies, like admin login, still work as normal).',
+    },
   };
 
   function getLang() {
@@ -72,6 +88,18 @@
     const entry = DICT[key];
     if (!entry) return '';
     return entry[getLang()] || entry.th || '';
+  }
+
+  // Pick a language-aware value off a Supabase record, e.g. field(project, 'title')
+  // reads project.title_en when EN is selected and a translation exists, else falls
+  // back to the Thai/default column.
+  function field(obj, key) {
+    if (!obj) return '';
+    if (getLang() === 'en') {
+      const enVal = obj[key + '_en'];
+      if (enVal) return enVal;
+    }
+    return obj[key] || '';
   }
 
   function applyI18n() {
@@ -103,7 +131,7 @@
     setLang(getLang() === 'th' ? 'en' : 'th');
   }
 
-  window.tmsI18n = { getLang, t, applyI18n, setLang, toggleLang };
+  window.tmsI18n = { getLang, t, field, applyI18n, setLang, toggleLang };
 
   document.addEventListener('click', e => {
     const btn = e.target.closest('[data-lang-toggle]');

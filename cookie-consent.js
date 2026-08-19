@@ -12,20 +12,22 @@
     'font-family:"Prompt",system-ui,sans-serif;' +
     'box-shadow:0 -8px 30px rgba(0,0,0,.25);';
 
+  var t = window.tmsI18n ? window.tmsI18n.t : function () { return ''; };
+
   wrap.innerHTML =
     '<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">' +
       '<div style="flex:1;min-width:240px;font-size:13.5px;line-height:1.6;font-weight:300;color:rgba(245,244,241,.85);">' +
-        'เว็บไซต์นี้ใช้คุกกี้และเก็บข้อมูลการเข้าชม (เช่น หน้าที่เข้าชม อุปกรณ์ และที่มาของการเข้าชม) เพื่อพัฒนาประสบการณ์การใช้งานและวิเคราะห์ผลการเข้าชมเว็บไซต์ ' +
-        '<a href="#" id="tms-cookie-more" style="color:#f5f4f1;text-decoration:underline;">ดูรายละเอียด</a>' +
+        '<span data-i18n="cookie_notice">' + t('cookie_notice') + '</span> ' +
+        '<a href="#" id="tms-cookie-more" data-i18n="cookie_more" style="color:#f5f4f1;text-decoration:underline;">' + t('cookie_more') + '</a>' +
       '</div>' +
       '<div style="display:flex;gap:10px;flex-shrink:0;">' +
-        '<button id="tms-cookie-decline" style="font-family:\'Archivo\',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;background:transparent;color:rgba(245,244,241,.75);border:1px solid rgba(245,244,241,.3);border-radius:999px;padding:11px 20px;cursor:pointer;white-space:nowrap;">ปฏิเสธ</button>' +
-        '<button id="tms-cookie-accept" style="font-family:\'Archivo\',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;background:#f5f4f1;color:#15140f;border:none;border-radius:999px;padding:11px 22px;cursor:pointer;white-space:nowrap;">ยอมรับทั้งหมด</button>' +
+        '<button id="tms-cookie-decline" data-i18n="cookie_decline" style="font-family:\'Archivo\',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;background:transparent;color:rgba(245,244,241,.75);border:1px solid rgba(245,244,241,.3);border-radius:999px;padding:11px 20px;cursor:pointer;white-space:nowrap;">' + t('cookie_decline') + '</button>' +
+        '<button id="tms-cookie-accept" data-i18n="cookie_accept" style="font-family:\'Archivo\',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;background:#f5f4f1;color:#15140f;border:none;border-radius:999px;padding:11px 22px;cursor:pointer;white-space:nowrap;">' + t('cookie_accept') + '</button>' +
       '</div>' +
     '</div>' +
     '<div id="tms-cookie-details" style="display:none;max-width:1080px;margin:14px auto 0;font-size:12.5px;line-height:1.7;font-weight:300;color:rgba(245,244,241,.65);border-top:1px solid rgba(245,244,241,.14);padding-top:14px;">' +
-      '<b style="color:rgba(245,244,241,.85);">ข้อมูลที่เราเก็บ:</b> รหัสผู้เข้าชมแบบไม่ระบุตัวตน (เก็บใน localStorage), หน้าที่เข้าชม, แหล่งที่มาของการเข้าชม (เช่น Google, Facebook), ประเภทอุปกรณ์ และจังหวัด/ประเทศโดยประมาณจาก IP ' +
-      '— ใช้เพื่อวิเคราะห์และปรับปรุงเว็บไซต์เท่านั้น ไม่ขายหรือแบ่งปันข้อมูลนี้ให้บุคคลที่สาม หากกด "ปฏิเสธ" เราจะไม่เก็บข้อมูลการเข้าชมเพื่อการวิเคราะห์ (คุกกี้ที่จำเป็นต่อระบบ เช่น การเข้าสู่ระบบผู้ดูแล ยังคงต้องใช้งานตามปกติ)' +
+      '<b data-i18n="cookie_details_label" style="color:rgba(245,244,241,.85);">' + t('cookie_details_label') + '</b> ' +
+      '<span data-i18n="cookie_details_text">' + t('cookie_details_text') + '</span>' +
     '</div>';
 
   document.body.appendChild(wrap);

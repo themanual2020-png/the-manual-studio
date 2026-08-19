@@ -159,7 +159,7 @@
       return;
     }
     try {
-      const data = await supabase.getPublishedProjects('project_id,title,subtitle,type_label,cat_label,hero_placeholder');
+      const data = await supabase.getPublishedProjects('project_id,title,title_en,subtitle,subtitle_en,type_label,cat_label,hero_placeholder');
       allProjects = data && data.length ? data : [];
     } catch (error) {
       console.error('❌ Failed to load projects:', error.message);
@@ -183,12 +183,12 @@
       return `
         <article data-card data-cat="${catValue}" data-reveal class="tms-card" style="cursor: pointer;" data-project-id="${p.project_id}">
           <div style="position: relative; overflow: hidden; aspect-ratio: 4/3;">
-            ${p.hero_placeholder ? `<img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
+            ${p.hero_placeholder ? `<img src="${proxyImg(p.hero_placeholder)}" alt="${tmsI18n.field(p, 'title')}" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;">` : '<div style="position: absolute; inset: 0; background: #e5e4e1;"></div>'}
             <span style="position: absolute; top: 14px; left: 14px; font-family: 'Prompt', 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; background: rgba(245,244,241,.92); color: #15140f; padding: 5px 10px; border-radius: 999px;">${p.type_label || 'MEDIA'}</span>
           </div>
           <div style="margin-top: 16px;">
-            <div style="font-size: 19px; font-weight: 600;">${p.title}</div>
-            <div style="color: #9a958a; font-size: 14px; font-weight: 300;">${p.subtitle || ''}</div>
+            <div style="font-size: 19px; font-weight: 600;">${tmsI18n.field(p, 'title')}</div>
+            <div style="color: #9a958a; font-size: 14px; font-weight: 300;">${tmsI18n.field(p, 'subtitle')}</div>
           </div>
         </article>
       `;
@@ -222,6 +222,10 @@
   document.getElementById('tms-grid').addEventListener('click', e => {
     const card = e.target.closest('[data-project-id]');
     if (card) window.location.href = `project.html?id=${encodeURIComponent(card.getAttribute('data-project-id'))}`;
+  });
+
+  document.addEventListener('tms:langchange', () => {
+    if (allProjects.length) renderProjects();
   });
 
   if (document.readyState === 'loading') {

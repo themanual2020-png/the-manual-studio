@@ -370,6 +370,8 @@
 
   // Load projects from Supabase
   let allProjects = [];
+  let hlcTimer;
+  let hlcFeatured = [];
 
   function proxyImg(url) {
     if (!url) return url;
@@ -387,7 +389,7 @@
     }
 
     try {
-      const data = await supabase.getPublishedProjects('project_id,title,subtitle,type_label,cat_label,hero_placeholder');
+      const data = await supabase.getPublishedProjects('project_id,title,title_en,subtitle,type_label,cat_label,hero_placeholder');
       if (data && data.length > 0) {
         allProjects = data;
         console.log('✅ Loaded from Supabase:', data.length, 'projects');
@@ -408,23 +410,26 @@
     const dotsEl = document.getElementById('hlc-dots');
     if (!stage || !dotsEl) return;
 
+    clearInterval(hlcTimer);
+
     const featured = allProjects.slice(0, 7).filter(p => p.hero_placeholder);
     if (!featured.length) {
       document.getElementById('highlight').style.display = 'none';
       return;
     }
 
+    hlcFeatured = featured;
     const n = featured.length;
     let active = 0;
 
     stage.innerHTML = featured.map(p => `
       <div class="hlc-slide" data-project-id="${p.project_id}">
         <div class="hlc-slide-inner">
-          <img src="${proxyImg(p.hero_placeholder)}" alt="${p.title}">
+          <img src="${proxyImg(p.hero_placeholder)}" alt="${tmsI18n.field(p, 'title')}">
           <div class="hlc-fade"></div>
           <div class="hlc-cap">
             <div class="hlc-cat">${p.cat_label || ''}</div>
-            <div class="hlc-line">${p.title}</div>
+            <div class="hlc-line">${tmsI18n.field(p, 'title')}</div>
           </div>
         </div>
       </div>
@@ -460,10 +465,9 @@
 
     function go(i) { active = (i + n) % n; applyTransforms(); resetTimer(); }
 
-    let timer;
     function resetTimer() {
-      clearInterval(timer);
-      timer = setInterval(() => go(active + 1), 5000);
+      clearInterval(hlcTimer);
+      hlcTimer = setInterval(() => go(active + 1), 5000);
     }
 
     dotEls.forEach(d => d.addEventListener('click', () => go(+d.dataset.i)));
@@ -489,7 +493,7 @@
       startX = x;
       stageWidth = stage.getBoundingClientRect().width;
       setDragMode(true);
-      clearInterval(timer);
+      clearInterval(hlcTimer);
     }
     function pointerMove(x) {
       if (!dragging) return;
@@ -520,6 +524,20 @@
     applyTransforms();
     resetTimer();
   }
+
+  document.addEventListener('tms:langchange', () => {
+    const stage = document.getElementById('hlc-stage');
+    if (!stage || !hlcFeatured.length) return;
+    [...stage.children].forEach((slideEl, i) => {
+      const p = hlcFeatured[i];
+      if (!p) return;
+      const title = tmsI18n.field(p, 'title');
+      const img = slideEl.querySelector('img');
+      if (img) img.alt = title;
+      const line = slideEl.querySelector('.hlc-line');
+      if (line) line.textContent = title;
+    });
+  });
 
   // Load projects on page load (wait for Supabase to initialize)
   if (document.readyState === 'loading') {

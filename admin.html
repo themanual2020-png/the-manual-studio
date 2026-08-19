@@ -1073,6 +1073,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('details')">Details</button>
+      <button class="tab-btn" onclick="switchTab('english')">English</button>
       <button class="tab-btn" onclick="switchTab('sections')">Sections</button>
     </div>
 
@@ -1153,6 +1154,37 @@
           <p style="margin:8px 0 0;font-size:12px;color:#9a958a;">ปิดเพื่อบันทึกเป็น Draft — ไม่แสดงในหน้าเว็บ</p>
         </div>
       </form>
+    </div>
+
+    <!-- Tab: English translations -->
+    <div id="tab-english" class="tab-pane">
+      <p style="font-size:13px;color:#9a958a;margin:0 0 14px;">ไม่บังคับกรอก — ถ้าเว้นว่างไว้ เว็บจะแสดงข้อความภาษาไทยแทนตอนสลับเป็น EN</p>
+      <div class="form-group">
+        <label>Title (EN)</label>
+        <input type="text" id="title_en" placeholder="e.g. Sukhumvit Residence">
+      </div>
+      <div class="form-group">
+        <label>Subtitle (EN)</label>
+        <input type="text" id="subtitle_en" placeholder="e.g. Residential · Interior & Exterior">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type Label (EN)</label>
+          <input type="text" id="type_label_en" placeholder="e.g. Photography">
+        </div>
+        <div class="form-group">
+          <label>Location (EN)</label>
+          <input type="text" id="location_en" placeholder="e.g. Bangkok">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Main Description (EN)</label>
+        <textarea id="body_en" placeholder="Main description in English..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Client (EN)</label>
+        <input type="text" id="client_en" placeholder="Client / company name">
+      </div>
     </div>
 
     <!-- Tab: Sections / Blocks -->
@@ -2340,6 +2372,9 @@ function openAddModal() {
   projectSections = [];
   document.getElementById('modal-title').textContent = 'Add New Project';
   document.getElementById('project-form').reset();
+  ['title_en','subtitle_en','type_label_en','location_en','body_en','client_en'].forEach(k => {
+    document.getElementById(k).value = '';
+  });
   document.getElementById('project_id').disabled = false;
   document.getElementById('hero-preview-container').style.display = 'none';
   document.getElementById('hero-preview-img').src = '';
@@ -2360,7 +2395,7 @@ async function editProject(id) {
   document.getElementById('modal-title').textContent = 'Edit Project';
   document.getElementById('project_id').disabled = true;
 
-  ['project_id','title','subtitle','type_label','year','location','body','client','hero_placeholder','youtube_url'].forEach(k => {
+  ['project_id','title','subtitle','type_label','year','location','body','client','hero_placeholder','youtube_url','title_en','subtitle_en','type_label_en','location_en','body_en','client_en'].forEach(k => {
     const el = document.getElementById(k);
     if (el) el.value = p[k] || '';
   });
@@ -2422,6 +2457,12 @@ async function saveProject() {
     body: document.getElementById('body').value.trim(),
     body_detail: '',
     client: document.getElementById('client').value.trim(),
+    title_en: document.getElementById('title_en').value.trim(),
+    subtitle_en: document.getElementById('subtitle_en').value.trim(),
+    type_label_en: document.getElementById('type_label_en').value.trim(),
+    location_en: document.getElementById('location_en').value.trim(),
+    body_en: document.getElementById('body_en').value.trim(),
+    client_en: document.getElementById('client_en').value.trim(),
     hero_placeholder: document.getElementById('hero_placeholder').value.trim(),
     youtube_url: document.getElementById('youtube_url').value.trim(),
     gallery_images: galleryImages.filter(img => img.url),
