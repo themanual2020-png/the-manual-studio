@@ -1073,7 +1073,6 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('details')">Details</button>
-      <button class="tab-btn" onclick="switchTab('english')">English</button>
       <button class="tab-btn" onclick="switchTab('sections')">Sections</button>
     </div>
 
@@ -1094,17 +1093,20 @@
         <div class="form-group">
           <label>Title</label>
           <input type="text" id="title" required placeholder="e.g. Sukhumvit Residence">
+          <input type="text" id="title_en" placeholder="Title (EN, ไม่บังคับ)" style="margin-top:6px;">
         </div>
 
         <div class="form-group">
           <label>Subtitle</label>
           <input type="text" id="subtitle" required placeholder="e.g. บ้านพักอาศัย · Interior & Exterior">
+          <input type="text" id="subtitle_en" placeholder="Subtitle (EN, ไม่บังคับ)" style="margin-top:6px;">
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label>Type Label</label>
             <input type="text" id="type_label" required placeholder="e.g. Photography">
+            <input type="text" id="type_label_en" placeholder="Type Label (EN, ไม่บังคับ)" style="margin-top:6px;">
           </div>
           <div class="form-group">
             <label>Category</label>
@@ -1115,16 +1117,19 @@
         <div class="form-group">
           <label>Location</label>
           <input type="text" id="location" required placeholder="e.g. กรุงเทพมหานคร">
+          <input type="text" id="location_en" placeholder="Location (EN, ไม่บังคับ)" style="margin-top:6px;">
         </div>
 
         <div class="form-group">
           <label>Main Description</label>
           <textarea id="body" required placeholder="Main description..."></textarea>
+          <textarea id="body_en" placeholder="Main Description (EN, ไม่บังคับ)" style="margin-top:6px;"></textarea>
         </div>
 
         <div class="form-group">
           <label>Client</label>
           <input type="text" id="client" placeholder="ชื่อลูกค้า / บริษัท">
+          <input type="text" id="client_en" placeholder="Client (EN, ไม่บังคับ)" style="margin-top:6px;">
         </div>
 
         <div class="form-group">
@@ -1154,37 +1159,6 @@
           <p style="margin:8px 0 0;font-size:12px;color:#9a958a;">ปิดเพื่อบันทึกเป็น Draft — ไม่แสดงในหน้าเว็บ</p>
         </div>
       </form>
-    </div>
-
-    <!-- Tab: English translations -->
-    <div id="tab-english" class="tab-pane">
-      <p style="font-size:13px;color:#9a958a;margin:0 0 14px;">ไม่บังคับกรอก — ถ้าเว้นว่างไว้ เว็บจะแสดงข้อความภาษาไทยแทนตอนสลับเป็น EN</p>
-      <div class="form-group">
-        <label>Title (EN)</label>
-        <input type="text" id="title_en" placeholder="e.g. Sukhumvit Residence">
-      </div>
-      <div class="form-group">
-        <label>Subtitle (EN)</label>
-        <input type="text" id="subtitle_en" placeholder="e.g. Residential · Interior & Exterior">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Type Label (EN)</label>
-          <input type="text" id="type_label_en" placeholder="e.g. Photography">
-        </div>
-        <div class="form-group">
-          <label>Location (EN)</label>
-          <input type="text" id="location_en" placeholder="e.g. Bangkok">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Main Description (EN)</label>
-        <textarea id="body_en" placeholder="Main description in English..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>Client (EN)</label>
-        <input type="text" id="client_en" placeholder="Client / company name">
-      </div>
     </div>
 
     <!-- Tab: Sections / Blocks -->
@@ -2384,9 +2358,6 @@ function openAddModal() {
   projectSections = [];
   document.getElementById('modal-title').textContent = 'Add New Project';
   document.getElementById('project-form').reset();
-  ['title_en','subtitle_en','type_label_en','location_en','body_en','client_en'].forEach(k => {
-    document.getElementById(k).value = '';
-  });
   document.getElementById('project_id').disabled = false;
   document.getElementById('hero-preview-container').style.display = 'none';
   document.getElementById('hero-preview-img').src = '';
