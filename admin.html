@@ -2189,9 +2189,17 @@ function renderBlockFields(b, i) {
       <label>หัวข้อ (ไม่บังคับ)</label>
       <input type="text" value="${escHtml(b.title||'')}" oninput="projectSections[${i}].title=this.value" placeholder="หัวข้อ section">
     </div>
-    <div class="form-group" style="margin-bottom:0">
+    <div class="form-group" style="margin-bottom:10px">
       <label>เนื้อหา</label>
       <textarea style="min-height:80px" oninput="projectSections[${i}].body=this.value" placeholder="เนื้อหา...">${escHtml(b.body||'')}</textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>หัวข้อ (EN, ไม่บังคับ)</label>
+      <input type="text" value="${escHtml(b.title_en||'')}" oninput="projectSections[${i}].title_en=this.value" placeholder="Section title in English">
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>เนื้อหา (EN, ไม่บังคับ)</label>
+      <textarea style="min-height:80px" oninput="projectSections[${i}].body_en=this.value" placeholder="Content in English...">${escHtml(b.body_en||'')}</textarea>
     </div>`;
 
   if (type === 'image') {
@@ -2205,9 +2213,13 @@ function renderBlockFields(b, i) {
         ${prev}
       </div>
     </div>
-    <div class="form-group" style="margin-bottom:0">
+    <div class="form-group" style="margin-bottom:10px">
       <label>Caption (ไม่บังคับ)</label>
       <input type="text" value="${escHtml(b.caption||'')}" oninput="projectSections[${i}].caption=this.value" placeholder="คำอธิบายภาพ">
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Caption (EN, ไม่บังคับ)</label>
+      <input type="text" value="${escHtml(b.caption_en||'')}" oninput="projectSections[${i}].caption_en=this.value" placeholder="Image caption in English">
     </div>`;
   }
 

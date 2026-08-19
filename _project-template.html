@@ -321,7 +321,23 @@
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', desc);
   }
 
-  document.addEventListener('tms:langchange', renderProjectText);
+  function updateSectionsLangText() {
+    const sections = currentProject && Array.isArray(currentProject.project_sections) ? currentProject.project_sections : [];
+    document.querySelectorAll('#sections-container [data-block-idx]').forEach(el => {
+      const b = sections[+el.dataset.blockIdx];
+      const field = el.dataset.i18nField;
+      if (!b) return;
+      const val = tmsI18n.field(b, field);
+      if (field === 'body') el.innerHTML = escapeHtml(val).replace(/\n/g, '<br>');
+      else if (field === 'title') el.innerHTML = wrapThai(val);
+      else el.textContent = val;
+    });
+  }
+
+  document.addEventListener('tms:langchange', () => {
+    renderProjectText();
+    updateSectionsLangText();
+  });
 
   async function loadProjectDetail() {
     const params = new URLSearchParams(window.location.search);
@@ -452,10 +468,12 @@
     const type = b.type || 'text';
 
     if (type === 'text') {
+      const title = tmsI18n.field(b, 'title');
+      const body = tmsI18n.field(b, 'body');
       return `<div class="block-wrap">
         <div class="block-inner narrow block-text" data-reveal>
-          ${b.title ? `<h3>${wrapThai(b.title)}</h3>` : ''}
-          ${b.body ? `<p>${escapeHtml(b.body).replace(/\n/g,'<br>')}</p>` : ''}
+          ${(b.title || b.title_en) ? `<h3 data-block-idx="${idx}" data-i18n-field="title">${wrapThai(title)}</h3>` : ''}
+          ${(b.body || b.body_en) ? `<p data-block-idx="${idx}" data-i18n-field="body">${escapeHtml(body).replace(/\n/g,'<br>')}</p>` : ''}
         </div>
       </div>`;
     }
@@ -463,11 +481,12 @@
     if (type === 'image') {
       const url = convertGDriveLink(b.image_url || '');
       if (!url) return '';
+      const caption = tmsI18n.field(b, 'caption');
       return `<div class="block-wrap">
         <div class="block-inner block-image" data-reveal>
           <figure style="margin:0">
-            <img src="${escapeHtml(url)}" alt="${escapeHtml(b.caption || currentProjectTitle)}" loading="lazy">
-            ${b.caption ? `<figcaption>${escapeHtml(b.caption)}</figcaption>` : ''}
+            <img src="${escapeHtml(url)}" alt="${escapeHtml(caption || currentProjectTitle)}" loading="lazy">
+            ${(b.caption || b.caption_en) ? `<figcaption data-block-idx="${idx}" data-i18n-field="caption">${escapeHtml(caption)}</figcaption>` : ''}
           </figure>
         </div>
       </div>`;
