@@ -30,6 +30,7 @@
   window.SUPABASE_KEY = '{{ VITE_SUPABASE_KEY }}';
 </script>
 <script src="./supabase-client.js"></script>
+<script src="./i18n.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -81,6 +82,7 @@
       <a href="work.html" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: #15140f; text-decoration: none;">WORK</a>
       <a href="about.html" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: rgba(21,20,15,.6); text-decoration: none;">ABOUT</a>
       <a href="index.html#contact" style="font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: .14em; color: rgba(21,20,15,.6); text-decoration: none;">CONTACT</a>
+      <button data-lang-toggle style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: #15140f; background: transparent; border: 1px solid rgba(21,20,15,.3); border-radius: 999px; padding: 5px 11px; cursor: pointer;">EN</button>
     </div>
   </nav>
 
@@ -88,9 +90,9 @@
   <section id="work-hero" style="padding: clamp(130px, 18vh, 200px) 40px clamp(32px, 5vh, 56px);">
     <div style="max-width: 1200px; margin: 0 auto;">
       <span data-reveal style="display: block; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">SELECTED WORK</span>
-      <h1 data-reveal style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(48px, 8vw, 108px); line-height: .9; letter-spacing: -.01em; margin: 14px 0 32px;">ผลงานทั้งหมด</h1>
+      <h1 data-reveal data-i18n="work_heading" style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(48px, 8vw, 108px); line-height: .9; letter-spacing: -.01em; margin: 14px 0 32px;">ผลงานทั้งหมด</h1>
       <div id="tms-filters" data-reveal style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <button data-filter="all" style="font-family: 'Prompt', 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #15140f; background: #15140f; color: #f5f4f1; cursor: pointer; transition: all .35s ease;">ALL · ทั้งหมด</button>
+        <button data-filter="all" data-i18n="work_filter_all" style="font-family: 'Prompt', 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #15140f; background: #15140f; color: #f5f4f1; cursor: pointer; transition: all .35s ease;">ALL · ทั้งหมด</button>
         <button data-filter="interior" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">INTERIOR &amp; EXTERIOR</button>
         <button data-filter="event" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">EVENT</button>
         <button data-filter="doc" style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .08em; padding: 9px 16px; border-radius: 999px; border: 1px solid #d2cec5; background: transparent; color: #15140f; cursor: pointer; transition: all .35s ease;">DOCUMENTARY</button>
@@ -103,9 +105,9 @@
   <section style="padding: 0 40px clamp(80px, 12vh, 140px);">
     <div style="max-width: 1200px; margin: 0 auto;">
       <div id="tms-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 40px);">
-        <p style="grid-column: 1/-1; text-align: center; color: #9a958a; padding: 60px 0;">กำลังโหลดผลงาน...</p>
+        <p data-i18n="work_loading" style="grid-column: 1/-1; text-align: center; color: #9a958a; padding: 60px 0;">กำลังโหลดผลงาน...</p>
       </div>
-      <div id="tms-empty" style="display: none; text-align: center; padding: 60px 0; color: #9a958a; font-weight: 300;">ยังไม่มีผลงานในหมวดนี้</div>
+      <div id="tms-empty" data-i18n="work_empty_filtered" style="display: none; text-align: center; padding: 60px 0; color: #9a958a; font-weight: 300;">ยังไม่มีผลงานในหมวดนี้</div>
     </div>
   </section>
 
@@ -169,7 +171,7 @@
   function renderProjects() {
     const grid = document.getElementById('tms-grid');
     if (!allProjects.length) {
-      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:60px 0;">ยังไม่มีผลงาน</p>';
+      grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#9a958a;padding:60px 0;">${tmsI18n.t('work_empty_all')}</p>`;
       return;
     }
     const cards = allProjects.map(p => {

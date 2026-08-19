@@ -56,6 +56,7 @@
   window.SUPABASE_KEY = '{{ VITE_SUPABASE_KEY }}';
 </script>
 <script src="./supabase-client.js"></script>
+<script src="./i18n.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -177,6 +178,7 @@
       <a href="work.html" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: #fff !important; text-decoration: none !important;">WORK</a>
       <a href="about.html" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: rgba(255,255,255,0.6) !important; text-decoration: none !important;">ABOUT</a>
       <a href="#contact" style="font-family: 'Archivo', sans-serif !important; font-size: 12.5px !important; font-weight: 600 !important; letter-spacing: .14em !important; color: #fff !important; text-decoration: none !important;">CONTACT</a>
+      <button data-lang-toggle style="font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.5); border-radius: 999px; padding: 5px 11px; cursor: pointer;">EN</button>
     </div>
   </nav>
 
@@ -191,7 +193,7 @@
       <h1 style="font-family: 'Archivo', sans-serif; font-weight: 900; color: #f5f4f1; font-size: clamp(56px, 13vw, 220px); line-height: .86; letter-spacing: -.02em; margin: 0;">THE&nbsp;MANUAL</h1>
       <div id="hero-cat-line" style="margin-top: 4px; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .04em; color: rgba(245,244,241,.75);">Interior &amp; Exterior&nbsp;&nbsp;|&nbsp;&nbsp;Company Profile&nbsp;&nbsp;|&nbsp;&nbsp;Documentary</div>
       <div style="margin-top: 28px;">
-        <p style="margin: 0; max-width: 540px; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.55; color: rgba(245,244,241,.9); font-weight: 300;">บันทึกของเวลา — เปลี่ยนทุกพื้นที่และทุกช่วงเวลา ให้กลายเป็นความทรงจำที่คงอยู่ตลอดไป</p>
+        <p data-i18n="home_hero_subtitle" style="margin: 0; max-width: 540px; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.55; color: rgba(245,244,241,.9); font-weight: 300;">บันทึกของเวลา — เปลี่ยนทุกพื้นที่และทุกช่วงเวลา ให้กลายเป็นความทรงจำที่คงอยู่ตลอดไป</p>
       </div>
     </div>
     <div style="position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); width: 22px; height: 34px; border: 1.5px solid rgba(245,244,241,.6); border-radius: 12px; display: flex; justify-content: center; padding-top: 6px; pointer-events: none;">
@@ -241,9 +243,9 @@
   <section id="work" style="padding: clamp(70px, 10vh, 130px) 40px; border-top: 1px solid #e2dfd8; text-align: center;">
     <div style="max-width: 620px; margin: 0 auto;" data-reveal>
       <span style="font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .28em; color: #9a958a;">SELECTED WORK</span>
-      <h2 style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(36px, 6vw, 72px); line-height: .95; letter-spacing: -.01em; margin: 14px 0 20px;">ผลงานทั้งหมดของเรา</h2>
-      <p style="font-size: clamp(15px, 1.4vw, 18px); color: rgba(21,20,15,.6); font-weight: 300; line-height: 1.7; margin: 0 0 32px;">รวมผลงานถ่ายภาพและวิดีโอทั้งหมด ตั้งแต่งานอินทีเรียดีไซน์ อีเว้นท์ สารคดี ไปจนถึงงานนำเสนอแบรนด์</p>
-      <a href="work.html" style="display: inline-flex; align-items: center; gap: 10px; font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .12em; background: #15140f; color: #f5f4f1; border-radius: 999px; padding: 16px 32px; text-decoration: none;">ดูผลงานทั้งหมด →</a>
+      <h2 data-i18n="home_work_heading" style="font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: clamp(36px, 6vw, 72px); line-height: .95; letter-spacing: -.01em; margin: 14px 0 20px;">ผลงานทั้งหมดของเรา</h2>
+      <p data-i18n="home_work_desc" style="font-size: clamp(15px, 1.4vw, 18px); color: rgba(21,20,15,.6); font-weight: 300; line-height: 1.7; margin: 0 0 32px;">รวมผลงานถ่ายภาพและวิดีโอทั้งหมด ตั้งแต่งานอินทีเรียดีไซน์ อีเว้นท์ สารคดี ไปจนถึงงานนำเสนอแบรนด์</p>
+      <a href="work.html" data-i18n="home_work_cta" style="display: inline-flex; align-items: center; gap: 10px; font-family: 'Prompt', 'Archivo', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .12em; background: #15140f; color: #f5f4f1; border-radius: 999px; padding: 16px 32px; text-decoration: none;">ดูผลงานทั้งหมด →</a>
     </div>
   </section>
 
@@ -264,11 +266,11 @@
         <input type="hidden" name="subject" value="New Contact — The Manual Studio">
         <input type="hidden" name="from_name" value="The Manual Studio Website">
         <input type="checkbox" name="botcheck" style="display:none;" tabindex="-1" autocomplete="off">
-        <input type="text" name="name" required placeholder="ชื่อ / Name" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
-        <input type="tel" name="phone" placeholder="เบอร์โทร / Phone" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
-        <input type="email" name="email" placeholder="อีเมล / Email" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
-        <textarea name="message" required placeholder="รายละเอียด / Message" rows="4" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;resize:vertical;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'"></textarea>
-        <button type="submit" id="contact-submit" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;background:#15140f;color:#f5f4f1;border:none;border-radius:999px;padding:16px 32px;cursor:pointer;transition:opacity .2s;align-self:flex-start;">SEND MESSAGE →</button>
+        <input type="text" name="name" required placeholder="ชื่อ" data-i18n-placeholder="contact_name_ph" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <input type="tel" name="phone" placeholder="เบอร์โทร" data-i18n-placeholder="contact_phone_ph" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <input type="email" name="email" placeholder="อีเมล" data-i18n-placeholder="contact_email_ph" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'">
+        <textarea name="message" required placeholder="รายละเอียด" data-i18n-placeholder="contact_message_ph" rows="4" style="padding:14px 16px;border:1px solid #d2cec5;border-radius:8px;font-family:inherit;font-size:15px;font-weight:300;color:#15140f;background:#fff;outline:none;resize:vertical;transition:border-color .2s;" onfocus="this.style.borderColor='#15140f'" onblur="this.style.borderColor='#d2cec5'"></textarea>
+        <button type="submit" id="contact-submit" data-i18n="contact_submit" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;background:#15140f;color:#f5f4f1;border:none;border-radius:999px;padding:16px 32px;cursor:pointer;transition:opacity .2s;align-self:flex-start;">SEND MESSAGE →</button>
         <p id="contact-msg" style="display:none;font-size:14px;font-weight:300;margin:0;"></p>
       </form>
     </div>
@@ -282,13 +284,13 @@
     // Silently drop obvious bot submissions: honeypot filled, or submitted
     // implausibly fast for a human to have read and filled the form.
     if (this.botcheck.checked || Date.now() - contactFormLoadedAt < 1500) {
-      msg.textContent = '✓ ส่งข้อความแล้ว ขอบคุณครับ เราจะติดต่อกลับเร็วๆ นี้';
+      msg.textContent = tmsI18n.t('contact_success');
       msg.style.color = '#155724';
       msg.style.display = 'block';
       this.reset();
       return;
     }
-    btn.textContent = 'กำลังส่ง...';
+    btn.textContent = tmsI18n.t('contact_sending');
     btn.style.opacity = '.6';
     btn.disabled = true;
     try {
@@ -298,7 +300,7 @@
       });
       const data = await res.json();
       if (data.success) {
-        msg.textContent = '✓ ส่งข้อความแล้ว ขอบคุณครับ เราจะติดต่อกลับเร็วๆ นี้';
+        msg.textContent = tmsI18n.t('contact_success');
         msg.style.color = '#155724';
         msg.style.display = 'block';
         this.reset();
@@ -306,11 +308,11 @@
         throw new Error(data.message);
       }
     } catch(err) {
-      msg.textContent = '✗ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+      msg.textContent = tmsI18n.t('contact_error');
       msg.style.color = '#b3261e';
       msg.style.display = 'block';
     }
-    btn.textContent = 'SEND MESSAGE →';
+    btn.textContent = tmsI18n.t('contact_submit');
     btn.style.opacity = '1';
     btn.disabled = false;
   });
