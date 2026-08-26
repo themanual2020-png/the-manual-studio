@@ -699,6 +699,8 @@
     .archive-item-actions button { width: 100%; }
     #archive-filter-bar { flex-direction: column; align-items: stretch; }
     #archive-search { width: 100%; min-width: 0; }
+    #archive-url-row { flex-direction: column; }
+    #archive-summarize-btn { width: 100%; }
   }
 </style>
 </head>
@@ -840,13 +842,16 @@
               </select>
             </div>
             <div class="form-group">
-              <label>ลิงก์ (URL)</label>
-              <input type="url" id="archive_url" placeholder="https://...">
+              <label>ลิงก์ (URL) — แปะแล้ว Enter ได้เลย</label>
+              <div id="archive-url-row" style="display:flex;gap:8px;">
+                <input type="url" id="archive_url" placeholder="https://..." style="flex:1;min-width:0;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
+                <button type="button" class="btn-secondary btn-sm" id="archive-summarize-btn" onclick="summarizeArchiveLink()" style="white-space:nowrap;">📥 ดึงชื่อจากลิงก์</button>
+              </div>
             </div>
           </div>
           <div class="form-group">
-            <label>หัวข้อ / ชื่อเรื่อง</label>
-            <input type="text" id="archive_title" required placeholder="เช่น บทความเกี่ยวกับ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
+            <label>หัวข้อ / ชื่อเรื่อง (ไม่บังคับถ้ามีลิงก์ — จะดึงชื่อหน้าเว็บให้อัตโนมัติ)</label>
+            <input type="text" id="archive_title" placeholder="เช่น บทความเกี่ยวกับ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -1776,16 +1781,61 @@ function renderSavedItems() {
   }).join('');
 }
 
+async function fetchLinkMetaForArchive(url) {
+  return adminFetch('/api/admin/job-queue?action=fetch-link-meta', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+}
+
+async function summarizeArchiveLink() {
+  const url = document.getElementById('archive_url').value.trim();
+  if (!url) {
+    showAlert('กรุณาใส่ลิงก์ก่อน', 'error');
+    return;
+  }
+  const btn = document.getElementById('archive-summarize-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'กำลังดึงข้อมูล...';
+  try {
+    const result = await fetchLinkMetaForArchive(url);
+    if (!document.getElementById('archive_title').value.trim()) {
+      document.getElementById('archive_title').value = result.title || '';
+    }
+    if (!document.getElementById('archive_note').value.trim()) {
+      document.getElementById('archive_note').value = result.note || '';
+    }
+    showAlert('ดึงข้อมูลจากลิงก์แล้ว ตรวจสอบก่อนกดบันทึก ✓', 'success');
+  } catch (e) {
+    showAlert('ดึงข้อมูลไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
 async function addSavedItem() {
   const source_type = document.getElementById('archive_source_type').value;
   const url = document.getElementById('archive_url').value.trim();
-  const title = document.getElementById('archive_title').value.trim();
-  const note = document.getElementById('archive_note').value.trim();
-  const tags = document.getElementById('archive_tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  let title = document.getElementById('archive_title').value.trim();
+  let note = document.getElementById('archive_note').value.trim();
+  let tags = document.getElementById('archive_tags').value.split(',').map(t => t.trim()).filter(Boolean);
 
-  if (!title) {
-    showAlert('กรุณากรอกหัวข้อ', 'error');
+  if (!title && !url) {
+    showAlert('กรุณาใส่หัวข้อ หรือลิงก์อย่างน้อยหนึ่งอย่าง', 'error');
     return;
+  }
+
+  if (!title && url) {
+    try {
+      const result = await fetchLinkMetaForArchive(url);
+      title = result.title || url;
+      note = note || result.note || '';
+    } catch (e) {
+      title = url;
+      showAlert('ดึงข้อมูลจากลิงก์ไม่สำเร็จ จะบันทึกโดยไม่มีหัวข้อละเอียด: ' + e.message, 'error');
+    }
   }
 
   try {
