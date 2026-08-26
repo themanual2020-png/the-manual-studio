@@ -845,12 +845,12 @@
               <label>ลิงก์ (URL) — แปะแล้ว Enter ได้เลย</label>
               <div id="archive-url-row" style="display:flex;gap:8px;">
                 <input type="url" id="archive_url" placeholder="https://..." style="flex:1;min-width:0;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
-                <button type="button" class="btn-secondary btn-sm" id="archive-summarize-btn" onclick="summarizeArchiveLink()" style="white-space:nowrap;">📥 ดึงชื่อจากลิงก์</button>
+                <button type="button" class="btn-secondary btn-sm" id="archive-summarize-btn" onclick="summarizeArchiveLink()" style="white-space:nowrap;">🤖 สรุปด้วย AI</button>
               </div>
             </div>
           </div>
           <div class="form-group">
-            <label>หัวข้อ / ชื่อเรื่อง (ไม่บังคับถ้ามีลิงก์ — จะดึงชื่อหน้าเว็บให้อัตโนมัติ)</label>
+            <label>หัวข้อ / ชื่อเรื่อง (ไม่บังคับถ้ามีลิงก์ — AI จะช่วยสรุปหัวข้อ/แท็กให้)</label>
             <input type="text" id="archive_title" placeholder="เช่น บทความเกี่ยวกับ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
           </div>
           <div class="form-row">
@@ -1781,8 +1781,8 @@ function renderSavedItems() {
   }).join('');
 }
 
-async function fetchLinkMetaForArchive(url) {
-  return adminFetch('/api/admin/job-queue?action=fetch-link-meta', {
+async function summarizeLinkForArchive(url) {
+  return adminFetch('/api/admin/job-queue?action=summarize-link', {
     method: 'POST',
     body: JSON.stringify({ url }),
   });
@@ -1797,18 +1797,21 @@ async function summarizeArchiveLink() {
   const btn = document.getElementById('archive-summarize-btn');
   const originalText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'กำลังดึงข้อมูล...';
+  btn.textContent = 'กำลังสรุป...';
   try {
-    const result = await fetchLinkMetaForArchive(url);
+    const result = await summarizeLinkForArchive(url);
     if (!document.getElementById('archive_title').value.trim()) {
       document.getElementById('archive_title').value = result.title || '';
     }
     if (!document.getElementById('archive_note').value.trim()) {
       document.getElementById('archive_note').value = result.note || '';
     }
-    showAlert('ดึงข้อมูลจากลิงก์แล้ว ตรวจสอบก่อนกดบันทึก ✓', 'success');
+    if (!document.getElementById('archive_tags').value.trim()) {
+      document.getElementById('archive_tags').value = (result.tags || []).join(', ');
+    }
+    showAlert('สรุปข้อมูลแล้ว ตรวจสอบก่อนกดบันทึก ✓', 'success');
   } catch (e) {
-    showAlert('ดึงข้อมูลไม่สำเร็จ: ' + e.message, 'error');
+    showAlert('สรุปไม่สำเร็จ: ' + e.message, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = originalText;
@@ -1829,12 +1832,13 @@ async function addSavedItem() {
 
   if (!title && url) {
     try {
-      const result = await fetchLinkMetaForArchive(url);
+      const result = await summarizeLinkForArchive(url);
       title = result.title || url;
       note = note || result.note || '';
+      tags = tags.length ? tags : (result.tags || []);
     } catch (e) {
       title = url;
-      showAlert('ดึงข้อมูลจากลิงก์ไม่สำเร็จ จะบันทึกโดยไม่มีหัวข้อละเอียด: ' + e.message, 'error');
+      showAlert('สรุปอัตโนมัติไม่สำเร็จ จะบันทึกโดยไม่มีหัวข้อละเอียด: ' + e.message, 'error');
     }
   }
 
