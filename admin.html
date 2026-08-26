@@ -552,6 +552,7 @@
 
   /* ====== ARCHIVE (SAVED ITEMS) ====== */
   .archive-item { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid #e2dfd8; border-radius:8px; margin-bottom:10px; background:#fff; }
+  .archive-item-thumb { width:96px; height:72px; object-fit:cover; border-radius:6px; flex-shrink:0; background:#f0ede8; }
   .archive-item-body { flex:1; min-width:0; }
   .archive-item-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
   .archive-item-date { font-size:11px; color:#9a958a; font-family:'Archivo',sans-serif; }
@@ -567,6 +568,12 @@
   .source-badge.web      { background:#d4f0e5; color:#1a7a4a; }
   .source-badge.article  { background:#ede0ff; color:#6b34b8; }
   .source-badge.other    { background:#f0ede8; color:#6b675f; }
+
+  #bulk-import-modal { display:none; position:fixed; inset:0; background:rgba(21,20,15,.5); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+  #bulk-import-modal.active { display:flex; }
+  .bulk-import-box { background:#fff; border-radius:12px; width:min(640px,96vw); max-height:88vh; overflow-y:auto; padding:28px 32px; }
+  .bulk-import-box h3 { margin:0 0 8px; font-family:'Archivo',sans-serif; font-size:18px; }
+  #bulk-import-text { width:100%; font-family:ui-monospace,'SFMono-Regular',Menlo,monospace; font-size:12.5px; padding:10px 12px; border:1px solid #e2dfd8; border-radius:6px; resize:vertical; }
 
   .jobs-calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
   .jobs-cal-dow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; text-align:center; padding-bottom:6px; }
@@ -656,6 +663,7 @@
     .admin-page-title { font-size: 22px; }
     .admin-page-actions { gap: 8px; width: 100%; }
     .modal-content { margin-top: 0; border-radius: 8px; }
+    .bulk-import-box { padding: 20px; }
     .tab-pane { padding: 20px 20px; }
     .modal-header { padding: 20px 20px 0; }
     .tabs { padding: 12px 20px 0; }
@@ -695,6 +703,7 @@
     .job-input-row button { width: 100%; }
 
     .archive-item { flex-direction: column; }
+    .archive-item-thumb { width: 100%; height: 160px; }
     .archive-item-actions { width: 100%; }
     .archive-item-actions button { width: 100%; }
     #archive-filter-bar { flex-direction: column; align-items: stretch; }
@@ -826,6 +835,9 @@
     <div id="page-archive" class="admin-page" style="display:none;">
       <div class="admin-page-header">
         <h1 class="admin-page-title">คลังข้อมูล</h1>
+        <div class="admin-page-actions">
+          <button class="btn-secondary" onclick="openBulkImportModal()">+ นำเข้าหลายรายการ</button>
+        </div>
       </div>
 
       <div class="analytics-card" style="margin-bottom:20px;">
@@ -852,6 +864,10 @@
           <div class="form-group">
             <label>หัวข้อ / ชื่อเรื่อง (ไม่บังคับถ้ามีลิงก์ — AI จะช่วยสรุปหัวข้อ/แท็กให้)</label>
             <input type="text" id="archive_title" placeholder="เช่น บทความเกี่ยวกับ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
+          </div>
+          <input type="hidden" id="archive_image_url" value="">
+          <div id="archive-image-preview" style="display:none;margin-bottom:14px;">
+            <img id="archive-image-preview-img" src="" alt="" style="max-width:160px;max-height:110px;border-radius:8px;border:1px solid #e2dfd8;object-fit:cover;display:block;">
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -1149,6 +1165,35 @@
     </div>
     <div style="margin-top:20px;text-align:right;">
       <button class="btn-secondary" onclick="closeCatModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div id="bulk-import-modal">
+  <div class="bulk-import-box">
+    <h3>นำเข้าหลายรายการ</h3>
+    <p style="font-size:12.5px;color:#9a958a;margin:0 0 14px;line-height:1.5;">
+      วางทีละบรรทัด รูปแบบ <code>หัวข้อ | ลิงก์</code> หรือจะวางแค่ลิงก์อย่างเดียวก็ได้ (จะใช้ลิงก์เป็นหัวข้อชั่วคราว ไปแก้ทีหลังได้)<br>
+      ระบบจะเดาแหล่งที่มาจากโดเมนให้ (เช่น facebook.com → Facebook) ถ้าเดาไม่ได้จะใช้ค่าด้านล่าง
+    </p>
+    <div class="form-group">
+      <label>แหล่งที่มา (ค่าเริ่มต้นถ้าเดาจากลิงก์ไม่ได้)</label>
+      <select id="bulk-import-source">
+        <option value="facebook">Facebook</option>
+        <option value="web" selected>เว็บไซต์</option>
+        <option value="article">บทความ</option>
+        <option value="other">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>รายการ</label>
+      <textarea id="bulk-import-text" rows="10" placeholder="เริ่มแล้ว! ประเพณีควายเพลิง | https://facebook.com/...&#10;https://example.com/article-2"></textarea>
+    </div>
+    <div id="bulk-import-result" style="font-size:12.5px;color:#9a958a;margin-bottom:10px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-secondary" onclick="closeBulkImportModal()">ปิด</button>
+      <button class="btn-primary" id="bulk-import-submit-btn" onclick="submitBulkImport()">นำเข้า</button>
     </div>
   </div>
 </div>
@@ -1762,8 +1807,12 @@ function renderSavedItems() {
     const tagsHtml = (item.tags || []).length
       ? `<div class="archive-item-tags">${item.tags.map(t => `<span class="meta-tag">${escHtml(t)}</span>`).join('')}</div>`
       : '';
+    const thumbHtml = item.image_url
+      ? `<img class="archive-item-thumb" src="${escHtml(item.image_url)}" alt="" loading="lazy" onerror="this.remove()">`
+      : '';
     return `
     <div class="archive-item">
+      ${thumbHtml}
       <div class="archive-item-body">
         <div class="archive-item-meta">
           <span class="source-badge ${escHtml(sourceType)}">${escHtml(ARCHIVE_SOURCE_LABELS[sourceType] || sourceType)}</span>
@@ -1788,6 +1837,19 @@ async function summarizeLinkForArchive(url) {
   });
 }
 
+function showArchiveImagePreview(imageUrl) {
+  document.getElementById('archive_image_url').value = imageUrl || '';
+  const preview = document.getElementById('archive-image-preview');
+  const img = document.getElementById('archive-image-preview-img');
+  if (imageUrl) {
+    img.src = imageUrl;
+    preview.style.display = '';
+  } else {
+    img.src = '';
+    preview.style.display = 'none';
+  }
+}
+
 async function summarizeArchiveLink() {
   const url = document.getElementById('archive_url').value.trim();
   if (!url) {
@@ -1809,7 +1871,12 @@ async function summarizeArchiveLink() {
     if (!document.getElementById('archive_tags').value.trim()) {
       document.getElementById('archive_tags').value = (result.tags || []).join(', ');
     }
-    showAlert('สรุปข้อมูลแล้ว ตรวจสอบก่อนกดบันทึก ✓', 'success');
+    showArchiveImagePreview(result.image);
+    if (result.loginWallDetected) {
+      showAlert('⚠️ ลิงก์นี้ต้องเข้าสู่ระบบก่อนถึงจะดูเนื้อหาได้ ดึงเนื้อหาจริงไม่ได้ — แนะนำให้แก้หัวข้อ/โน้ตเอง', 'error');
+    } else {
+      showAlert('สรุปข้อมูลแล้ว ตรวจสอบก่อนกดบันทึก ✓', 'success');
+    }
   } catch (e) {
     showAlert('สรุปไม่สำเร็จ: ' + e.message, 'error');
   } finally {
@@ -1824,20 +1891,25 @@ async function addSavedItem() {
   let title = document.getElementById('archive_title').value.trim();
   let note = document.getElementById('archive_note').value.trim();
   let tags = document.getElementById('archive_tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  let image_url = document.getElementById('archive_image_url').value.trim();
 
   if (!title && !url) {
     showAlert('กรุณาใส่หัวข้อ หรือลิงก์อย่างน้อยหนึ่งอย่าง', 'error');
     return;
   }
 
-  if (!title && url) {
+  if ((!title || !image_url) && url) {
     try {
       const result = await summarizeLinkForArchive(url);
-      title = result.title || url;
+      title = title || result.title || url;
       note = note || result.note || '';
       tags = tags.length ? tags : (result.tags || []);
+      image_url = image_url || result.image || '';
+      if (result.loginWallDetected) {
+        showAlert('⚠️ ลิงก์นี้ต้องเข้าสู่ระบบก่อนถึงจะดูเนื้อหาได้ บันทึกแล้วแต่แนะนำให้แก้หัวข้อ/โน้ตเอง', 'error');
+      }
     } catch (e) {
-      title = url;
+      title = title || url;
       showAlert('สรุปอัตโนมัติไม่สำเร็จ จะบันทึกโดยไม่มีหัวข้อละเอียด: ' + e.message, 'error');
     }
   }
@@ -1845,13 +1917,82 @@ async function addSavedItem() {
   try {
     await adminFetch('/api/admin/job-queue?resource=saved-items', {
       method: 'POST',
-      body: JSON.stringify({ source_type, url: url || null, title, note: note || null, tags }),
+      body: JSON.stringify({ source_type, url: url || null, title, note: note || null, tags, image_url: image_url || null }),
     });
     showAlert('บันทึกแล้ว ✓', 'success');
     document.getElementById('archive-form').reset();
+    showArchiveImagePreview('');
     loadSavedItems();
   } catch (e) {
     showAlert('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function openBulkImportModal() {
+  document.getElementById('bulk-import-text').value = '';
+  document.getElementById('bulk-import-result').textContent = '';
+  document.getElementById('bulk-import-modal').classList.add('active');
+}
+
+function closeBulkImportModal() {
+  document.getElementById('bulk-import-modal').classList.remove('active');
+}
+
+function detectSourceTypeFromUrl(url) {
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('facebook.com') || lower.includes('fb.watch') || lower.includes('fb.com')) return 'facebook';
+  return null;
+}
+
+async function submitBulkImport() {
+  const raw = document.getElementById('bulk-import-text').value;
+  const defaultSource = document.getElementById('bulk-import-source').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+
+  if (!lines.length) {
+    showAlert('กรุณาวางรายการก่อน', 'error');
+    return;
+  }
+
+  const urlRe = /^https?:\/\//i;
+  const items = lines.map(line => {
+    const parts = line.split('|').map(p => p.trim());
+    let title = '';
+    let url = '';
+    if (parts.length >= 2) {
+      title = parts[0];
+      url = parts[1];
+    } else if (urlRe.test(parts[0])) {
+      url = parts[0];
+    } else {
+      title = parts[0];
+    }
+    const source_type = detectSourceTypeFromUrl(url) || defaultSource;
+    return { source_type, url: url || null, title: title || url, tags: [] };
+  }).filter(item => item.title);
+
+  if (!items.length) {
+    showAlert('ไม่มีรายการที่ใช้ได้', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('bulk-import-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังนำเข้า...';
+  try {
+    const result = await adminFetch('/api/admin/job-queue?action=bulk-import-saved-items', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    });
+    document.getElementById('bulk-import-result').textContent = `นำเข้าแล้ว ${result.imported} รายการ ✓`;
+    showAlert(`นำเข้า ${result.imported} รายการแล้ว ✓`, 'success');
+    loadSavedItems();
+  } catch (e) {
+    showAlert('นำเข้าไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'นำเข้า';
   }
 }
 

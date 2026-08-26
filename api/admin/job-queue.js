@@ -31,6 +31,36 @@ function htmlToText(html) {
     .trim();
 }
 
+function extractMeta(html, name) {
+  const re = new RegExp(
+    `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']*)["']`,
+    'i'
+  );
+  const match = html.match(re);
+  return match ? match[1].trim() : '';
+}
+
+const FACEBOOK_HOSTS = ['facebook.com', 'fb.watch', 'fb.com'];
+// Facebook (and some other platforms) serve richer Open Graph data to their
+// own known crawler UA — the same one Messenger/WhatsApp use to build link
+// previews — than to a generic browser UA when the viewer isn't logged in.
+const FACEBOOK_CRAWLER_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+const DEFAULT_UA = 'Mozilla/5.0 (compatible; ArchiveBot/1.0)';
+
+// Meta serves this boilerplate on posts it won't render without login —
+// catch it so we don't silently save "you must log in" as if it were the
+// real post content.
+const LOGIN_WALL_PATTERN = /log\s?in to (facebook|continue)|เข้าสู่ระบบ.*facebook|เข้าร่วม facebook หรือเข้าสู่ระบบ/i;
+
+function isFacebookUrl(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return FACEBOOK_HOSTS.some((h) => host === h || host.endsWith('.' + h));
+  } catch {
+    return false;
+  }
+}
+
 async function handleSummarizeLink(req, res) {
   const url = req.body && req.body.url;
   if (!url || !/^https?:\/\//i.test(url)) {
@@ -40,15 +70,27 @@ async function handleSummarizeLink(req, res) {
 
   let pageText = '';
   let fallbackTitle = '';
+  let ogDescription = '';
+  let imageUrl = '';
   try {
     const pageRes = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ArchiveBot/1.0)' },
+      headers: { 'User-Agent': isFacebookUrl(url) ? FACEBOOK_CRAWLER_UA : DEFAULT_UA },
       signal: AbortSignal.timeout(8000),
     });
     const html = await pageRes.text();
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-    fallbackTitle = titleMatch ? titleMatch[1].trim() : '';
+    fallbackTitle = extractMeta(html, 'og:title') || (titleMatch ? titleMatch[1].trim() : '');
+    ogDescription = extractMeta(html, 'og:description');
     pageText = htmlToText(html).slice(0, 6000);
+
+    const rawImage = extractMeta(html, 'og:image') || extractMeta(html, 'twitter:image');
+    if (rawImage) {
+      try {
+        imageUrl = new URL(rawImage, url).href;
+      } catch {
+        imageUrl = '';
+      }
+    }
   } catch (e) {
     res.status(502).json({ error: 'ดึงหน้าเว็บไม่สำเร็จ: ' + e.message });
     return;
@@ -69,7 +111,7 @@ async function handleSummarizeLink(req, res) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `สรุปหน้าเว็บนี้เป็นภาษาไทย สั้น กระชับ สำหรับเก็บไว้อ้างอิงภายหลัง\n\nURL: ${url}\nTitle tag: ${fallbackTitle}\nเนื้อหา:\n${pageText}\n\nส่งกลับ title (หัวข้อสั้นๆ ไม่เกิน 15 คำ), summary (สรุป 1-2 ประโยค), tags (3-5 คำสำคัญภาษาไทย)`,
+              text: `สรุปหน้าเว็บนี้เป็นภาษาไทย สั้น กระชับ สำหรับเก็บไว้อ้างอิงภายหลัง\n\nURL: ${url}\nTitle tag (og:title ก่อน ถ้าไม่มีใช้ <title>): ${fallbackTitle}\nog:description: ${ogDescription}\nเนื้อหาที่ดึงได้จากหน้าเว็บ:\n${pageText}\n\nถ้าเนื้อหาข้างต้นเป็นแค่หน้าล็อกอิน/ขอสิทธิ์เข้าถึง ไม่ใช่เนื้อหาโพสต์จริง ให้ตั้ง summary เริ่มด้วย "[ต้องเข้าสู่ระบบ]" แล้วอธิบายว่าดึงเนื้อหาจริงไม่ได้\n\nส่งกลับ title (หัวข้อสั้นๆ ไม่เกิน 15 คำ), summary (สรุป 1-2 ประโยค), tags (3-5 คำสำคัญภาษาไทย)`,
             }],
           }],
           generationConfig: {
@@ -104,11 +146,64 @@ async function handleSummarizeLink(req, res) {
       return;
     }
 
+    const combined = `${parsed.title || ''} ${parsed.summary || ''}`;
+    const loginWallDetected = LOGIN_WALL_PATTERN.test(combined) || parsed.summary?.startsWith('[ต้องเข้าสู่ระบบ]');
+
     res.status(200).json({
       title: parsed.title || fallbackTitle || url,
       note: parsed.summary || '',
       tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      image: imageUrl,
+      loginWallDetected,
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+}
+
+async function handleBulkImportSavedItems(req, res, key) {
+  const items = req.body && req.body.items;
+  if (!Array.isArray(items) || !items.length) {
+    res.status(400).json({ error: 'items must be a non-empty array' });
+    return;
+  }
+  if (items.length > 500) {
+    res.status(400).json({ error: 'นำเข้าได้ครั้งละไม่เกิน 500 รายการ' });
+    return;
+  }
+
+  const rows = items
+    .map((item) => ({
+      source_type: item.source_type || 'other',
+      url: item.url || null,
+      title: String(item.title || item.url || '').slice(0, 500),
+      note: item.note || null,
+      tags: Array.isArray(item.tags) ? item.tags : [],
+    }))
+    .filter((row) => row.title);
+
+  if (!rows.length) {
+    res.status(400).json({ error: 'ไม่มีรายการที่ใช้ได้ (ต้องมีหัวข้อหรือลิงก์)' });
+    return;
+  }
+
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/saved_items`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(rows),
+    });
+    if (!r.ok) {
+      const errText = await r.text();
+      res.status(r.status).json({ error: errText });
+      return;
+    }
+    res.status(200).json({ imported: rows.length });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -125,6 +220,11 @@ module.exports = async function handler(req, res) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) {
     res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY is not set' });
+    return;
+  }
+
+  if (req.method === 'POST' && req.query.action === 'bulk-import-saved-items') {
+    await handleBulkImportSavedItems(req, res, key);
     return;
   }
 
