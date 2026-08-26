@@ -550,6 +550,24 @@
   .filter-tab { padding:8px 14px; border:1px solid #e2dfd8; border-radius:6px; background:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:600; letter-spacing:.04em; color:#6b675f; cursor:pointer; }
   .filter-tab.active { background:#15140f; color:#fff; border-color:#15140f; }
 
+  /* ====== ARCHIVE (SAVED ITEMS) ====== */
+  .archive-item { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid #e2dfd8; border-radius:8px; margin-bottom:10px; background:#fff; }
+  .archive-item-body { flex:1; min-width:0; }
+  .archive-item-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .archive-item-date { font-size:11px; color:#9a958a; font-family:'Archivo',sans-serif; }
+  .archive-item-title { font-size:14px; font-weight:600; margin:0 0 4px; word-break:break-word; }
+  .archive-item-title a { color:#15140f; text-decoration:none; }
+  .archive-item-title a:hover { text-decoration:underline; }
+  .archive-item-note { font-size:12.5px; color:#6b675f; margin:4px 0; word-break:break-word; }
+  .archive-item-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .archive-item-actions { flex-shrink:0; }
+
+  .source-badge { font-family:'Archivo',sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .source-badge.facebook { background:#e3e8ff; color:#3b4bb8; }
+  .source-badge.web      { background:#d4f0e5; color:#1a7a4a; }
+  .source-badge.article  { background:#ede0ff; color:#6b34b8; }
+  .source-badge.other    { background:#f0ede8; color:#6b675f; }
+
   .jobs-calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
   .jobs-cal-dow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; text-align:center; padding-bottom:6px; }
   .jobs-cal-day { min-height:96px; border:1px solid #e2dfd8; border-radius:8px; padding:6px; background:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px; }
@@ -675,6 +693,12 @@
     .job-input-row { flex-direction: column; align-items: stretch; }
     .job-input-row select { width: 100% !important; flex: none !important; }
     .job-input-row button { width: 100%; }
+
+    .archive-item { flex-direction: column; }
+    .archive-item-actions { width: 100%; }
+    .archive-item-actions button { width: 100%; }
+    #archive-filter-bar { flex-direction: column; align-items: stretch; }
+    #archive-search { width: 100%; min-width: 0; }
   }
 </style>
 </head>
@@ -687,6 +711,7 @@
       <button class="admin-nav-item" data-page="dashboard" onclick="navigateTo('dashboard')">🏠 หน้าแรก</button>
       <button class="admin-nav-item" data-page="projects" onclick="navigateTo('projects')">🖼️ ผลงาน</button>
       <button class="admin-nav-item" data-page="jobs" onclick="navigateTo('jobs')">📅 คิวงาน</button>
+      <button class="admin-nav-item" data-page="archive" onclick="navigateTo('archive')">🗂️ คลังข้อมูล</button>
       <button class="admin-nav-item" data-page="analytics" onclick="navigateTo('analytics')">📊 Analytics</button>
       <button class="admin-nav-item" data-page="seo" onclick="navigateTo('seo')">🔍 SEO</button>
     </nav>
@@ -793,6 +818,65 @@
       <div id="jobs-kanban-view" style="display:none;">
         <div id="jobs-kanban" class="kanban-board"></div>
       </div>
+    </div>
+
+    <!-- ===== Archive (Saved Items) ===== -->
+    <div id="page-archive" class="admin-page" style="display:none;">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">คลังข้อมูล</h1>
+      </div>
+
+      <div class="analytics-card" style="margin-bottom:20px;">
+        <h3 class="analytics-card-title" style="margin-bottom:14px;">+ เพิ่มรายการใหม่</h3>
+        <form id="archive-form" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>แหล่งที่มา</label>
+              <select id="archive_source_type">
+                <option value="facebook">Facebook</option>
+                <option value="web">เว็บไซต์</option>
+                <option value="article">บทความ</option>
+                <option value="other">อื่นๆ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ลิงก์ (URL)</label>
+              <input type="url" id="archive_url" placeholder="https://...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>หัวข้อ / ชื่อเรื่อง</label>
+            <input type="text" id="archive_title" required placeholder="เช่น บทความเกี่ยวกับ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSavedItem();}">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>โน้ต / สรุปย่อ</label>
+              <textarea id="archive_note" rows="2" placeholder="สรุปสั้นๆ ไว้อ้างอิงภายหลัง..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>แท็ก (คั่นด้วยจุลภาค)</label>
+              <input type="text" id="archive_tags" placeholder="เช่น อินทีเรีย, โรงแรม">
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <button type="button" class="btn-primary" onclick="addSavedItem()">บันทึก</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="archive-filter-bar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="filter-tab active" data-source="all" onclick="setArchiveFilterSource('all')">ทั้งหมด</button>
+          <button type="button" class="filter-tab" data-source="facebook" onclick="setArchiveFilterSource('facebook')">Facebook</button>
+          <button type="button" class="filter-tab" data-source="web" onclick="setArchiveFilterSource('web')">เว็บไซต์</button>
+          <button type="button" class="filter-tab" data-source="article" onclick="setArchiveFilterSource('article')">บทความ</button>
+          <button type="button" class="filter-tab" data-source="other" onclick="setArchiveFilterSource('other')">อื่นๆ</button>
+        </div>
+        <input type="text" id="archive-search" placeholder="ค้นหาหัวข้อ, โน้ต, แท็ก..." oninput="renderSavedItems()" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid #e2dfd8;border-radius:6px;font-family:inherit;font-size:13px;">
+        <span id="archive-filter-count" style="font-size:12px;color:#9a958a;font-family:'Archivo',sans-serif;"></span>
+      </div>
+
+      <div id="archive-list"></div>
     </div>
 
     <!-- ===== Analytics ===== -->
@@ -1204,7 +1288,7 @@ let projectSections = [];
 let analyticsEvents = [];
 
 // ===== ROUTER =====
-const ADMIN_PAGES = ['dashboard', 'projects', 'jobs', 'analytics', 'seo'];
+const ADMIN_PAGES = ['dashboard', 'projects', 'jobs', 'archive', 'analytics', 'seo'];
 
 function navigateTo(page) {
   if (!ADMIN_PAGES.includes(page)) page = 'dashboard';
@@ -1221,6 +1305,7 @@ function renderAdminPage() {
 
   if (page === 'dashboard') loadDashboard();
   else if (page === 'jobs') loadJobs();
+  else if (page === 'archive') loadSavedItems();
   else if (page === 'analytics') loadAnalytics();
   else if (page === 'seo') loadSeoSettings();
 }
@@ -1625,6 +1710,113 @@ function onJobStartDateChange() {
   const endEl = document.getElementById('job_end_date');
   // Keep end date valid: if it's before the (new) start date, bump it up to match.
   if (!endEl.value || endEl.value < startEl.value) endEl.value = startEl.value;
+}
+
+// ===== ARCHIVE (SAVED ITEMS) =====
+let savedItems = [];
+let archiveFilterSource = 'all';
+const ARCHIVE_SOURCE_LABELS = { facebook: 'Facebook', web: 'เว็บไซต์', article: 'บทความ', other: 'อื่นๆ' };
+
+async function loadSavedItems() {
+  try {
+    savedItems = await adminFetch('/api/admin/job-queue?resource=saved-items');
+    renderSavedItems();
+  } catch (e) {
+    showAlert('โหลดคลังข้อมูลไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function setArchiveFilterSource(source) {
+  archiveFilterSource = source;
+  document.querySelectorAll('.filter-tab[data-source]').forEach(b => b.classList.toggle('active', b.dataset.source === source));
+  renderSavedItems();
+}
+
+function renderSavedItems() {
+  const q = (document.getElementById('archive-search').value || '').trim().toLowerCase();
+  const filtered = savedItems.filter(item => {
+    if (archiveFilterSource !== 'all' && item.source_type !== archiveFilterSource) return false;
+    if (!q) return true;
+    const haystack = [item.title, item.note, item.url, ...(item.tags || [])].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(q);
+  });
+
+  document.getElementById('archive-filter-count').textContent = `${filtered.length} รายการ`;
+
+  const el = document.getElementById('archive-list');
+  if (!filtered.length) {
+    el.innerHTML = '<p style="text-align:center;color:#9a958a;padding:40px;">ยังไม่มีรายการที่บันทึกไว้</p>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(item => {
+    const sourceType = item.source_type || 'other';
+    const titleHtml = item.url
+      ? `<a href="${escHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escHtml(item.title)}</a>`
+      : escHtml(item.title);
+    const tagsHtml = (item.tags || []).length
+      ? `<div class="archive-item-tags">${item.tags.map(t => `<span class="meta-tag">${escHtml(t)}</span>`).join('')}</div>`
+      : '';
+    return `
+    <div class="archive-item">
+      <div class="archive-item-body">
+        <div class="archive-item-meta">
+          <span class="source-badge ${escHtml(sourceType)}">${escHtml(ARCHIVE_SOURCE_LABELS[sourceType] || sourceType)}</span>
+          <span class="archive-item-date">${formatThaiDateTime(item.created_at)}</span>
+        </div>
+        <h3 class="archive-item-title">${titleHtml}</h3>
+        ${item.note ? `<p class="archive-item-note">${escHtml(item.note)}</p>` : ''}
+        ${item.url ? `<p class="archive-item-note" style="color:#9a958a;word-break:break-all;">${escHtml(item.url)}</p>` : ''}
+        ${tagsHtml}
+      </div>
+      <div class="archive-item-actions">
+        <button class="btn-danger btn-sm" onclick="deleteSavedItem('${escAttr(item.id)}')">ลบ</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addSavedItem() {
+  const source_type = document.getElementById('archive_source_type').value;
+  const url = document.getElementById('archive_url').value.trim();
+  const title = document.getElementById('archive_title').value.trim();
+  const note = document.getElementById('archive_note').value.trim();
+  const tags = document.getElementById('archive_tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+  if (!title) {
+    showAlert('กรุณากรอกหัวข้อ', 'error');
+    return;
+  }
+
+  try {
+    await adminFetch('/api/admin/job-queue?resource=saved-items', {
+      method: 'POST',
+      body: JSON.stringify({ source_type, url: url || null, title, note: note || null, tags }),
+    });
+    showAlert('บันทึกแล้ว ✓', 'success');
+    document.getElementById('archive-form').reset();
+    loadSavedItems();
+  } catch (e) {
+    showAlert('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+async function deleteSavedItem(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  try {
+    await adminFetch(`/api/admin/job-queue?resource=saved-items&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    showAlert('ลบแล้ว', 'success');
+    loadSavedItems();
+  } catch (e) {
+    showAlert('ลบไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function formatThaiDateTime(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const monthShort = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${d.getDate()} ${monthShort[d.getMonth()]} ${d.getFullYear() + 543}`;
 }
 
 // ----- Tags -----

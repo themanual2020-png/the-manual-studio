@@ -1,9 +1,16 @@
-// Session-gated CRUD for the `job_queue` table (internal work-tracking
-// calendar). This table has zero RLS policies — only the service role key
-// (used here, server-side only) can touch it at all.
+// Session-gated CRUD for internal admin tables (job_queue, saved_items).
+// Both tables have zero RLS policies — only the service role key (used
+// here, server-side only) can touch them at all. Kept as one function
+// (switched via ?resource=) to stay under Vercel Hobby's 12-function cap —
+// see api/admin/projects.js for the same pattern with ?action=reorder.
 const { requireSession } = require('../../lib/auth/verify-session');
 
 const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
+
+const RESOURCES = {
+  'job-queue': { table: 'job_queue', order: 'date.asc' },
+  'saved-items': { table: 'saved_items', order: 'created_at.desc' },
+};
 
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
@@ -14,9 +21,10 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { id } = req.query;
+  const { id, resource } = req.query;
+  const { table, order } = RESOURCES[resource] || RESOURCES['job-queue'];
   const method = req.method;
-  let path = '/rest/v1/job_queue';
+  let path = `/rest/v1/${table}`;
   const headers = {
     apikey: key,
     Authorization: `Bearer ${key}`,
@@ -24,7 +32,7 @@ module.exports = async function handler(req, res) {
   };
 
   if (method === 'GET') {
-    path += `?select=*&order=date.asc`;
+    path += `?select=*&order=${order}`;
   } else if (method === 'POST') {
     headers.Prefer = 'return=representation';
   } else if (method === 'PATCH' || method === 'DELETE') {
