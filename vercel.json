@@ -10,6 +10,9 @@
     },
     "api/about-meta.js": {
       "includeFiles": "_about-template.html"
+    },
+    "api/admin/ai.js": {
+      "maxDuration": 60
     }
   },
   "headers": [

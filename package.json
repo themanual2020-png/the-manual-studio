@@ -5,6 +5,7 @@
     "build": "node scripts/inject-env.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "sharp": "^0.33.5"
   }
 }
