@@ -4,3 +4,7 @@ node_modules/
 !.env.example
 .vercel
 .DS_Store
+
+# ข้อมูลส่งต่อจากต้นแบบออฟฟิศ AI — มีชื่อบุคคลและรายการโอนเงินจริง
+# นำเข้าฐานข้อมูลแล้วลบทิ้ง ห้าม commit
+ai-office-handoff/data/

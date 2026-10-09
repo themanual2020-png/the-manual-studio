@@ -1,9 +1,9 @@
 // Admin authentication — verified server-side via an httpOnly session cookie.
-// See api/auth-login.js, api/auth-logout.js, api/auth-check.js.
+// All three actions share one Serverless Function; see api/auth.js.
 
 async function login(username, password) {
   try {
-    const res = await fetch('/api/auth-login', {
+    const res = await fetch('/api/auth?action=login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -17,7 +17,7 @@ async function login(username, password) {
 
 async function isLoggedIn() {
   try {
-    const res = await fetch('/api/auth-check');
+    const res = await fetch('/api/auth?action=check');
     return res.ok;
   } catch (error) {
     console.error('Auth check failed:', error);
@@ -27,7 +27,7 @@ async function isLoggedIn() {
 
 async function logout() {
   try {
-    await fetch('/api/auth-logout', { method: 'POST' });
+    await fetch('/api/auth?action=logout', { method: 'POST' });
   } catch (error) {
     console.error('Logout request failed:', error);
   }

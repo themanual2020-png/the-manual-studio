@@ -1,0 +1,1448 @@
+<title>ออฟฟิศทีม AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<style>
+/* Layout: an office floor plan as the home screen; each room opens into a two-column workroom (team + brief on the left, shared task board on the right). */
+:root{
+  --bg:#EEF1EC; --surface:#FBFCFA; --surface-2:#E4E9E2; --line:#CDD5CB; --ink:#1D2623; --ink-2:#56625D; --ink-3:#7D8984;
+  --mkt:#D9692A; --cnt:#4C5FCF; --fin:#2E8A57; --meet:#8A6BB8; --pm:#1F7A8C; --it:#55606E;
+  --good:#2E8A57; --warn:#B7791F; --bad:#C2413A;
+  --plan:#C9D2C6;
+  --f-display:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141A18; --surface:#1C2421; --surface-2:#232D29; --line:#33403B; --ink:#E6ECE8; --ink-2:#A9B6B0; --ink-3:#7F8C86;
+  --mkt:#F08A4B; --cnt:#8392F0; --fin:#4DB37C; --meet:#A98BD8; --pm:#4FB3C4; --it:#9AA8B8; --good:#4DB37C; --warn:#E0A73F; --bad:#EF6B63; --plan:#2C3833; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141A18; --surface:#1C2421; --surface-2:#232D29; --line:#33403B; --ink:#E6ECE8; --ink-2:#A9B6B0; --ink-3:#7F8C86;
+  --mkt:#F08A4B; --cnt:#8392F0; --fin:#4DB37C; --meet:#A98BD8; --pm:#4FB3C4; --it:#9AA8B8; --good:#4DB37C; --warn:#E0A73F; --bad:#EF6B63; --plan:#2C3833; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:1180px;margin:0 auto}
+h1,h2,h3,h4,h5,h6{font-family:var(--f-display);font-weight:500;text-wrap:balance;margin:0;line-height:1.3}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:20px 18px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:var(--ink);display:grid;place-items:center;flex:none}
+.brand-mark svg{width:22px;height:22px}
+.brand h1{font-size:20px}
+.brand small{display:block;color:var(--ink-3);font-size:13px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--surface-2)}
+.btn-solid{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn-solid:hover{background:var(--ink);opacity:.88}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.notice{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 14px;font-size:14px;color:var(--ink-2);margin-bottom:14px}
+.notice b{color:var(--ink)}
+
+/* floor plan */
+.plan-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.plan-head p{margin:0;color:var(--ink-2);max-width:62ch}
+.plan{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"pm mkt cnt" "hall hall hall" "it fin meet";
+  background:var(--plan);padding:14px;border-radius:20px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:28px 28px}
+.room{position:relative;background:var(--surface);border:2px solid var(--ink);border-radius:6px;padding:18px 18px 16px;text-align:left;display:flex;flex-direction:column;gap:12px;min-width:0;transition:transform .15s}
+.room:hover{transform:translateY(-2px)}
+.room::after{content:"";position:absolute;bottom:-2px;left:28px;width:46px;height:2px;background:var(--surface)}
+.room .door{display:none}
+.room-title{display:flex;align-items:center;gap:10px}
+.room-title .sw{width:12px;height:12px;border-radius:3px;flex:none}
+.room-title h2{font-size:19px}
+.room-title span.code{margin-left:auto;font-family:var(--f-num);font-size:11px;letter-spacing:.08em;color:var(--ink-3)}
+.room p{margin:0;color:var(--ink-2);font-size:14px}
+.room .crew{display:flex;gap:6px}
+.room .stat{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+.room .stat b{color:var(--ink);font-weight:600}
+.hall{grid-area:hall;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ink-3);font-size:12px;letter-spacing:.14em;padding:4px}
+.hall::before,.hall::after{content:"";flex:1;border-top:1.5px dashed var(--ink-3);opacity:.5}
+.r-mkt{grid-area:mkt}.r-cnt{grid-area:cnt}.r-fin{grid-area:fin}.r-meet{grid-area:meet}.r-pm{grid-area:pm}.r-it{grid-area:it}
+.room .alert{color:var(--bad);font-weight:600}
+@media (max-width:980px){.plan{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pm pm" "mkt cnt" "hall hall" "fin it" "meet meet"}}
+@media (max-width:640px){.plan{grid-template-columns:minmax(0,1fr);grid-template-areas:"pm" "mkt" "cnt" "fin" "it" "hall" "meet"}}
+
+/* workroom */
+.dept-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 14px;color:#fff;font-family:var(--f-display);font-size:17px}
+.dept-bar .back{margin-left:auto}
+.work{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.work{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel h3{font-size:15px;margin-bottom:10px}
+.panel .sub{color:var(--ink-3);font-size:13px;margin:-6px 0 10px}
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mate{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:6px 2px;border-radius:10px}
+.mate b{font-size:14px;font-weight:600}
+.mate small{color:var(--ink-3);font-size:12px;line-height:1.35}
+.mate.busy svg{animation:bob 1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.mate.busy svg{animation:none}.room{transition:none}}
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.mode{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--ink-2)}
+.mode[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+label.f{display:block;font-size:13px;color:var(--ink-2);margin:10px 0 4px}
+input[type=text],input[type=number],input[type=date],input[type=month],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:14px}
+textarea{min-height:96px;resize:vertical}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--ink-3);font-size:14px;cursor:pointer;background:var(--bg)}
+.drop:hover,.drop.over{border-color:var(--ink-3);color:var(--ink-2)}
+.drop b{color:var(--ink)}
+.go{width:100%;margin-top:14px;border:none;border-radius:12px;padding:12px;font-family:var(--f-display);font-size:16px;color:#fff;display:flex;justify-content:center;gap:8px;align-items:center}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+
+/* board */
+.board-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.board-head h3{margin:0}
+.board-head small{color:var(--ink-3)}
+.tasks{display:flex;flex-direction:column;gap:12px}
+.task{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);min-width:0}
+.task-h{display:flex;align-items:flex-start;gap:10px}
+.task-h h4{font-family:var(--f-body);font-weight:600;font-size:15px;flex:1;min-width:0;overflow-wrap:anywhere}
+.meta{font-size:12px;color:var(--ink-3);margin-top:2px}
+.st{font-size:12px;border-radius:999px;padding:2px 10px;white-space:nowrap;font-weight:500}
+.st-run{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.st-done{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.st-err{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.st-wait{background:var(--surface-2);color:var(--ink-2)}
+.x{border:none;background:none;color:var(--ink-3);font-size:12px;padding:2px 4px}
+.x:hover{color:var(--bad)}
+.steps{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink-2)}
+.chip{flex:none;border-radius:6px;padding:0 8px;font-size:12.5px;font-weight:600;line-height:22px}
+.dots{display:inline-flex;gap:3px;padding-top:9px}.dots i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:blink 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.25}}
+.out{margin-top:12px;border-radius:10px;background:var(--bg);padding:12px 14px;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.out h3,.out h4,.out h5,.out h6{font-size:15px;margin:12px 0 6px}
+.out h3:first-child,.out h4:first-child,.out h5:first-child{margin-top:0}
+.out p{margin:6px 0}.out ul,.out ol{margin:6px 0;padding-left:20px}.out li{margin:2px 0}
+.out hr{border:none;border-top:1px solid var(--line);margin:10px 0}
+.out code{font-family:var(--f-num);font-size:12.5px}
+.tbl{overflow-x:auto;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--ink-3);font-weight:500;white-space:nowrap}
+td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.flag td{background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.tag{font-size:11.5px;border-radius:4px;padding:1px 6px;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);white-space:nowrap}
+.tag.w{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.copy{margin-top:8px}
+.empty{color:var(--ink-3);font-size:14px;text-align:center;padding:28px 12px;border:1.5px dashed var(--line);border-radius:12px}
+
+/* ledger */
+.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tot{border-radius:10px;background:var(--bg);padding:10px}
+.tot small{display:block;color:var(--ink-3);font-size:12px}
+.tot b{font-family:var(--f-num);font-size:16px;font-weight:500}
+.bars{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.bar{display:grid;grid-template-columns:minmax(0,9.5em) 1fr auto;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.bar .fill{height:100%;background:var(--fin);border-radius:4px}
+.bar span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.lrow .d{font-family:var(--f-num);font-size:12px;color:var(--ink-3)}
+.lrow .m{min-width:0}.lrow .m small{display:block;color:var(--ink-3);font-size:12px}
+.lrow .amt{font-family:var(--f-num)}
+.lrow .amt.in{color:var(--good)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ledger-list{max-height:360px;overflow:auto}
+details summary{cursor:pointer;font-size:14px;color:var(--ink-2)}
+.slip{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,11em) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.slip select{padding:5px 8px;font-size:13px}
+@media (max-width:480px){.slip{grid-template-columns:1fr auto}.slip select{grid-column:1/-1;grid-row:2}}
+
+.lrow .m select{margin-top:3px;padding:3px 6px;font-size:12px;width:auto;max-width:100%;background:transparent}
+.lrow{grid-template-columns:auto minmax(0,1fr) auto auto}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.chk input{width:16px;height:16px}
+.sumline{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2);margin-bottom:8px}
+.sumline b{font-family:var(--f-num);font-weight:500;color:var(--ink)}
+.stmt-wrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.stmt-wrap table{font-size:12.5px}
+.stmt-wrap thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+.stmt-wrap td select{padding:3px 6px;font-size:12px;width:auto;max-width:12em;background:transparent}
+.stmt-wrap tr.skip td{opacity:.45}
+.stmt-wrap td.desc{min-width:12em}
+.amt-in{color:var(--good)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+/* review badge */
+.review{margin-top:10px;border-radius:10px;padding:10px 12px;font-size:13.5px;border:1px solid var(--line)}
+.review.pass{border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 7%,transparent)}
+.review.fix{border-color:color-mix(in srgb,var(--warn) 50%,var(--line));background:color-mix(in srgb,var(--warn) 8%,transparent)}
+.review b{font-weight:600}
+.review ul{margin:6px 0 0;padding-left:18px}
+.review .lv{font-size:11px;border-radius:4px;padding:0 5px;margin-right:4px}
+.lv-high{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.lv-medium{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+.lv-low{background:var(--surface-2);color:var(--ink-2)}
+.lv-ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.rv-btn{margin-top:10px;font-size:13px;padding:5px 12px}
+
+/* PM overview */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi small{display:block;font-size:12.5px;color:var(--ink-3)}
+.kpi b{font-family:var(--f-num);font-size:24px;font-weight:500;line-height:1.3}
+.kpi.hot{border-color:color-mix(in srgb,var(--bad) 55%,var(--line))}
+.kpi.hot b{color:var(--bad)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.projs{display:flex;flex-direction:column;gap:12px}
+.proj{border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.proj-h{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.proj-h h4{font-family:var(--f-body);font-weight:600;font-size:15px;flex:1;min-width:10em;overflow-wrap:anywhere}
+.ptag{font-size:11.5px;border-radius:999px;padding:1px 9px;white-space:nowrap;border:1px solid var(--line);color:var(--ink-2)}
+.ptag.client{border-color:color-mix(in srgb,var(--pm) 50%,var(--line));color:var(--pm)}
+.prog{display:flex;align-items:center;gap:10px;margin:8px 0 6px;font-size:12.5px;color:var(--ink-3)}
+.prog .track{flex:1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.prog .fill{height:100%;background:var(--pm)}
+.ptask{display:grid;grid-template-columns:7.2em minmax(0,1fr) minmax(0,9.5em) 8.6em auto;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
+.ptask select,.ptask input{padding:4px 6px;font-size:12.5px;background:transparent}
+.ptask .t{min-width:0;overflow-wrap:anywhere}
+.ptask.done .t{color:var(--ink-3);text-decoration:line-through}
+.ptask .od{color:var(--bad)}
+@media (max-width:640px){.ptask{grid-template-columns:7.2em minmax(0,1fr) auto}.ptask .own,.ptask .due{grid-column:2/4}}
+.addrow{display:flex;gap:6px;margin-top:8px}
+.addrow input{padding:6px 9px;font-size:13px}
+.mini{display:flex;flex-direction:column}
+.mini a,.mini button.mrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0;border:none;border-bottom:1px solid var(--line);background:none;text-align:left;font-size:13.5px;color:var(--ink);width:100%}
+.mini .dot{width:9px;height:9px;border-radius:50%}
+.mini .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sel-col{width:28px}
+
+/* IT */
+.site{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.site .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--ink-3)}
+.site .dot.ok{background:var(--good)}.site .dot.bad{background:var(--bad)}
+.site small{display:block;color:var(--ink-3);font-size:12px;overflow-wrap:anywhere}
+/* modal */
+.overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 40%,transparent);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);border-radius:16px;padding:20px;width:min(520px,100%);max-height:90vh;overflow:auto}
+.modal h2{font-size:19px;margin-bottom:4px}
+.modal p{margin:0 0 8px;color:var(--ink-2);font-size:14px}
+.modal .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:20}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg></div>
+      <div><h1 id="coName">ออฟฟิศทีม AI</h1><small id="coSub">ทีมผู้ช่วย AI แยกตามแผนก</small></div>
+    </div>
+    <button class="btn" id="brandBtn" type="button">ข้อมูลบริษัท</button>
+  </header>
+  <div id="notice" hidden></div>
+  <main id="view"></main>
+</div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+(() => {
+"use strict";
+// ---------- config ----------
+const DEF_EXP = ["วัตถุดิบ/ต้นทุนสินค้า","ค่าโฆษณา","เงินเดือน/ค่าจ้าง","ค่าเช่า","ค่าน้ำไฟ/อินเทอร์เน็ต","ค่าขนส่ง/เดินทาง","อาหาร/เลี้ยงรับรอง","อุปกรณ์สำนักงาน","ซอฟต์แวร์/บริการออนไลน์","ภาษี/ค่าธรรมเนียม","ค่าธรรมเนียมธนาคาร","โอนระหว่างบัญชี (ออก)","อื่นๆ"];
+const DEF_INC = ["รายได้จากการขาย","รายได้ค่าบริการ","ดอกเบี้ยรับ","โอนระหว่างบัญชี (เข้า)","รายได้อื่น"];
+const DEPTS = {
+  pm:{name:"ฝ่าย Project Manager",code:"PM-00",color:"var(--pm)",hex:"#1F7A8C",cls:"r-pm",
+    blurb:"เห็นภาพรวมงานทุกแผนก ตรวจความถูกต้องของงาน AI และจัดระบบโปรเจกต์ทั้งงานลูกค้าและงานภายใน",
+    team:[{id:"kum",name:"พี่คุมงาน",role:"ดูภาพรวมและสรุปสถานะ",c:"#1F7A8C",v:2},{id:"taek",name:"น้องแตกงาน",role:"แตกบรีฟเป็นงานย่อย",c:"#3B97A9",v:0},{id:"truat",name:"พี่ตรวจ",role:"ตรวจความถูกต้องของงาน",c:"#175E6C",v:1}],
+    modes:[{id:"plan",label:"แตกงานโปรเจกต์ใหม่"},{id:"status",label:"สรุปสถานะทั้งบริษัท"},{id:"qa",label:"ตรวจงานจากทุกแผนก"}]},
+  it:{name:"ฝ่าย IT",code:"IT-05",color:"var(--it)",hex:"#55606E",cls:"r-it",
+    blurb:"ตรวจหน้าเว็บของบริษัทด้าน SEO ความปลอดภัย และการใช้งานบนมือถือ วิเคราะห์ error พร้อมวิธีแก้",
+    team:[{id:"fao",name:"น้องเฝ้าเว็บ",role:"ตรวจโค้ดหน้าเว็บ",c:"#6E7D8D",v:2},{id:"debug",name:"พี่ดีบั๊ก",role:"วิเคราะห์ error และทางแก้",c:"#55606E",v:1},{id:"secure",name:"พี่ปลอดภัย",role:"ความปลอดภัยและ SEO",c:"#3B4450",v:0}],
+    modes:[{id:"page",label:"ตรวจหน้าเว็บ"},{id:"bug",label:"วิเคราะห์ปัญหา/Error"}]},
+  marketing:{name:"ฝ่ายการตลาด",code:"MKT-01",color:"var(--mkt)",hex:"#D9692A",cls:"r-mkt",
+    blurb:"อ่านไฟล์โฆษณา หาแคมเปญที่เผาเงิน และวางแผนหาลูกค้ากลุ่มใหม่",
+    team:[{id:"tarang",name:"พี่ตาราง",role:"อ่านไฟล์และจับคู่ข้อมูล",c:"#E58A4E",v:0},{id:"pao",name:"น้องเป้า",role:"หาจุดรั่วของงบแอด",c:"#C9542A",v:1},{id:"klayut",name:"พี่กลยุทธ์",role:"สรุปแผนและข้อแนะนำ",c:"#A8501F",v:2}],
+    modes:[{id:"ads",label:"วิเคราะห์ไฟล์แอด"},{id:"plan",label:"วางแผนหาลูกค้าใหม่"}]},
+  content:{name:"ฝ่ายคอนเทนต์",code:"CNT-02",color:"var(--cnt)",hex:"#4C5FCF",cls:"r-cnt",
+    blurb:"คิดมุมเล่า เขียนโพสต์และสคริปต์คลิป วางแผนคอนเทนต์ทั้งเดือน",
+    team:[{id:"ping",name:"น้องปิ๊ง",role:"คิดไอเดียและมุมเล่า",c:"#6E7FE0",v:1},{id:"rueang",name:"พี่เรื่อง",role:"เลือกมุมและวางโครง",c:"#4C5FCF",v:0},{id:"kham",name:"น้องคำ",role:"นักเขียน",c:"#3443A3",v:2}],
+    modes:[{id:"post",label:"เขียนโพสต์/สคริปต์"},{id:"month",label:"แผนคอนเทนต์ทั้งเดือน"}]},
+  finance:{name:"ฝ่ายบัญชี-การเงิน",code:"FIN-03",color:"var(--fin)",hex:"#2E8A57",cls:"r-fin",
+    blurb:"อ่านสลิปและใบเสร็จ จัดหมวด ลงบัญชีรายรับรายจ่าย และสรุปกำไรขาดทุนรายเดือน",
+    team:[{id:"scan",name:"น้องสแกน",role:"อ่าน Statement สลิป ใบเสร็จ",c:"#45A872",v:0},{id:"check",name:"พี่เช็ก",role:"ตรวจยอดและรายการซ้ำ",c:"#2E8A57",v:1},{id:"ban",name:"พี่บัญ",role:"ลงบัญชีและทำรายงาน",c:"#1F6B42",v:2}],
+    modes:[{id:"stmt",label:"อ่าน Statement (PDF)"},{id:"slips",label:"อ่านสลิป/ใบเสร็จ"},{id:"report",label:"สรุปรายงานเดือน"}]}
+};
+const AGENTS = {}; Object.entries(DEPTS).forEach(([d,o])=>o.team.forEach(a=>AGENTS[a.id]={...a,dept:d}));
+
+// ---------- state ----------
+const S = {route:"home", mode:{marketing:"ads",content:"post",finance:"stmt",pm:"plan",it:"page"}, tasks:[], ledger:[], brand:{},
+  projects:[], ptasks:[], sites:[], itstatus:{}, people:null, projFilter:"all", reviewing:{},
+  db:null, sample:null, user:null, uid:null, downloads:null, imgMax:0, names:{}, live:{}, busy:{}, slipEdit:{}, skip:{}, files:{}, ledgerMonth:null, ready:false,
+  cats:{exp:DEF_EXP,inc:DEF_INC}, catmap:{}, learnPending:{}};
+const local = {tasks:new Map(), ledger:new Map(), projects:new Map(), ptasks:new Map()};
+const catsExp = () => S.cats.exp, catsInc = () => S.cats.inc;
+const kindOf = (cat,fb) => catsInc().includes(cat) ? "income" : catsExp().includes(cat) ? "expense" : (fb||"expense");
+const fallbackCat = kind => { const l=kind==="income"?catsInc():catsExp(); return l.find(c=>/อื่น/.test(c)) || l[l.length-1]; };
+function catSelect(id,cur,attrs=""){
+  const opt=c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`;
+  const extra = cur && !catsExp().includes(cur) && !catsInc().includes(cur) ? `<option selected>${esc(cur)}</option>` : "";
+  return `<select id="${id}" data-nr ${attrs}>${extra}<optgroup label="รายจ่าย / เงินออก">${catsExp().map(opt).join("")}</optgroup><optgroup label="รายรับ / เงินเข้า">${catsInc().map(opt).join("")}</optgroup></select>`;
+}
+const descKey = s => String(s||"").toLowerCase().replace(/[0-9xX*#:\/\\\-.,()]+/g," ").replace(/\s+/g," ").trim().slice(0,40);
+function learn(desc,cat){ const k=descKey(desc); if(k.length>=2 && cat) S.learnPending[k]=cat; }
+async function flushLearn(){
+  const p=S.learnPending; if(!Object.keys(p).length) return; S.learnPending={};
+  let map={...S.catmap,...p}; const keys=Object.keys(map); if(keys.length>400) map=Object.fromEntries(keys.slice(-400).map(k=>[k,map[k]]));
+  S.catmap=map; if(S.db){ try{ await S.db.doc("settings/catmap").set({map}); }catch(e){ console.warn(e); } }
+}
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const baht = n => "฿" + Number(n||0).toLocaleString("th-TH",{maximumFractionDigits:2});
+const fmt = (n,d=2) => n==null||!isFinite(n) ? "–" : Number(n).toLocaleString("th-TH",{maximumFractionDigits:d});
+const num = v => { if (typeof v === "number") return v; const n = parseFloat(String(v??"").replace(/[,฿\s]|THB|บาท|%/gi,"")); return isFinite(n)?n:0; };
+const uid = () => Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const monthKey = d => (d||"").slice(0,7);
+const thisMonth = () => new Date().toISOString().slice(0,7);
+const TH_M = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const monthLabel = m => { const [y,mo]=m.split("-").map(Number); return `${TH_M[mo-1]} ${y+543}`; };
+const ago = t => { const s=(Date.now()-t)/1000; if(s<60) return "เมื่อสักครู่"; if(s<3600) return Math.floor(s/60)+" นาทีที่แล้ว"; if(s<86400) return Math.floor(s/3600)+" ชั่วโมงที่แล้ว"; return new Date(t).toLocaleDateString("th-TH",{day:"numeric",month:"short"}); };
+function toast(msg){ const r=$("#toastRoot"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",2600); }
+
+function avatar(c,v,s=46){
+  const ears = v===0 ? `<circle cx="11" cy="13" r="6" fill="${c}"/><circle cx="37" cy="13" r="6" fill="${c}"/>`
+    : v===1 ? `<path d="M8 20 L12 4 L20 13Z M40 20 L36 4 L28 13Z" fill="${c}"/>`
+    : `<line x1="24" y1="10" x2="24" y2="3" stroke="${c}" stroke-width="2.4"/><circle cx="24" cy="3.5" r="3" fill="${c}"/>`;
+  return `<svg viewBox="0 0 48 48" width="${s}" height="${s}" aria-hidden="true">${ears}<circle cx="24" cy="27" r="17" fill="${c}"/><ellipse cx="24" cy="32.5" rx="9.5" ry="6.5" fill="#fff" opacity=".88"/><circle cx="18" cy="24" r="2.5" fill="#18201d"/><circle cx="30" cy="24" r="2.5" fill="#18201d"/><path d="M21 32 q3 3 6 0" stroke="#18201d" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>`;
+}
+function chip(aid){ const a=AGENTS[aid]; if(!a) return ""; return `<span class="chip" style="background:color-mix(in srgb, ${a.c} 18%, transparent);color:${a.c}">${esc(a.name)}</span>`; }
+
+function md(src){
+  const lines = esc(src).split("\n"); let out="", i=0;
+  const inl = s => s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  const isT=l=>/^\s*\|/.test(l), isH=l=>/^#{1,4}\s/.test(l), isU=l=>/^\s*[-*•]\s+/.test(l), isO=l=>/^\s*\d+[.)]\s+/.test(l), isR=l=>/^\s*(-{3,}|\*{3,})\s*$/.test(l);
+  while(i<lines.length){
+    const l=lines[i];
+    if(isT(l)){ const rows=[]; while(i<lines.length&&isT(lines[i])) rows.push(lines[i++]);
+      const cells=r=>r.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(c=>c.trim());
+      const body=rows.filter(r=>!/^\s*\|[\s:\-|]+\|?\s*$/.test(r)); if(!body.length) continue;
+      out+=`<div class="tbl"><table><thead><tr>${cells(body[0]).map(c=>`<th>${inl(c)}</th>`).join("")}</tr></thead><tbody>${body.slice(1).map(r=>`<tr>${cells(r).map(c=>`<td>${inl(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; continue; }
+    if(isR(l)){ out+="<hr>"; i++; continue; }
+    if(isH(l)){ const m=l.match(/^(#{1,4})\s+(.*)/); const n=Math.min(m[1].length+2,6); out+=`<h${n}>${inl(m[2])}</h${n}>`; i++; continue; }
+    if(isU(l)){ out+="<ul>"; while(i<lines.length&&isU(lines[i])) out+=`<li>${inl(lines[i++].replace(/^\s*[-*•]\s+/,""))}</li>`; out+="</ul>"; continue; }
+    if(isO(l)){ out+="<ol>"; while(i<lines.length&&isO(lines[i])) out+=`<li>${inl(lines[i++].replace(/^\s*\d+[.)]\s+/,""))}</li>`; out+="</ol>"; continue; }
+    if(!l.trim()){ i++; continue; }
+    const p=[]; while(i<lines.length&&lines[i].trim()&&!isT(lines[i])&&!isH(lines[i])&&!isU(lines[i])&&!isO(lines[i])&&!isR(lines[i])) p.push(lines[i++]);
+    if(!p.length){ p.push(lines[i++]); }
+    out+=`<p>${inl(p.join("<br>"))}</p>`;
+  }
+  return out;
+}
+
+const SAMPLE_ERR = {not_granted:"ยังไม่ได้อนุญาตให้หน้านี้ใช้ Claude", sampling_disabled:"บัญชีนี้ใช้ Claude ผ่านหน้านี้ไม่ได้", rate_limited:"ใช้งานถี่เกินไปหรือโควตาเต็ม ลองใหม่อีกสักพัก",
+  session_expired:"กรุณาเข้าสู่ระบบ claude.ai ใหม่", image_rejected:"ไฟล์รูปไม่รองรับหรือใหญ่เกิน ลองรูป JPG/PNG ที่เล็กลง", images_unavailable:"มุมมองนี้ส่งรูปให้ AI ไม่ได้",
+  refused:"AI ปฏิเสธคำขอนี้ ลองเปลี่ยนวิธีถาม", invalid_json:"AI ตอบกลับในรูปแบบที่อ่านไม่ได้ ลองส่งงานใหม่อีกครั้ง", prompt_too_large:"ข้อมูลยาวเกินไป ลองตัดไฟล์ให้สั้นลง",
+  cancelled:"ยกเลิกแล้ว", empty_completion:"AI ไม่ได้ตอบกลับ ลองส่งใหม่"};
+const errText = e => e && e.code ? (SAMPLE_ERR[e.code] || "ระบบ AI ขัดข้องชั่วคราว ลองใหม่อีกครั้ง") : (e && e.message) || "เกิดข้อผิดพลาด";
+
+function brandText(){
+  const b=S.brand||{}; if(!b.name && !b.business) return "ข้อมูลบริษัท: ยังไม่ได้กรอก (ให้ตอบแบบทั่วไปที่ใช้ได้กับธุรกิจ SME ไทย)";
+  return `ข้อมูลบริษัท\n- ชื่อ: ${b.name||"-"}\n- ธุรกิจ: ${b.business||"-"}\n- สินค้า/บริการ: ${b.products||"-"}\n- ลูกค้าเป้าหมาย: ${b.audience||"-"}\n- โทนแบรนด์: ${b.tone||"-"}`;
+}
+
+// ---------- data layer (db when available, memory otherwise) ----------
+async function createTask(data){
+  const t={...data,id:undefined,createdAt:Date.now(),status:"running",steps:[],byId:S.uid||null};
+  delete t.id;
+  if(S.db){ const ref=S.db.collection("tasks").doc(); await ref.set(t); return ref.id; }
+  const id=uid(); local.tasks.set(id,{...t,id}); syncLocal(); return id;
+}
+async function patchTask(id,patch){
+  if(S.db){ try{ await S.db.doc("tasks/"+id).update(patch); }catch(e){ console.warn(e); } return; }
+  const t=local.tasks.get(id); if(t){ Object.assign(t,patch); syncLocal(); }
+}
+async function deleteTask(id){ if(S.db) await S.db.doc("tasks/"+id).delete(); else { local.tasks.delete(id); syncLocal(); } }
+async function addLedger(e){ const row={...e,createdAt:Date.now(),byId:S.uid||null}; if(S.db){ await S.db.collection("ledger").add(row); } else { const id=uid(); local.ledger.set(id,{...row,id}); syncLocal(); } }
+async function delLedger(id){ if(S.db) await S.db.doc("ledger/"+id).delete(); else { local.ledger.delete(id); syncLocal(); } }
+async function updLedger(id,patch){ if(S.db) await S.db.doc("ledger/"+id).update(patch); else { const r=local.ledger.get(id); if(r){ Object.assign(r,patch); syncLocal(); } } }
+async function saveCats(c){ if(S.db) await S.db.doc("settings/categories").set(c); else { S.cats=c; render(); } }
+let rq=0; function scheduleRender(){ if(rq) return; rq=requestAnimationFrame(()=>{ rq=0; render(); }); }
+async function saveBrand(b){ if(S.db) await S.db.doc("settings/brand").set(b); else { S.brand=b; render(); } }
+function syncLocal(){ S.tasks=[...local.tasks.values()].sort((a,b)=>b.createdAt-a.createdAt); S.ledger=[...local.ledger.values()].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  S.projects=[...local.projects.values()].sort((a,b)=>b.createdAt-a.createdAt); S.ptasks=[...local.ptasks.values()]; render(); }
+async function rowAdd(col,data){ const row={...data,createdAt:Date.now(),byId:S.uid||null}; if(S.db){ const ref=S.db.collection(col).doc(); await ref.set(row); return ref.id; } const id=uid(); local[col].set(id,{...row,id}); syncLocal(); return id; }
+async function rowUpd(col,id,patch){ if(S.db) await S.db.doc(col+"/"+id).update(patch); else { const r=local[col].get(id); if(r){ Object.assign(r,patch); syncLocal(); } } }
+async function rowDel(col,id){ if(S.db) await S.db.doc(col+"/"+id).delete(); else { local[col].delete(id); syncLocal(); } }
+async function saveSites(list){ if(S.db) await S.db.doc("settings/sites").set({list}); else { S.sites=list; render(); } }
+
+// ---------- task runner ----------
+async function runTask(dept, title, mode, fn){
+  if(!S.sample){ toast("ยังใช้ AI ไม่ได้ในหน้านี้"); return; }
+  const id = await createTask({dept,title,mode});
+  MINE.add(id);
+  const steps=[];
+  const step = async (agent,text) => { steps.push({agent,text}); S.busy[dept]=agent; await patchTask(id,{steps:[...steps]}); render(); };
+  const live = text => { S.live[id]=text; const el=document.getElementById("live-"+id); if(el) el.innerHTML=md(text); };
+  try{
+    const result = await fn({step,live});
+    await patchTask(id,{status:"done",result,steps:[...steps]});
+  }catch(e){
+    console.warn(e);
+    await patchTask(id,{status:"error",error:errText(e),steps:[...steps]});
+  }finally{ MINE.delete(id); delete S.live[id]; delete S.busy[dept]; render(); }
+}
+const ask = (prompt,opts={}) => S.sample(prompt,{cache:false,...opts});
+const askJson = (prompt,opts={}) => S.sample.json(prompt,{cache:false,...opts});
+
+// Marketing: ad file analysis
+async function readSheet(file){
+  if(!window.XLSX) throw {message:"โหลดตัวอ่านไฟล์ Excel ไม่สำเร็จ ลองรีเฟรชหน้า"};
+  const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:"array"});
+  const ws=wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{defval:"",raw:true});
+  if(!rows.length) throw {message:"ไม่พบข้อมูลในชีตแรกของไฟล์"};
+  return rows;
+}
+function aggregate(rows,m){
+  const g=new Map();
+  for(const r of rows){
+    const name = m.campaign ? String(r[m.campaign]??"").trim() : "ทั้งบัญชี"; if(!name) continue;
+    if(/^(total|รวม|grand total|ผลรวม)/i.test(name)) continue;
+    const plat = m.platform ? String(r[m.platform]??"").trim() : "";
+    const k=name+"||"+plat; const a=g.get(k)||{name,platform:plat,spend:0,revenue:0,conv:0,clicks:0,impr:0};
+    a.spend+=num(r[m.spend]); if(m.revenue) a.revenue+=num(r[m.revenue]); if(m.conversions) a.conv+=num(r[m.conversions]);
+    if(m.clicks) a.clicks+=num(r[m.clicks]); if(m.impressions) a.impr+=num(r[m.impressions]); g.set(k,a);
+  }
+  const list=[...g.values()].filter(a=>a.spend>0).map(a=>({...a,
+    roas: m.revenue ? (a.spend? a.revenue/a.spend : null) : null,
+    cpa: m.conversions && a.conv ? a.spend/a.conv : null,
+    ctr: m.clicks && m.impressions && a.impr ? a.clicks/a.impr*100 : null})).sort((x,y)=>y.spend-x.spend);
+  const cpas=list.map(a=>a.cpa).filter(v=>v!=null).sort((a,b)=>a-b); const med=cpas.length?cpas[Math.floor(cpas.length/2)]:null;
+  list.forEach(a=>{ a.flag = m.revenue ? (a.roas<1 ? "ROAS ต่ำกว่า 1" : "") : (m.conversions && a.conv===0 ? "ไม่มีผลลัพธ์" : (med && a.cpa>med*2 ? "CPA สูงกว่าค่ากลาง 2 เท่า" : "")); });
+  const T=list.reduce((t,a)=>({spend:t.spend+a.spend,revenue:t.revenue+a.revenue,conv:t.conv+a.conv}),{spend:0,revenue:0,conv:0});
+  return {list,T,med};
+}
+async function doAds(file,note){
+  await runTask("marketing",`วิเคราะห์ไฟล์แอด: ${file.name}`,"ads",async({step,live})=>{
+    await step("tarang",`ได้ไฟล์ ${file.name} แล้ว กำลังเปิดดูข้อมูล`);
+    const rows=await readSheet(file); const headers=Object.keys(rows[0]);
+    const sampleRows=rows.slice(0,6).map(r=>headers.map(h=>String(r[h]).slice(0,40)).join(" | ")).join("\n");
+    const m=await askJson(`คุณคือผู้ช่วยอ่านรายงานโฆษณา (Facebook/Meta, Google, TikTok, LINE ฯลฯ) จับคู่ชื่อคอลัมน์ในไฟล์กับความหมายด้านล่าง ใช้ชื่อคอลัมน์ตามที่ปรากฏเป๊ะๆ หรือ null ถ้าไม่มี
+หัวคอลัมน์: ${JSON.stringify(headers)}
+ตัวอย่างข้อมูล:
+${sampleRows}
+
+ตอบเป็น JSON object เท่านั้น: {"campaign":ชื่อคอลัมน์ชื่อแคมเปญ/แอดเซ็ต,"platform":คอลัมน์แพลตฟอร์ม,"spend":คอลัมน์เงินที่ใช้,"revenue":คอลัมน์ยอดขาย/มูลค่าคอนเวอร์ชัน (ไม่ใช่ ROAS),"conversions":คอลัมน์จำนวนผลลัพธ์/คอนเวอร์ชัน/ลีด,"clicks":คอลัมน์คลิก,"impressions":คอลัมน์การแสดงผล}`,{modelTier:"quick"});
+    const ok=k=>m&&m[k]&&headers.includes(m[k]);
+    const map={}; ["campaign","platform","spend","revenue","conversions","clicks","impressions"].forEach(k=>map[k]=ok(k)?m[k]:null);
+    if(!map.spend) throw {message:"หาคอลัมน์ค่าใช้จ่ายโฆษณาไม่เจอ ตรวจว่าไฟล์มีคอลัมน์ยอดเงินที่ใช้ (เช่น Amount spent, Cost)"};
+    const {list,T}=aggregate(rows,map);
+    await step("tarang",`อ่านได้ ${rows.length.toLocaleString("th-TH")} แถว รวมเป็น ${list.length} แคมเปญ ใช้เงินรวม ${baht(T.spend)}${map.revenue?` ยอดขาย ${baht(T.revenue)}`:""} (ค่าใช้จ่าย = "${map.spend}"${map.revenue?`, ยอดขาย = "${map.revenue}"`:""}${map.conversions?`, ผลลัพธ์ = "${map.conversions}"`:""})`);
+    const bad=list.filter(a=>a.flag); const badSpend=bad.reduce((s,a)=>s+a.spend,0);
+    await step("pao", bad.length ? `เจอ ${bad.length} แคมเปญที่น่าเป็นห่วง ใช้เงินไปรวม ${baht(badSpend)} (${fmt(badSpend/T.spend*100,1)}% ของงบ) ส่งต่อให้พี่กลยุทธ์สรุปแผน` : `ยังไม่เจอแคมเปญที่ผลแย่ชัดเจน ส่งต่อให้พี่กลยุทธ์หาโอกาสเพิ่มงบ`);
+    const top=list.slice(0,40).map(a=>({แคมเปญ:a.name,แพลตฟอร์ม:a.platform||undefined,ใช้เงิน:Math.round(a.spend),ยอดขาย:map.revenue?Math.round(a.revenue):undefined,ROAS:a.roas!=null?+a.roas.toFixed(2):undefined,ผลลัพธ์:map.conversions?a.conv:undefined,CPA:a.cpa!=null?Math.round(a.cpa):undefined,"CTR%":a.ctr!=null?+a.ctr.toFixed(2):undefined,สถานะ:a.flag||undefined}));
+    const {text}=await ask(`คุณคือ "พี่กลยุทธ์" นักวางแผนการตลาดออนไลน์ของบริษัท เขียนสรุปภาษาไทยให้ทีมอ่านเข้าใจง่าย ตรงประเด็น
+${brandText()}
+
+ตัวเลขด้านล่างคำนวณจากไฟล์แล้ว (ห้ามคำนวณตัวเลขใหม่เอง ใช้ตามนี้เท่านั้น)
+ภาพรวม: ใช้เงิน ${Math.round(T.spend)} บาท${map.revenue?`, ยอดขาย ${Math.round(T.revenue)} บาท, ROAS รวม ${(T.revenue/T.spend).toFixed(2)}`:""}${map.conversions?`, ผลลัพธ์รวม ${T.conv}`:""}
+แคมเปญเรียงตามเงินที่ใช้ (สูงสุด 40):
+${JSON.stringify(top)}
+${note?`\nโจทย์เพิ่มเติมจากทีม: ${note}`:""}
+
+รูปแบบคำตอบ (Markdown):
+### ภาพรวม
+2-3 ประโยค
+### จุดที่เสียเงิน
+bullet ระบุชื่อแคมเปญและตัวเลข
+### สิ่งที่ควรทำสัปดาห์นี้
+รายการข้อ 1-5 ทำได้ทันที เช่น ปิด/ลดงบ/ย้ายงบไปแคมเปญไหน/ทดสอบอะไร
+### ข้อควรระวังเรื่องข้อมูล
+1-2 bullet ถ้ามี (เช่น ไม่มีคอลัมน์ยอดขาย)
+ไม่เกิน 350 คำ`,{onText:({text})=>live(text)});
+    await step("klayut","สรุปแผนเสร็จแล้ว ดูรายละเอียดด้านล่าง");
+    return {kind:"ads",md:text,hasRev:!!map.revenue,hasConv:!!map.conversions,rows:list.slice(0,25).map(a=>({n:a.name,p:a.platform,s:Math.round(a.spend),r:Math.round(a.revenue),ro:a.roas!=null?+a.roas.toFixed(2):null,c:a.conv,cpa:a.cpa!=null?Math.round(a.cpa):null,f:a.flag})),more:Math.max(0,list.length-25)};
+  });
+}
+async function doMktPlan(brief){
+  await runTask("marketing",`วางแผนหาลูกค้าใหม่: ${brief.slice(0,60)}`,"plan",async({step,live})=>{
+    await step("pao","รับโจทย์แล้ว กำลังแยกกลุ่มลูกค้าที่น่าเจาะ");
+    const ps=await askJson(`${brandText()}
+
+โจทย์: ${brief}
+
+แยกกลุ่มลูกค้าใหม่ที่น่าเจาะ 3 กลุ่มสำหรับตลาดไทย ตอบ JSON array เท่านั้น: [{"name":"ชื่อกลุ่มสั้นๆ","who":"เป็นใคร อายุ อาชีพ พฤติกรรม","pain":"ปัญหา/ความต้องการหลัก","channel":"ช่องทางที่เจอง่ายที่สุด"}]`,{modelTier:"quick"});
+    const personas=Array.isArray(ps)?ps.slice(0,4):[];
+    await step("pao",`ได้ ${personas.length} กลุ่ม: ${personas.map(p=>p.name).join(", ")}`);
+    const {text}=await ask(`คุณคือ "พี่กลยุทธ์" นักวางแผนการตลาดของบริษัท เขียนภาษาไทย อ่านง่าย ทำตามได้จริง
+${brandText()}
+
+โจทย์จากทีม: ${brief}
+กลุ่มลูกค้าที่น้องเป้าวิเคราะห์ไว้: ${JSON.stringify(personas)}
+
+รูปแบบคำตอบ (Markdown):
+### กลุ่มเป้าหมาย
+ตาราง Markdown คอลัมน์: กลุ่ม | เป็นใคร | ปัญหาที่เราแก้ | ช่องทาง
+### แผน 30 วัน
+แบ่งสัปดาห์ 1-4 แต่ละสัปดาห์ 2-3 bullet
+### ไอเดียโฆษณาที่ควรทดสอบ
+3-5 ข้อ ระบุกลุ่ม ช่องทาง ข้อความหลัก
+### ตัววัดผล
+KPI ที่ควรดูและเกณฑ์เบื้องต้น
+ไม่เกิน 450 คำ ถ้าไม่ทราบงบให้แนะนำเป็นสัดส่วน % แทนตัวเลข`,{onText:({text})=>live(text)});
+    await step("klayut","วางแผนเสร็จแล้ว");
+    return {kind:"md",md:text};
+  });
+}
+
+// Content
+async function doPost(topic,channel){
+  await runTask("content",`${channel}: ${topic.slice(0,70)}`,"post",async({step,live})=>{
+    await step("ping","รับหัวข้อแล้ว ขอคิดมุมเล่าก่อนนะ");
+    const r=await askJson(`${brandText()}
+
+หัวข้อ: ${topic}
+ช่องทาง: ${channel}
+
+คิดมุมเล่า 4 แบบที่ต่างกันจริงๆ สำหรับคนไทยบนช่องทางนี้ แล้วเลือกแบบที่ดีที่สุด ตอบ JSON เท่านั้น: {"ideas":[{"angle":"มุมเล่าสั้นๆ","hook":"ประโยคเปิดที่หยุดนิ้ว"}],"best":เลขลำดับเริ่มที่0,"why":"เหตุผลสั้นๆ"}`,{modelTier:"quick"});
+    const ideas=Array.isArray(r?.ideas)?r.ideas:[]; const b=ideas[Math.min(Math.max(0,parseInt(r?.best)||0),Math.max(0,ideas.length-1))]||{angle:topic,hook:""};
+    await step("ping",`ได้ ${ideas.length} มุม: ${ideas.map(i=>"“"+i.angle+"”").join(" / ")}`);
+    await step("rueang",`เลือกมุม “${b.angle}” ${r?.why?"เพราะ"+r.why:""} ส่งให้น้องคำเขียน`);
+    const isVideo=/TikTok|Reels|คลิป|Shorts/i.test(channel);
+    const {text}=await ask(`คุณคือ "น้องคำ" นักเขียนคอนเทนต์ภาษาไทยของบริษัท
+${brandText()}
+
+หัวข้อ: ${topic}
+ช่องทาง: ${channel}
+มุมที่เลือก: ${b.angle}
+Hook: ${b.hook}
+มุมสำรอง: ${ideas.filter(i=>i!==b).map(i=>i.angle).join(" / ")}
+
+${isVideo?`เขียนสคริปต์คลิปสั้น 30-60 วินาที เป็นตาราง Markdown คอลัมน์: วินาที | ภาพ/ฉาก | สิ่งที่พูด/ข้อความบนจอ
+จากนั้นหัวข้อ ### แคปชัน (สั้น พร้อมแฮชแท็ก 3-5 อัน)`:`เขียนโพสต์พร้อมใช้ ความยาวเหมาะกับ ${channel} ใช้ภาษาธรรมชาติแบบคนไทยคุยกัน ใส่ call to action ท้ายโพสต์ และแฮชแท็ก 3-5 อัน
+เริ่มด้วยหัวข้อ ### โพสต์ แล้วตามด้วยตัวโพสต์`}
+ปิดท้ายด้วย ### ไอเดียภาพประกอบ 2-3 bullet
+ห้ามอ้างตัวเลขหรือข้อเท็จจริงที่ไม่ได้ให้ไว้ ถ้าต้องใช้ให้ใส่ [ใส่ข้อมูลจริง]`,{onText:({text})=>live(text)});
+    await step("kham","เขียนเสร็จแล้ว ตรวจและกดคัดลอกไปใช้ได้เลย");
+    return {kind:"md",md:text,copy:true};
+  });
+}
+async function doMonth(goal,perWeek){
+  await runTask("content",`แผนคอนเทนต์ทั้งเดือน: ${goal.slice(0,60)}`,"month",async({step,live})=>{
+    await step("ping","กำลังคิดเสาหลักคอนเทนต์ (content pillars)");
+    const p=await askJson(`${brandText()}
+
+เป้าหมายเดือนนี้: ${goal}
+กำหนด content pillar 3-4 หัวข้อหลักที่เหมาะกับแบรนด์และเป้าหมาย ตอบ JSON array เท่านั้น: [{"pillar":"ชื่อ","why":"ทำไมต้องมี","share":สัดส่วนเปอร์เซ็นต์}]`,{modelTier:"quick"});
+    const pillars=Array.isArray(p)?p.slice(0,4):[];
+    await step("ping",`ได้เสาหลัก: ${pillars.map(x=>`${x.pillar} (${x.share}%)`).join(", ")}`);
+    await step("rueang",`จัดเป็น 4 สัปดาห์ สัปดาห์ละ ${perWeek} ชิ้น แล้วส่งให้น้องคำลงรายละเอียด`);
+    const {text}=await ask(`คุณคือ "น้องคำ" นักวางแผนคอนเทนต์ภาษาไทยของบริษัท
+${brandText()}
+
+เป้าหมายเดือนนี้: ${goal}
+Content pillars: ${JSON.stringify(pillars)}
+จำนวน: ${perWeek} ชิ้นต่อสัปดาห์ 4 สัปดาห์
+
+รูปแบบ (Markdown):
+### เสาหลักของเดือน
+bullet สั้นๆ
+### ปฏิทินคอนเทนต์
+ตาราง Markdown คอลัมน์: สัปดาห์ | วัน | Pillar | ช่องทาง/รูปแบบ | หัวข้อ | Hook
+### ตัววัดผลที่ควรดู
+2-4 bullet`,{onText:({text})=>live(text)});
+    await step("kham","แผนเดือนนี้เสร็จแล้ว");
+    return {kind:"md",md:text,copy:true};
+  });
+}
+
+// Finance
+async function doSlips(files){
+  await runTask("finance",`อ่านสลิป/ใบเสร็จ ${files.length} รูป`,"slips",async({step})=>{
+    await step("scan",`ได้รูปมา ${files.length} รูปแล้ว ขอเปิดอ่านก่อนนะ`);
+    const r=await askJson(`คุณคือ "น้องสแกน" ผู้ช่วยฝ่ายบัญชี อ่านรูปสลิปโอนเงิน/ใบเสร็จ/ใบกำกับภาษี ${files.length} รูปที่แนบมา (เรียงตามลำดับ)
+${brandText()}
+
+กติกา:
+- ถ้าวันที่เป็นปี พ.ศ. (เช่น 2569) ให้แปลงเป็น ค.ศ. (ลบ 543) แล้วเขียนเป็น YYYY-MM-DD
+- kind = "income" ถ้าเงินโอนเข้าบริษัท/เป็นการรับเงินจากลูกค้า, "expense" ถ้าบริษัทจ่ายออก ถ้าไม่แน่ใจให้เป็น "expense"
+- category ต้องเลือกจากรายการนี้เท่านั้น: รายจ่าย ${JSON.stringify(catsExp())} | รายรับ ${JSON.stringify(catsInc())}${hintText()}
+- amount เป็นยอดสุทธิที่จ่ายจริง (ตัวเลขล้วน)
+- ถ้ารูปไหนไม่ใช่สลิปหรืออ่านไม่ออก ให้ใส่ amount เป็น 0 และอธิบายใน note
+
+ตอบ JSON array เท่านั้น หนึ่ง object ต่อหนึ่งรูป: [{"date":"YYYY-MM-DD หรือ null","merchant":"ร้าน/ผู้รับ/ผู้จ่าย","amount":0,"kind":"expense","category":"...","note":"รายละเอียดสั้นๆ เช่น เลขที่อ้างอิง/รายการ","confidence":"high|medium|low"}]`,{images:files,modelTier:"default"});
+    const items=(Array.isArray(r)?r:[]).map(x=>{
+      const kind=x?.kind==="income"?"income":"expense"; const cats=kind==="income"?catsInc():catsExp();
+      const merchant=String(x?.merchant||"ไม่ทราบ").slice(0,80); const mem=S.catmap[descKey(merchant)];
+      return {date:/^\d{4}-\d{2}-\d{2}$/.test(x?.date||"")?x.date:null,merchant,amount:Math.round(num(x?.amount)*100)/100,kind,category:mem&&kindOf(mem,kind)===kind?mem:(cats.includes(x?.category)?x.category:fallbackCat(kind)),remembered:!!mem,note:String(x?.note||"").slice(0,140),confidence:x?.confidence||"medium"};
+    });
+    await step("scan",`อ่านได้ ${items.length} รายการ: ${items.map(i=>`${i.merchant} ${baht(i.amount)}`).join(", ")}`);
+    const issues=[];
+    items.forEach((it,i)=>{
+      const f=[];
+      if(!it.amount) f.push("อ่านยอดไม่ได้");
+      if(!it.date) f.push("ไม่มีวันที่");
+      else if(it.date>new Date(Date.now()+864e5).toISOString().slice(0,10)) f.push("วันที่อยู่ในอนาคต");
+      if(it.confidence==="low") f.push("AI ไม่มั่นใจ");
+      const dup=S.ledger.find(l=>l.date===it.date&&Math.abs(num(l.amount)-it.amount)<0.01);
+      if(dup) f.push("อาจซ้ำกับรายการเดิม");
+      const dupPrev=items.some((o,j)=>j<i&&o.date===it.date&&o.amount===it.amount); if(dupPrev) f.push("ซ้ำกับรูปก่อนหน้า");
+      it.dup=!!(dup||dupPrev); it.flags=f; if(f.length) issues.push(`รายการ ${i+1} ${f.join(", ")}`);
+    });
+    await step("check", issues.length ? `ตรวจแล้ว มีจุดต้องดู: ${issues.join(" · ")}` : `ตรวจยอดและวันที่แล้ว ไม่พบรายการซ้ำ`);
+    await step("ban","เตรียมลงบัญชีให้แล้ว ตรวจหมวดอีกครั้ง แล้วกด “บันทึกลงบัญชี”");
+    return {kind:"slips",items,saved:false};
+  });
+}
+function hintText(){
+  const e=Object.entries(S.catmap).slice(-60); if(!e.length) return "";
+  return `\n- หมวดที่ทีมเคยกำหนดไว้ (คำในรายละเอียด → หมวด) ให้ใช้ตามนี้ถ้าตรงกัน: ${e.map(([k,v])=>`${k} → ${v}`).join("; ")}`;
+}
+function pageLines(items){
+  const rows=[];
+  for(const it of items){ if(!it.str||!it.str.trim()) continue; const y=it.transform[5], x=it.transform[4];
+    let r=rows.find(r=>Math.abs(r.y-y)<2.5); if(!r){ r={y,parts:[]}; rows.push(r); } r.parts.push({x,s:it.str,w:it.width||0}); }
+  rows.sort((a,b)=>b.y-a.y);
+  return rows.map(r=>{ r.parts.sort((a,b)=>a.x-b.x); let out="", end=null;
+    for(const p of r.parts){ if(end!=null) out += (p.x-end>12) ? "  |  " : (p.x-end>1.5 ? " " : ""); out+=p.s; end=p.x+p.w; } return out; }).join("\n");
+}
+async function pageImage(page){
+  const v1=page.getViewport({scale:1}); const scale=Math.min(2.2,1700/v1.width); const vp=page.getViewport({scale});
+  const c=document.createElement("canvas"); c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
+  const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+  await page.render({canvasContext:ctx,viewport:vp}).promise;
+  return await new Promise(res=>c.toBlob(b=>res(b),"image/jpeg",0.88));
+}
+function stmtPrompt(part,source){
+  return `คุณคือ "น้องสแกน" ผู้ช่วยฝ่ายบัญชี อ่าน statement บัญชีธนาคารของบริษัท (${part})
+${brandText()}
+
+ดึง "ทุกรายการเดินบัญชี" ตามลำดับที่ปรากฏ ห้ามข้าม ห้ามแต่งเพิ่ม ห้ามรวมรายการ
+- ข้ามบรรทัดที่ไม่ใช่รายการ เช่น ยอดยกมา ยอดรวม หัวตาราง ข้อความโฆษณา
+- date: แปลงเป็น YYYY-MM-DD แบบ ค.ศ. ถ้าเป็น พ.ศ. ให้ลบ 543 (ปี 2 หลัก เช่น 69 หมายถึง 2569 = 2026) รูปแบบไทยคือ วัน/เดือน/ปี
+- amount: ตัวเลขบวกเสมอ ไม่มีจุลภาค
+- dir: "in" = เงินเข้า (ฝาก, รับโอน, ดอกเบี้ย) หรือ "out" = เงินออก (ถอน, โอนออก, ชำระ, ค่าธรรมเนียม) ดูจากคอลัมน์ที่ตัวเลขอยู่ หรือจากการที่ยอดคงเหลือเพิ่ม/ลด
+- balance: ยอดคงเหลือหลังรายการ ถ้าไม่มีให้ null
+- desc: รายละเอียดรายการ ชื่อคู่โอน ช่องทาง (สั้น ไม่เกิน 60 ตัวอักษร)
+- category: เงินออกเลือกจาก ${JSON.stringify(catsExp())} | เงินเข้าเลือกจาก ${JSON.stringify(catsInc())}${hintText()}
+
+${source}
+
+ตอบ JSON เท่านั้น: {"bank":"ชื่อธนาคาร หรือ null","account":"เลขบัญชี 4 ตัวท้าย หรือ null","items":[{"date":"YYYY-MM-DD","desc":"...","amount":0,"dir":"out","balance":null,"category":"..."}]}`;
+}
+async function doStmt(file,password,asImage){
+  await runTask("finance",`อ่าน Statement: ${file.name}`,"stmt",async({step})=>{
+    await step("scan",`ได้ไฟล์ ${file.name} แล้ว กำลังเปิดอ่าน`);
+    if(!window.pdfjsLib) throw {message:"โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้า"};
+    let pdf;
+    try{ pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()),password:password||undefined,isEvalSupported:false}).promise; }
+    catch(e){ if(e&&e.name==="PasswordException") throw {message: password?"รหัสผ่าน PDF ไม่ถูกต้อง ลองใส่ใหม่แล้วส่งงานอีกครั้ง":"ไฟล์นี้ล็อกรหัสผ่านไว้ ใส่รหัสในช่อง “รหัส PDF” แล้วส่งงานใหม่ (ธนาคารส่วนใหญ่ใช้วันเดือนปีเกิดหรือเลขบัตรประชาชน)"}; throw {message:"เปิดไฟล์ PDF ไม่ได้ ตรวจว่าเป็นไฟล์ PDF ที่ไม่เสีย"}; }
+    const pages=Math.min(pdf.numPages,40);
+    const texts=[]; for(let p=1;p<=pages;p++){ const pg=await pdf.getPage(p); const tc=await pg.getTextContent(); texts.push(pageLines(tc.items)); }
+    const chars=texts.join("").replace(/\s/g,"").length;
+    let raw=[], meta={};
+    const take=r=>{ if(r&&Array.isArray(r.items)) raw.push(...r.items); if(r&&!meta.bank&&r.bank) meta.bank=r.bank; if(r&&!meta.account&&r.account) meta.account=r.account; };
+    if(!asImage && chars>300){
+      const chunks=[]; let cur="";
+      texts.forEach((t,i)=>{ const block=`--- หน้า ${i+1} ---\n${t}\n`; if(cur && cur.length+block.length>14000){ chunks.push(cur); cur=""; } cur+=block; }); if(cur) chunks.push(cur);
+      await step("scan",`ไฟล์มี ${pdf.numPages} หน้า${pdf.numPages>pages?` (อ่าน ${pages} หน้าแรก)`:""} ดึงข้อความได้ แบ่งอ่าน ${chunks.length} ส่วน`);
+      for(let i=0;i<chunks.length;i++){
+        take(await askJson(stmtPrompt(`ส่วนที่ ${i+1}/${chunks.length}`,`ข้อความที่ดึงจาก PDF (ช่องว่างแบบ "|" คือการเว้นระยะระหว่างคอลัมน์):\n${chunks[i]}`)));
+        if(chunks.length>1 && i<chunks.length-1) await step("scan",`อ่านส่วนที่ ${i+1}/${chunks.length} แล้ว ได้ ${raw.length} รายการ`);
+      }
+    }
+    if(!raw.length){
+      if(!S.imgMax) throw {message:"ไฟล์นี้เป็นภาพสแกนหรืออ่านข้อความไม่ได้ และมุมมองนี้ส่งรูปให้ AI ไม่ได้"};
+      const lim=Math.min(pages,20);
+      await step("scan", chars>300?`อ่านจากข้อความไม่ได้ เปลี่ยนเป็นอ่านจากภาพ ${lim} หน้า`:`ไฟล์เป็นภาพ กำลังอ่านจากภาพ ${lim} หน้า`);
+      for(let a=1;a<=lim;a+=S.imgMax){
+        const b=Math.min(lim,a+S.imgMax-1); const imgs=[]; for(let p=a;p<=b;p++) imgs.push(await pageImage(await pdf.getPage(p)));
+        take(await askJson(stmtPrompt(`หน้า ${a}-${b} จาก ${lim} หน้า`,`รูปที่แนบคือหน้า ${a} ถึง ${b} ของ statement เรียงตามลำดับ`),{images:imgs}));
+        if(b<lim) await step("scan",`อ่านหน้า ${a}-${b} แล้ว ได้ ${raw.length} รายการ`);
+      }
+    }
+    let items=raw.slice(0,500).map(x=>{
+      const kind=x?.dir==="in"?"income":"expense"; const cats=kind==="income"?catsInc():catsExp();
+      const desc=String(x?.desc||"").slice(0,80)||"ไม่ระบุ"; const mem=S.catmap[descKey(desc)];
+      const bal=x?.balance==null||x.balance===""?null:num(x.balance);
+      return {date:/^\d{4}-\d{2}-\d{2}$/.test(x?.date||"")?x.date:null,desc,amount:Math.round(num(x?.amount)*100)/100,kind,balance:bal,
+        category: mem&&kindOf(mem,kind)===kind ? mem : (cats.includes(x?.category)?x.category:fallbackCat(kind)), remembered:!!mem};
+    }).filter(it=>it.amount>0);
+    if(!items.length) throw {message:"ไม่พบรายการเดินบัญชีในไฟล์นี้ ถ้าเป็น statement จริง ลองติ๊ก “อ่านเป็นภาพ” แล้วส่งใหม่"};
+    const tin=items.filter(i=>i.kind==="income").reduce((s,i)=>s+i.amount,0), tout=items.filter(i=>i.kind!=="income").reduce((s,i)=>s+i.amount,0);
+    await step("scan",`ดึงได้ ${items.length} รายการ${meta.bank?` จาก ${meta.bank}${meta.account?" บัญชี "+meta.account:""}`:""} เงินเข้า ${baht(tin)} เงินออก ${baht(tout)}`);
+    // checks
+    let chain=0, chainOk=0, dups=0;
+    items.forEach((it,i)=>{
+      const f=[];
+      if(!it.date) f.push("ไม่มีวันที่");
+      const prev=items[i-1];
+      if(prev && prev.balance!=null && it.balance!=null){ chain++; const exp=prev.balance+(it.kind==="income"?it.amount:-it.amount);
+        if(Math.abs(exp-it.balance)<0.02) chainOk++; else f.push("ยอดคงเหลือไม่ต่อเนื่อง"); }
+      it.dup=!!S.ledger.find(l=>l.date===it.date&&l.kind===it.kind&&Math.abs(num(l.amount)-it.amount)<0.01);
+      if(it.dup){ f.push("มีในบัญชีแล้ว"); dups++; }
+      it.flags=f;
+    });
+    const bad=chain-chainOk;
+    await step("check", chain ? (bad ? `ตรวจยอดคงเหลือแล้ว ต่อเนื่อง ${chainOk}/${chain} รายการ มี ${bad} จุดที่ยอดไม่ต่อกัน ไฮไลต์ไว้ให้ดู (อาจอ่านตัวเลขผิดหรือขาดรายการ)` : `ตรวจยอดคงเหลือแล้ว ต่อเนื่องครบทั้ง ${chainOk} รายการ ตัวเลขน่าเชื่อถือ`) : `ไฟล์ไม่มียอดคงเหลือให้ตรวจ ควรเทียบยอดรวมกับ statement อีกครั้ง`);
+    const mem=items.filter(i=>i.remembered).length;
+    await step("ban",`จัดหมวดให้แล้ว${mem?` (${mem} รายการใช้หมวดที่ทีมเคยกำหนด)`:""}${dups?` ข้ามรายการที่มีในบัญชีแล้ว ${dups} รายการ`:""} ตรวจหมวดแล้วกด “บันทึกลงบัญชี” ถ้าแก้หมวด ระบบจะจำไว้ใช้ครั้งหน้า`);
+    return {kind:"stmt",bank:meta.bank||null,account:meta.account||null,items,tin,tout,chain,chainOk,saved:false};
+  });
+}
+function monthFigures(m){
+  const rows=S.ledger.filter(l=>monthKey(l.date)===m);
+  const inc=rows.filter(r=>r.kind==="income"), exp=rows.filter(r=>r.kind!=="income");
+  const sum=a=>a.reduce((s,r)=>s+num(r.amount),0);
+  const byCat=a=>{ const o={}; a.forEach(r=>o[r.category||"อื่นๆ"]=(o[r.category||"อื่นๆ"]||0)+num(r.amount)); return Object.entries(o).sort((x,y)=>y[1]-x[1]); };
+  return {rows,income:sum(inc),expense:sum(exp),profit:sum(inc)-sum(exp),incCat:byCat(inc),expCat:byCat(exp),count:rows.length};
+}
+function prevMonth(m){ const [y,mo]=m.split("-").map(Number); const d=new Date(Date.UTC(y,mo-2,1)); return d.toISOString().slice(0,7); }
+async function doReport(m){
+  await runTask("finance",`รายงานกำไรขาดทุน ${monthLabel(m)}`,"report",async({step,live})=>{
+    const f=monthFigures(m), p=monthFigures(prevMonth(m));
+    if(!f.count) throw {message:`ยังไม่มีรายการบัญชีของ ${monthLabel(m)} ให้สรุป`};
+    await step("check",`รวบรวม ${f.count} รายการของ ${monthLabel(m)} แล้ว (เดือนก่อน ${p.count} รายการ)`);
+    const chg=(a,b)=>b?`${a>=b?"+":""}${fmt((a-b)/b*100,1)}%`:"–";
+    const fig=`| รายการ | ${monthLabel(m)} | ${monthLabel(prevMonth(m))} | เปลี่ยนแปลง |\n|---|---|---|---|\n| รายรับ | ${baht(f.income)} | ${baht(p.income)} | ${chg(f.income,p.income)} |\n| รายจ่าย | ${baht(f.expense)} | ${baht(p.expense)} | ${chg(f.expense,p.expense)} |\n| **กำไร (ขาดทุน)** | **${baht(f.profit)}** | ${baht(p.profit)} | ${chg(f.profit,p.profit)} |\n\n**รายจ่ายตามหมวด**\n\n| หมวด | ยอด | สัดส่วน |\n|---|---|---|\n${f.expCat.map(([c,v])=>`| ${c} | ${baht(v)} | ${fmt(f.expense?v/f.expense*100:0,1)}% |`).join("\n")}`;
+    const pmap=Object.fromEntries(p.expCat);
+    const {text}=await ask(`คุณคือ "พี่บัญ" นักบัญชีของบริษัท เขียนบทวิเคราะห์สั้นๆ ภาษาไทยให้ผู้บริหารอ่าน
+${brandText()}
+
+ตัวเลขคำนวณแล้ว (ห้ามคำนวณใหม่ ใช้ตามนี้):
+เดือน ${monthLabel(m)}: รายรับ ${Math.round(f.income)} รายจ่าย ${Math.round(f.expense)} กำไร ${Math.round(f.profit)}
+เดือนก่อน: รายรับ ${Math.round(p.income)} รายจ่าย ${Math.round(p.expense)} กำไร ${Math.round(p.profit)}
+รายจ่ายตามหมวดเดือนนี้ (เทียบเดือนก่อน): ${JSON.stringify(f.expCat.map(([c,v])=>({หมวด:c,เดือนนี้:Math.round(v),เดือนก่อน:Math.round(pmap[c]||0)})))}
+รายรับตามหมวด: ${JSON.stringify(f.incCat.map(([c,v])=>({หมวด:c,ยอด:Math.round(v)})))}
+
+รูปแบบ (Markdown):
+### สรุปผู้บริหาร
+2-3 ประโยค
+### สิ่งที่ต้องจับตา
+2-4 bullet อ้างตัวเลขจากข้างบน
+### ข้อแนะนำเดือนหน้า
+2-3 ข้อ
+ไม่เกิน 220 คำ`,{onText:({text})=>live(text)});
+    await step("ban","ทำรายงานเสร็จแล้ว");
+    return {kind:"report",figures:fig,md:text};
+  });
+}
+
+// ---------- PM ----------
+const todayISO = () => { const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
+const addDays = (iso,n) => { const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); };
+const thDate = iso => { if(!iso) return "–"; const [y,m,d]=iso.split("-").map(Number); return `${d} ${TH_M[m-1]}${y!==new Date().getFullYear()?" "+(y+543):""}`; };
+const P_ST = {todo:"รอทำ",doing:"กำลังทำ",review:"รอตรวจ",done:"เสร็จแล้ว"};
+const P_ORD = {review:0,doing:1,todo:2,done:3};
+const PRI = {high:"ด่วน",normal:"ปกติ",low:"ไม่ด่วน"};
+const LVL = {high:"ด่วน",medium:"ควรแก้",low:"เล็กน้อย",ok:"ผ่าน"};
+const DEPT_KEYS = ["marketing","content","finance","it","pm"];
+function ownerLabel(o){ if(!o) return "ยังไม่กำหนด"; if(o.startsWith("dept:")) return DEPTS[o.slice(5)]?.name||"ทีม"; if(o.startsWith("u:")) return S.names[o.slice(2)]||"สมาชิก"; return o; }
+function projStats(p){ const T=todayISO(); const ts=S.ptasks.filter(t=>t.projectId===p.id); const done=ts.filter(t=>t.status==="done").length; const od=ts.filter(t=>t.status!=="done"&&t.due&&t.due<T).length; return {ts,done,total:ts.length,od}; }
+
+async function doBreakdown(p){
+  await runTask("pm",`แตกงาน: ${p.name}`,"plan",async({step})=>{
+    await step("taek",`รับบรีฟ “${p.name}” แล้ว${p.type==="client"&&p.client?` (ลูกค้า ${p.client})`:""} กำลังแตกเป็นงานย่อย`);
+    const r=await askJson(`คุณคือ "น้องแตกงาน" ผู้ช่วย Project Manager ของบริษัท
+${brandText()}
+
+วันนี้: ${todayISO()}
+โปรเจกต์: ${p.name}
+ประเภท: ${p.type==="client"?`งานลูกค้า (${p.client||"ไม่ระบุชื่อ"})`:"งานภายในบริษัท"}
+กำหนดส่ง: ${p.due||"ไม่ระบุ (ให้วางแผนภายใน 30 วัน)"}
+บรีฟ: ${p.brief}
+
+แตกเป็นงานย่อย 5-14 งานที่ทำได้จริง เรียงตามลำดับที่ต้องทำ แต่ละงานมีกำหนดส่งอยู่ระหว่างวันนี้ถึงวันกำหนดส่ง
+dept = ผู้รับผิดชอบ เลือกจาก "marketing" (การตลาด/โฆษณา), "content" (คอนเทนต์), "finance" (บัญชี/ใบเสนอราคา/ใบแจ้งหนี้), "it" (เว็บ/ระบบ), "team" (งานที่คนต้องทำเอง เช่น ประชุมลูกค้า อนุมัติ ส่งมอบ)
+ตอบ JSON เท่านั้น: {"summary":"ขอบเขตงาน 1-2 ประโยค","risks":["ความเสี่ยงสั้นๆ"],"tasks":[{"title":"...","dept":"content","due":"YYYY-MM-DD","priority":"high|normal|low"}]}`);
+    const T=todayISO();
+    const tasks=(Array.isArray(r?.tasks)?r.tasks:[]).slice(0,20).map(x=>({title:String(x?.title||"").trim().slice(0,120),dept:["marketing","content","finance","it","team"].includes(x?.dept)?x.dept:"team",due:/^\d{4}-\d{2}-\d{2}$/.test(x?.due||"")?x.due:null,priority:["high","normal","low"].includes(x?.priority)?x.priority:"normal"})).filter(t=>t.title);
+    if(!tasks.length) throw {message:"แตกงานไม่สำเร็จ ลองเขียนบรีฟให้ละเอียดขึ้นแล้วส่งใหม่"};
+    await step("taek",`แตกได้ ${tasks.length} งาน: ${tasks.slice(0,4).map(t=>t.title).join(", ")}${tasks.length>4?" …":""}`);
+    let fixed=0;
+    tasks.forEach(t=>{ t.flags=[]; if(t.due&&t.due<T){ t.due=T; t.flags.push("วันที่ย้อนหลัง ปรับเป็นวันนี้"); fixed++; } if(p.due&&t.due&&t.due>p.due){ t.due=p.due; t.flags.push("เกินกำหนดส่ง ปรับให้ตรงวันส่ง"); fixed++; } if(!t.due) t.flags.push("ไม่มีกำหนดส่ง"); });
+    const per={}; tasks.forEach(t=>per[t.dept]=(per[t.dept]||0)+1);
+    const dn=k=>k==="team"?"ทีมงาน":DEPTS[k].name;
+    await step("truat",`ตรวจแผนแล้ว ${fixed?`ปรับวันที่ ${fixed} งานให้อยู่ในกรอบเวลา`:"กำหนดส่งทุกงานอยู่ในกรอบเวลา"} · แบ่งงาน: ${Object.entries(per).map(([k,v])=>`${dn(k)} ${v}`).join(", ")}`);
+    await step("kum","ตรวจรายการ ติ๊กออกงานที่ไม่ต้องการ แล้วกด “สร้างโปรเจกต์”");
+    return {kind:"breakdown",project:p,summary:String(r?.summary||"").slice(0,400),risks:(Array.isArray(r?.risks)?r.risks:[]).slice(0,5).map(x=>String(x).slice(0,200)),tasks,saved:false};
+  });
+}
+async function makeProject(id,btn){
+  const t=S.tasks.find(x=>x.id===id); if(!t||t.result.saved||SAVING.has(id)) return; SAVING.add(id); btn.disabled=true;
+  const r=t.result, sk=S.skip[id]||{}, p=r.project;
+  try{
+    const pid=await rowAdd("projects",{name:p.name,type:p.type,client:p.client||"",due:p.due||null,brief:p.brief||"",status:"active"});
+    let n=0; for(const [i,x] of r.tasks.entries()){ if(sk[i]) continue; await rowAdd("ptasks",{projectId:pid,title:x.title,status:"todo",priority:x.priority,due:x.due,owner:x.dept==="team"?"":"dept:"+x.dept}); n++; }
+    await patchTask(id,{result:{...r,saved:true,projectId:pid}});
+    toast(`สร้างโปรเจกต์ “${p.name}” พร้อม ${n} งานแล้ว`);
+  }catch(e){ btn.disabled=false; toast("สร้างโปรเจกต์ไม่สำเร็จ ลองอีกครั้ง"); }
+  finally{ SAVING.delete(id); }
+}
+async function doStatus(focus){
+  await runTask("pm","สรุปสถานะทั้งบริษัท","status",async({step,live})=>{
+    const T=todayISO(), wk=addDays(T,7);
+    const act=S.projects.filter(p=>p.status!=="done");
+    const open=S.ptasks.filter(t=>t.status!=="done"&&act.some(p=>p.id===t.projectId));
+    const od=open.filter(t=>t.due&&t.due<T), soon=open.filter(t=>t.due&&t.due>=T&&t.due<=wk);
+    const since=Date.now()-7*864e5; const ai=S.tasks.filter(t=>t.dept!=="pm"&&t.createdAt>=since);
+    const aiErr=ai.filter(t=>t.status==="error").length, aiFix=S.tasks.filter(t=>t.review?.verdict==="fix").length, aiUn=S.tasks.filter(t=>t.dept!=="pm"&&t.status==="done"&&t.result&&!t.review).length;
+    if(!act.length&&!ai.length) throw {message:"ยังไม่มีโปรเจกต์หรืองานให้สรุป เริ่มจากแตกงานโปรเจกต์ใหม่ หรือสั่งงานในห้องอื่นก่อน"};
+    await step("kum",`รวบรวมข้อมูลแล้ว: โปรเจกต์ที่ทำอยู่ ${act.length} · งานค้าง ${open.length} · เลยกำหนด ${od.length} · งาน AI 7 วันล่าสุด ${ai.length}`);
+    await step("truat", od.length?`เจองานเลยกำหนด ${od.length} งาน: ${od.slice(0,4).map(t=>t.title).join(", ")}${od.length>4?" …":""}`:"ไม่มีงานเลยกำหนด");
+    const cell=s=>String(s).replace(/\|/g,"/");
+    const fig=(act.length?`| โปรเจกต์ | ประเภท | เสร็จ | เลยกำหนด | กำหนดส่ง |\n|---|---|---|---|---|\n${act.map(p=>{ const s=projStats(p); return `| ${cell(p.name)} | ${p.type==="client"?"ลูกค้า"+(p.client?` (${cell(p.client)})`:""):"ภายใน"} | ${s.done}/${s.total} | ${s.od||"–"} | ${thDate(p.due)} |`; }).join("\n")}\n\n`:"")
+      +`**งาน AI 7 วันล่าสุด** ${DEPT_KEYS.filter(k=>k!=="pm").map(k=>`${DEPTS[k].name} ${ai.filter(t=>t.dept===k).length}`).join(" · ")}${aiErr?` · ทำไม่สำเร็จ ${aiErr}`:""} · รอ PM ตรวจ ${aiUn} · ตรวจแล้วควรแก้ ${aiFix}`;
+    const f=monthFigures(thisMonth());
+    const data={today:T,projects:act.map(p=>{ const s=projStats(p); return {name:p.name,type:p.type,client:p.client||undefined,due:p.due||undefined,status:p.status,done:s.done,total:s.total,open:s.ts.filter(t=>t.status!=="done").slice(0,15).map(t=>({title:t.title,status:P_ST[t.status],owner:ownerLabel(t.owner),due:t.due||undefined,priority:t.priority}))}; }),
+      overdue:od.slice(0,20).map(t=>({title:t.title,due:t.due,owner:ownerLabel(t.owner)})),dueThisWeek:soon.slice(0,20).map(t=>({title:t.title,due:t.due,owner:ownerLabel(t.owner)})),
+      aiWork:ai.slice(0,30).map(t=>({dept:DEPTS[t.dept]?.name,title:t.title,status:t.status,pmReview:t.review?.verdict||"ยังไม่ตรวจ"})),
+      finance:f.count?{month:monthLabel(thisMonth()),income:Math.round(f.income),expense:Math.round(f.expense),profit:Math.round(f.profit)}:undefined};
+    const {text}=await ask(`คุณคือ "พี่คุมงาน" Project Manager ของบริษัท เขียนรายงานสถานะให้ผู้บริหารภาษาไทย กระชับ ตรงประเด็น
+${brandText()}
+
+ข้อมูลจากระบบ (ตัวเลขคำนวณแล้ว ห้ามคำนวณใหม่หรือแต่งข้อมูลเพิ่ม):
+${JSON.stringify(data)}
+${focus?`\nเรื่องที่ผู้บริหารอยากให้โฟกัส: ${focus}`:""}
+
+รูปแบบ (Markdown):
+### ภาพรวม
+2-3 ประโยค
+### ต้องตามด่วน
+bullet งานที่เลยกำหนดหรือเสี่ยง ระบุผู้รับผิดชอบ
+### โฟกัสสัปดาห์นี้แยกตามแผนก
+bullet สั้นๆ
+### ข้อเสนอจัดระบบงาน
+2-3 ข้อ เช่น งานที่ยังไม่มีผู้รับผิดชอบ งานไม่มีกำหนดส่ง งาน AI ที่ควรตรวจหรือแก้
+ไม่เกิน 350 คำ`,{onText:({text})=>live(text)});
+    await step("kum","สรุปสถานะเสร็จแล้ว");
+    return {kind:"report",figures:fig,md:text};
+  });
+}
+function digest(t){
+  const r=t.result||{}; const steps=(t.steps||[]).map(s=>`${AGENTS[s.agent]?.name||""}: ${s.text}`).join("\n");
+  let body;
+  if(r.kind==="ads") body=`ตารางแคมเปญ (คำนวณจากไฟล์): ${JSON.stringify(r.rows)}\n\nบทสรุปที่ส่งให้ทีม:\n${r.md}`;
+  else if(r.kind==="report") body=`ตัวเลข:\n${r.figures}\n\nบทวิเคราะห์:\n${r.md}`;
+  else if(r.kind==="slips"||r.kind==="stmt") body=`${r.kind==="stmt"&&r.chain?`ยอดคงเหลือต่อเนื่อง ${r.chainOk}/${r.chain} · `:""}รายการ (วันที่ | รายละเอียด | ยอด | เข้า/ออก | หมวด | ข้อสังเกต):\n${r.items.slice(0,150).map(i=>[i.date,i.desc||i.merchant,i.amount,i.kind==="income"?"เข้า":"ออก",i.category,(i.flags||[]).join("/")].join(" | ")).join("\n")}\n${r.saved?"(บันทึกลงบัญชีแล้ว)":"(ยังไม่บันทึก)"}`;
+  else if(r.kind==="audit") body=`ผลตรวจอัตโนมัติ: ${JSON.stringify(r.checks)}\n\nรายงาน:\n${r.md}`;
+  else body=r.md||"";
+  return `แผนก: ${DEPTS[t.dept]?.name}\nงาน: ${t.title}\nขั้นตอนที่ทีมทำ:\n${steps}\n\nผลงาน:\n${body}`.slice(0,60000);
+}
+const CHECK_FOCUS={ads:"ตัวเลขในบทสรุปตรงกับตาราง ข้อแนะนำสอดคล้องกับข้อมูล ไม่สรุปเกินข้อมูล",report:"ตัวเลขในบทวิเคราะห์ตรงกับตาราง ข้อสรุปสมเหตุสมผล",
+  slips:"หมวดบัญชีเหมาะสม รายการซ้ำ ยอดหรือวันที่ผิดปกติ",stmt:"หมวดบัญชีเหมาะสม เช่น เงินโอนระหว่างบัญชีตัวเองไม่ควรนับเป็นรายได้ ค่าใช้จ่ายส่วนตัวปนกับบริษัท ยอดผิดปกติ",
+  md:"ความถูกต้องของข้อเท็จจริง การอ้างตัวเลขที่ไม่มีที่มา โทนตรงแบรนด์ ภาษาไทยถูกต้อง พร้อมนำไปใช้",audit:"ข้อแนะนำถูกต้องตามหลักเทคนิค จัดลำดับความสำคัญเหมาะสม ไม่สรุปเกินข้อมูล"};
+async function reviewOne(t){
+  const r=await askJson(`คุณคือ "พี่ตรวจ" QA ของฝ่าย Project Manager ตรวจงานที่ทีม AI ทำเสร็จก่อนนำไปใช้จริง
+${brandText()}
+
+ประเด็นที่ต้องตรวจ: ${CHECK_FOCUS[t.result?.kind]||CHECK_FOCUS.md}
+ตรวจเฉพาะสิ่งที่เห็นในข้อมูลด้านล่าง ห้ามเดา ถ้าไม่มีปัญหาให้ผ่าน
+
+${digest(t)}
+
+ตอบ JSON เท่านั้น: {"verdict":"pass" หรือ "fix","note":"สรุปผลตรวจ 1-2 ประโยค","issues":[{"level":"high|medium|low","text":"ปัญหาและวิธีแก้สั้นๆ"}]}`);
+  return {verdict:r?.verdict==="fix"?"fix":"pass",note:String(r?.note||"").slice(0,400),
+    issues:(Array.isArray(r?.issues)?r.issues:[]).slice(0,6).map(i=>({level:["high","medium","low"].includes(i?.level)?i.level:"low",text:String(i?.text||"").slice(0,300)})).filter(i=>i.text),
+    at:Date.now(),byId:S.uid||null};
+}
+async function reviewSingle(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t||S.reviewing[id]) return; if(!S.sample) return toast("ยังใช้ AI ไม่ได้ในหน้านี้");
+  S.reviewing[id]=true; render();
+  try{ const rv=await reviewOne(t); await patchTask(id,{review:rv}); toast(rv.verdict==="pass"?"PM ตรวจแล้ว: ผ่าน":"PM ตรวจแล้ว: มีจุดควรแก้"); }
+  catch(e){ toast(errText(e)); } finally{ delete S.reviewing[id]; render(); }
+}
+const pending = () => S.tasks.filter(t=>t.dept!=="pm"&&t.status==="done"&&t.result&&!t.review);
+async function doQA(){
+  await runTask("pm","ตรวจงานจากทุกแผนก","qa",async({step})=>{
+    const all=pending(), q=all.slice(0,6);
+    if(!q.length) throw {message:"ไม่มีงานรอตรวจ งานที่เสร็จแล้วผ่านการตรวจครบแล้ว"};
+    await step("kum",`มีงานรอตรวจ ${all.length} ชิ้น รอบนี้ตรวจ ${q.length} ชิ้นล่าสุด`);
+    const res=[];
+    for(const t of q){ await step("truat",`ตรวจ “${t.title}” (${DEPTS[t.dept]?.name})`);
+      try{ const rv=await reviewOne(t); await patchTask(t.id,{review:rv}); res.push({t,rv}); }
+      catch(e){ if(e?.code&&!["upstream_error","invalid_json","empty_completion"].includes(e.code)) throw e; res.push({t,rv:null}); } }
+    const pass=res.filter(x=>x.rv?.verdict==="pass").length, fix=res.filter(x=>x.rv?.verdict==="fix").length;
+    await step("kum",`ตรวจเสร็จ ${res.length} ชิ้น ผ่าน ${pass} · ควรแก้ ${fix}${all.length>q.length?` · ยังเหลือรอตรวจ ${all.length-q.length} ชิ้น`:""}`);
+    const cell=s=>String(s||"").replace(/\|/g,"/").replace(/\n/g," ");
+    return {kind:"md",md:`| งาน | แผนก | ผล | ประเด็นหลัก |\n|---|---|---|---|\n${res.map(({t,rv})=>`| ${cell(t.title)} | ${DEPTS[t.dept]?.name} | ${rv?(rv.verdict==="pass"?"ผ่าน":"**ควรแก้**"):"ตรวจไม่สำเร็จ"} | ${rv?cell(rv.issues[0]?.text||rv.note):"–"} |`).join("\n")}\n\nรายละเอียดผลตรวจอยู่ใต้การ์ดงานในห้องของแต่ละแผนก`};
+  });
+}
+
+// ---------- IT ----------
+function auditHtml(html,url){
+  const doc=new DOMParser().parseFromString(html,"text/html"); const C=[];
+  const add=(level,area,text)=>C.push({level,area,text});
+  const q=s=>doc.querySelector(s), qa=s=>[...doc.querySelectorAll(s)];
+  const title=(q("title")?.textContent||"").trim();
+  if(!title) add("high","SEO","ไม่มีแท็ก <title> (ชื่อหน้าที่แสดงใน Google และแท็บเบราว์เซอร์)");
+  else if(title.length<15||title.length>65) add("low","SEO",`ชื่อหน้า (title) ยาว ${title.length} ตัวอักษร ควรอยู่ระหว่าง 15-65`);
+  else add("ok","SEO",`มี title: “${title.slice(0,70)}”`);
+  const desc=(q('meta[name="description" i]')?.getAttribute("content")||"").trim();
+  if(!desc) add("medium","SEO","ไม่มี meta description (ข้อความใต้ชื่อเว็บในผลค้นหา Google)");
+  else if(desc.length>160) add("low","SEO",`meta description ยาว ${desc.length} ตัวอักษร Google จะตัดเหลือราว 155`);
+  else add("ok","SEO","มี meta description");
+  if(/noindex/i.test(q('meta[name="robots" i]')?.getAttribute("content")||"")) add("high","SEO","หน้านี้ตั้ง noindex ไว้ Google จะไม่แสดงหน้านี้ในผลค้นหา");
+  if(!q('meta[name="viewport" i]')) add("high","มือถือ","ไม่มี meta viewport หน้าเว็บจะแสดงผลเล็กผิดขนาดบนมือถือ"); else add("ok","มือถือ","รองรับการแสดงผลบนมือถือ (มี viewport)");
+  if(!doc.documentElement.getAttribute("lang")) add("low","SEO","แท็ก <html> ไม่ได้ระบุภาษา (lang)");
+  const h1=qa("h1").length; if(!h1) add("medium","SEO","ไม่มีหัวข้อหลัก <h1>"); else if(h1>1) add("low","SEO",`มี <h1> ${h1} อัน ควรมีอันเดียวต่อหน้า`); else add("ok","SEO","มีหัวข้อหลัก <h1>");
+  const imgs=qa("img"), noAlt=imgs.filter(i=>!i.hasAttribute("alt")); if(noAlt.length) add("medium","การเข้าถึง",`รูป ${noAlt.length} จาก ${imgs.length} รูปไม่มีคำอธิบาย (alt) ส่งผลต่อ SEO และผู้พิการทางสายตา`);
+  if(!q('link[rel="canonical" i]')) add("low","SEO","ไม่มี canonical URL (ช่วยกัน Google มองว่าเนื้อหาซ้ำ)");
+  if(!q('meta[property="og:title" i]')||!q('meta[property="og:image" i]')) add("low","โซเชียล","ไม่มี og:title หรือ og:image เวลาแชร์ลิงก์ใน Facebook/LINE จะไม่มีรูปหรือชื่อที่ตั้งใจ");
+  const httpRes=qa("script[src],link[href],img[src],iframe[src],source[src]").map(e=>e.getAttribute("src")||e.getAttribute("href")).filter(u=>/^http:\/\//i.test(u||""));
+  if(httpRes.length) add(!url||/^https:/i.test(url)?"high":"medium","ความปลอดภัย",`โหลดไฟล์ผ่าน http:// ที่ไม่เข้ารหัส ${httpRes.length} รายการ เช่น ${httpRes[0].slice(0,80)}`);
+  if(/^http:\/\//i.test(url)) add("high","ความปลอดภัย","เว็บใช้ http:// ไม่มี SSL เบราว์เซอร์จะขึ้นเตือนว่าไม่ปลอดภัย");
+  const httpForm=qa("form").filter(f=>/^http:\/\//i.test(f.getAttribute("action")||"")); if(httpForm.length) add("high","ความปลอดภัย",`ฟอร์ม ${httpForm.length} อันส่งข้อมูลผ่าน http:// ข้อมูลลูกค้าอาจถูกดักอ่านได้`);
+  const blank=qa('a[target="_blank"]').filter(a=>!/noopener|noreferrer/i.test(a.getAttribute("rel")||"")); if(blank.length) add("low","ความปลอดภัย",`ลิงก์เปิดแท็บใหม่ ${blank.length} ลิงก์ไม่มี rel="noopener"`);
+  const gen=q('meta[name="generator" i]')?.getAttribute("content"); if(gen) add("low","ความปลอดภัย",`โค้ดเปิดเผยระบบและเวอร์ชัน (${gen.slice(0,60)}) ควรซ่อนเพื่อลดความเสี่ยงถูกโจมตีช่องโหว่ที่รู้จัก`);
+  if(!q('link[rel~="icon" i]')) add("low","แบรนด์","ไม่พบ favicon (ไอคอนบนแท็บเบราว์เซอร์)");
+  if(q('script[type="application/ld+json" i]')) add("ok","SEO","มี structured data (JSON-LD)"); else add("low","SEO","ไม่มี structured data (JSON-LD) ที่ช่วยให้ Google เข้าใจข้อมูลธุรกิจ");
+  const ext=qa("script[src]"); const kb=Math.round(new Blob([html]).size/1024);
+  if(kb>500) add("medium","ความเร็ว",`โค้ด HTML ใหญ่ ${kb} KB อาจโหลดช้า`);
+  if(ext.length>25) add("medium","ความเร็ว",`โหลดสคริปต์ภายนอก ${ext.length} ไฟล์ อาจทำให้เว็บช้า`);
+  const hosts=[...new Set(ext.map(s=>{ try{ return new URL(s.getAttribute("src"),url||"https://site.invalid").host; }catch{ return ""; } }).filter(h=>h&&h!=="site.invalid"))];
+  return {checks:C,meta:{title,kb,images:imgs.length,links:qa("a[href]").length,scripts:ext.length,scriptHosts:hosts.slice(0,15),generator:gen||null},
+    text:(doc.body?.textContent||"").replace(/\s+/g," ").trim().slice(0,3500),head:(doc.head?.innerHTML||"").replace(/\s+/g," ").slice(0,2500)};
+}
+async function doAudit(url,html,images,note){
+  await runTask("it",`ตรวจหน้าเว็บ: ${url||"ไม่ระบุ URL"}`,"page",async({step,live})=>{
+    let a=null;
+    if(html){ await step("fao",`ได้โค้ดหน้าเว็บ ${Math.round(new Blob([html]).size/1024)} KB กำลังตรวจทีละจุด`); a=auditHtml(html,url);
+      const bad=a.checks.filter(c=>c.level!=="ok"); await step("fao",`ตรวจอัตโนมัติ ${a.checks.length} จุด เจอปัญหา ${bad.length} จุด (ด่วน ${bad.filter(c=>c.level==="high").length})`); }
+    if(images.length) await step("fao",`ได้ภาพหน้าจอ ${images.length} รูป ส่งให้ทีมดูการแสดงผล`);
+    const sec=a?a.checks.filter(c=>c.area==="ความปลอดภัย"&&c.level!=="ok").length:0;
+    await step("secure",a?(sec?`มีประเด็นความปลอดภัย ${sec} จุด กำลังสรุปวิธีแก้`:"ไม่พบปัญหาความปลอดภัยจากโค้ด กำลังสรุปด้าน SEO และการใช้งาน"):"ตรวจจากภาพหน้าจออย่างเดียว ด้าน SEO และความปลอดภัยจะตรวจได้จำกัด");
+    const {text}=await ask(`คุณคือทีม IT ของบริษัท เขียนรายงานตรวจหน้าเว็บภาษาไทย ให้คนที่ไม่ใช่โปรแกรมเมอร์อ่านเข้าใจ และส่งต่อให้คนดูแลเว็บแก้ได้
+${brandText()}
+URL: ${url||"ไม่ระบุ"}
+${a?`ผลตรวจอัตโนมัติจากโค้ด (ถูกต้อง ใช้ตามนี้): ${JSON.stringify(a.checks)}
+ข้อมูลหน้า: ${JSON.stringify(a.meta)}
+ส่วน <head> (ย่อ): ${a.head}
+ข้อความบนหน้า (ย่อ): ${a.text}`:"ไม่มีโค้ด HTML"}
+${images.length?`มีภาพหน้าจอแนบ ${images.length} รูป ให้ตรวจการแสดงผล ความอ่านง่าย ข้อความหรือปุ่มที่ผิด ภาพแตก การจัดวาง`:""}
+${note?`สิ่งที่ทีมอยากให้ดูเป็นพิเศษ: ${note}`:""}
+
+รูปแบบ (Markdown):
+### สุขภาพหน้าเว็บ
+คะแนน X/10 และสรุป 2 ประโยค
+### ต้องแก้ด่วน
+### ควรปรับปรุง
+### ทำได้ดีแล้ว
+### ข้อความส่งต่อให้คนดูแลเว็บ
+รายการเชิงเทคนิคสั้นๆ ที่คัดลอกไปส่งได้
+ห้ามเดาเรื่องที่ตรวจจากข้อมูลนี้ไม่ได้ (เช่น ความเร็วจริง วันหมดอายุ SSL) ถ้าควรตรวจเพิ่ม ให้แนะนำเครื่องมือ เช่น PageSpeed Insights หรือ Google Search Console
+ไม่เกิน 400 คำ`,{...(images.length?{images}:{}),onText:({text})=>live(text)});
+    await step("debug","รวมรายงานเสร็จแล้ว");
+    return {kind:"audit",url,checks:a?a.checks:[],md:text,copy:true};
+  });
+}
+async function doBug(desc,url,images){
+  await runTask("it",`วิเคราะห์ปัญหา: ${desc.slice(0,60)}`,"bug",async({step,live})=>{
+    await step("debug",`รับเรื่องแล้ว${images.length?` พร้อมภาพหน้าจอ ${images.length} รูป`:""} กำลังประเมินความรุนแรง`);
+    const c=await askJson(`ประเมินปัญหาระบบหรือเว็บไซต์นี้ ตอบ JSON เท่านั้น: {"severity":"critical|high|medium|low","area":"เว็บไซต์|โดเมน/DNS|SSL|อีเมล|ฟอร์ม/ชำระเงิน|ระบบหลังบ้าน/ปลั๊กอิน|อุปกรณ์/เครือข่าย|อื่นๆ","security":true หรือ false,"summary":"สรุปปัญหา 1 ประโยค"}
+ปัญหา: ${desc}
+URL: ${url||"-"}`,{modelTier:"quick",...(images.length?{images}:{})});
+    const SEV={critical:"วิกฤต ระบบใช้งานไม่ได้",high:"สูง",medium:"ปานกลาง",low:"ต่ำ"};
+    await step("debug",`ความรุนแรง: ${SEV[c?.severity]||"ปานกลาง"} · หมวด: ${c?.area||"อื่นๆ"}${c?.summary?` · ${c.summary}`:""}`);
+    if(c?.security===true) await step("secure","ปัญหานี้อาจเกี่ยวกับความปลอดภัย จะใส่ขั้นตอนป้องกันความเสียหายไว้ด้วย");
+    const {text}=await ask(`คุณคือ "พี่ดีบั๊ก" IT support ของบริษัท อธิบายภาษาไทยให้คนทั่วไปทำตามได้
+${brandText()}
+ปัญหา: ${desc}
+URL: ${url||"-"}
+ประเมินเบื้องต้น: ${JSON.stringify(c)}
+${images.length?"มีภาพหน้าจอแนบ ให้อ่านข้อความ error ในภาพด้วย":""}
+
+รูปแบบ (Markdown):
+### น่าจะเกิดจากอะไร
+เรียงจากสาเหตุที่เป็นไปได้มากที่สุด
+### ลองเช็กตามลำดับ
+ขั้นตอนที่ทำเองได้ทีละข้อ
+### ถ้ายังไม่หาย
+ควรติดต่อใคร (ผู้ให้บริการโฮสติ้ง โดเมน หรือนักพัฒนา) และข้อมูลที่ต้องเตรียมไปบอก
+${c?.security===true?"### ป้องกันความเสียหาย\nสิ่งที่ควรทำทันที เช่น เปลี่ยนรหัสผ่าน":""}
+ไม่เกิน 350 คำ ห้ามแนะนำคำสั่งที่ลบข้อมูลโดยไม่เตือนก่อน`,{...(images.length?{images}:{}),onText:({text})=>live(text)});
+    await step("debug","วิเคราะห์เสร็จแล้ว");
+    return {kind:"md",md:text,copy:true};
+  });
+}
+
+// ---------- rendering ----------
+function render(){
+  const b=S.brand||{};
+  $("#coName").textContent = b.name ? `${b.name}` : "ออฟฟิศทีม AI";
+  $("#coSub").textContent = b.name ? "ออฟฟิศทีม AI แยกตามแผนก" : "ทีมผู้ช่วย AI แยกตามแผนก";
+  const n=$("#notice");
+  if(S.ready && !S.sample){ n.hidden=false; n.className="notice"; n.innerHTML="<b>ตอนนี้ทีม AI ยังทำงานไม่ได้</b> เปิดหน้านี้ผ่าน claude.ai หรือแอป Claude ขณะล็อกอินอยู่ แล้วกดอนุญาตเมื่อระบบถาม"; }
+  else if(S.ready && !S.db){ n.hidden=false; n.className="notice"; n.innerHTML="<b>โหมดชั่วคราว</b> งานและบัญชีจะหายเมื่อปิดหน้า เพราะยังเชื่อมที่เก็บข้อมูลไม่ได้"; }
+  else n.hidden=true;
+  const keep = captureInputs();
+  if(S.route==="home") renderHome(); else renderDept(S.route);
+  restoreInputs(keep);
+}
+function captureInputs(){ const o={}; document.querySelectorAll("#view input[id],#view textarea[id],#view select[id]").forEach(el=>{ if(el.type==="file"||el.hasAttribute("data-nr")) return; o[el.id]= el.type==="checkbox" ? {c:el.checked} : el.value; }); const a=document.activeElement; const sc=document.querySelectorAll(".stmt-wrap"); return {o,focus:a&&a.id,scroll:[...sc].map(s=>[s.dataset.t,s.scrollTop])}; }
+function restoreInputs(k){ Object.entries(k.o).forEach(([id,v])=>{ const el=document.getElementById(id); if(!el||el.type==="file"||el.hasAttribute("data-nr")) return; if(typeof v==="object"){ if(el.type==="checkbox") el.checked=v.c; } else el.value=v; });
+  (k.scroll||[]).forEach(([t,y])=>{ const s=document.querySelector(`.stmt-wrap[data-t="${t}"]`); if(s) s.scrollTop=y; });
+  if(k.focus){ const el=document.getElementById(k.focus); if(el) el.focus({preventScroll:true}); } }
+
+function renderHome(){
+  const T=todayISO();
+  const room = d => { const o=DEPTS[d]; const ts=S.tasks.filter(t=>t.dept===d); const run=ts.filter(t=>t.status==="running").length; const last=ts[0];
+    let stat;
+    if(d==="pm"){ const act=S.projects.filter(p=>p.status!=="done"); const od=S.ptasks.filter(t=>t.status!=="done"&&t.due&&t.due<T&&act.some(p=>p.id===t.projectId)).length; const w=pending().length;
+      stat=`<span>โปรเจกต์ที่ทำอยู่ <b class="num">${act.length}</b></span>${od?`<span class="alert">เลยกำหนด ${od} งาน</span>`:""}${w?`<span>งาน AI รอตรวจ <b class="num">${w}</b></span>`:""}`; }
+    else if(d==="it"){ const down=(S.sites||[]).filter(s=>S.itstatus[s.id]&&S.itstatus[s.id].ok===false).length;
+      stat=`<span>เว็บไซต์ <b class="num">${(S.sites||[]).length}</b></span>${down?`<span class="alert">มีปัญหา ${down} เว็บ</span>`:""}<span>งานทั้งหมด <b class="num">${ts.length}</b></span>`; }
+    else stat=`<span>งานทั้งหมด <b class="num">${ts.length}</b></span>${run?`<span>กำลังทำ <b class="num">${run}</b></span>`:""}${last?`<span>ล่าสุด ${esc(ago(last.createdAt))}</span>`:""}`;
+    return `<button type="button" class="room ${o.cls}" data-go="${d}"><span class="door"></span>
+      <div class="room-title"><span class="sw" style="background:${o.color}"></span><h2>${o.name}</h2><span class="code">${o.code}</span></div>
+      <div class="crew">${o.team.map(a=>avatar(a.c,a.v,42)).join("")}</div>
+      <p>${o.blurb}</p>
+      <div class="stat">${stat}</div></button>`; };
+  const b=S.brand||{};
+  $("#view").innerHTML = `<div class="plan-head"><p>คลิกห้องเพื่อเข้าไปสั่งงานทีม AI ของแต่ละแผนก งานทุกชิ้นจะแสดงบนบอร์ดของห้องนั้นให้ทุกคนในทีมเห็น และห้อง Project Manager จะรวมภาพรวมทั้งหมดไว้ให้</p></div>
+  <div class="plan">${room("pm")}${room("marketing")}${room("content")}<div class="hall">ทางเดิน</div>${room("it")}${room("finance")}
+    <button type="button" class="room r-meet" id="meetRoom"><span class="door"></span>
+      <div class="room-title"><span class="sw" style="background:var(--meet)"></span><h2>ห้องข้อมูลบริษัท</h2><span class="code">INFO</span></div>
+      <p>${b.name?`${esc(b.name)} · ${esc(b.business||"")}`:"ยังไม่ได้กรอกข้อมูลบริษัท กรอกครั้งเดียว ทุกแผนกจะใช้ข้อมูลนี้ทำงานให้ตรงกับธุรกิจ"}</p>
+      <div class="stat"><span>${b.name?"แก้ไขข้อมูล":"<b>กรอกข้อมูลบริษัท</b>"}</span></div></button>
+  </div>`;
+}
+
+function teamHtml(d){ const o=DEPTS[d]; const busy=S.busy[d]||[...S.tasks].find(t=>t.dept===d&&t.status==="running"&&!stale(t))?.steps?.slice(-1)[0]?.agent;
+  return `<div class="panel"><h3>ทีมงาน ${o.team.length} คน</h3><div class="team">${o.team.map(a=>`<div class="mate ${busy===a.id?"busy":""}">${avatar(a.c,a.v,50)}<b>${a.name}</b><small>${a.role}</small></div>`).join("")}</div></div>`; }
+const MINE = new Set();
+const stale = t => t.status==="running" && Date.now()-t.createdAt>20*60*1000 && !MINE.has(t.id);
+
+function formHtml(d){
+  const mode=S.mode[d]; const o=DEPTS[d]; const dis=!S.sample?"disabled":"";
+  const modes=`<div class="modes" role="group" aria-label="เลือกประเภทงาน">${o.modes.map(m=>`<button type="button" class="mode" data-mode="${m.id}" aria-pressed="${m.id===mode}">${m.label}</button>`).join("")}</div>`;
+  let body="";
+  if(d==="marketing"&&mode==="ads"){ const f=S.files.ads;
+    body=`<div class="drop" id="drop" tabindex="0" role="button">${f?`<b>${esc(f.name)}</b><br>คลิกเพื่อเปลี่ยนไฟล์`:`<b>เลือกไฟล์ Excel หรือ CSV</b><br>รายงานโฆษณาที่ export จาก Meta, Google, TikTok`}</div>
+    <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" hidden>
+    <label class="f" for="adNote">อยากให้ดูเรื่องไหนเป็นพิเศษ (ไม่บังคับ)</label><input type="text" id="adNote" placeholder="เช่น อยากลดงบ 20% โดยยอดขายไม่ตก">
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis||(!f?"disabled":"")}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ตัวเลขทุกตัวคำนวณจากไฟล์โดยตรง AI ทำหน้าที่อ่านคอลัมน์และสรุปข้อแนะนำ</p>`; }
+  if(d==="marketing"&&mode==="plan"){ body=`<label class="f" for="mktBrief">สินค้าที่อยากโปรโมต เป้าหมาย และงบโดยประมาณ</label><textarea id="mktBrief" placeholder="เช่น อยากได้ลูกค้าองค์กรสำหรับคอร์สอบรม Excel งบเดือนละ 30,000 บาท"></textarea>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>`; }
+  if(d==="content"&&mode==="post"){ body=`<label class="f" for="cTopic">หัวข้อที่อยากได้คอนเทนต์</label><textarea id="cTopic" placeholder="เช่น โปรโมชันเปิดเทอม ลด 20% เฉพาะสัปดาห์นี้"></textarea>
+    <label class="f" for="cChan">ช่องทาง</label><select id="cChan"><option>Facebook โพสต์</option><option>Instagram โพสต์</option><option>TikTok / Reels สคริปต์คลิป</option><option>LINE OA บรอดแคสต์</option><option>บทความบล็อก</option></select>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ทีม AI ค้นข่าวหรือเปิดเว็บเองไม่ได้ ถ้าต้องการอ้างข้อมูลล่าสุด ให้แปะข้อมูลมาในหัวข้อด้วย</p>`; }
+  if(d==="content"&&mode==="month"){ body=`<label class="f" for="cGoal">เป้าหมายของเดือนนี้</label><textarea id="cGoal" placeholder="เช่น เพิ่มคนทักแชทสอบถามคอร์ส และสร้างความน่าเชื่อถือของแบรนด์"></textarea>
+    <label class="f" for="cPer">จำนวนชิ้นต่อสัปดาห์</label><select id="cPer"><option>3</option><option selected>5</option><option>7</option></select>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>`; }
+  if(d==="finance"&&mode==="stmt"){ const f=S.files.stmt;
+    body=`<div class="drop" id="drop" tabindex="0" role="button">${f?`<b>${esc(f.name)}</b><br>คลิกเพื่อเปลี่ยนไฟล์`:`<b>เลือกไฟล์ Statement ธนาคาร (PDF)</b><br>e-Statement จาก KBank, SCB, กรุงเทพ, กรุงไทย ฯลฯ`}</div>
+    <input type="file" id="fileIn" accept="application/pdf,.pdf" hidden>
+    <div class="row2"><div><label class="f" for="pdfPw">รหัส PDF (ถ้ามี)</label><input type="password" id="pdfPw" autocomplete="off" placeholder="ไม่เก็บรหัสนี้ไว้"></div>
+    <div style="align-self:end;padding-bottom:9px"><label class="chk" for="asImg"><input type="checkbox" id="asImg"> อ่านเป็นภาพ</label></div></div>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis||(!f?"disabled":"")}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ทีมจะดึงทุกรายการ จัดหมวด และตรวจยอดคงเหลือให้ แต่จะยังไม่ลงบัญชีจนกว่าจะกดยืนยัน ติ๊ก “อ่านเป็นภาพ” เมื่อเป็นไฟล์สแกน หรือเมื่อตัวหนังสือที่อ่านได้เพี้ยน</p>`; }
+  if(d==="finance"&&mode==="slips"){ const fs=S.files.slips||[]; const max=S.imgMax||5;
+    body=`<div class="drop" id="drop" tabindex="0" role="button">${fs.length?`<b>${fs.length} รูป</b>: ${esc(fs.map(f=>f.name).join(", "))}<br>คลิกเพื่อเลือกใหม่`:`<b>เลือกรูปสลิปหรือใบเสร็จ</b><br>JPG / PNG ได้สูงสุด ${max} รูปต่อครั้ง`}</div>
+    <input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp" multiple hidden>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis||(!fs.length||(S.sample&&!S.imgMax)?"disabled":"")}>ส่งงานให้ทีม AI</button>
+    ${S.sample&&!S.imgMax?`<p class="hint">มุมมองนี้ส่งรูปให้ AI ไม่ได้ ใช้ “บันทึกรายการเอง” ด้านล่างแทน</p>`:`<p class="hint">ระบบจะยังไม่ลงบัญชีจนกว่าจะกดยืนยันในบอร์ด</p>`}`; }
+  if(d==="pm"&&mode==="plan"){
+    body=`<label class="f" for="pName">ชื่อโปรเจกต์</label><input type="text" id="pName" placeholder="เช่น แคมเปญเปิดตัวคอร์สใหม่ ไตรมาส 4">
+    <div class="row2"><div><label class="f" for="pType">ประเภท</label><select id="pType"><option value="client">งานลูกค้า</option><option value="internal">งานภายในบริษัท</option></select></div>
+    <div><label class="f" for="pDue">กำหนดส่ง</label><input type="date" id="pDue"></div></div>
+    <label class="f" for="pClient">ชื่อลูกค้า (ถ้าเป็นงานลูกค้า)</label><input type="text" id="pClient">
+    <label class="f" for="pBrief">บรีฟ / ขอบเขตงาน</label><textarea id="pBrief" placeholder="เช่น ทำแคมเปญออนไลน์ 1 เดือน มีโพสต์ 12 ชิ้น ยิงแอด Facebook และ TikTok งบ 50,000 บาท ส่งใบเสนอราคาก่อนเริ่มงาน"></textarea>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI แตกงาน</button>
+    <button type="button" class="btn" id="pBlank" style="margin-top:8px;width:100%;justify-content:center">สร้างโปรเจกต์เปล่า แล้วเพิ่มงานเอง</button>`; }
+  if(d==="pm"&&mode==="status"){
+    body=`<label class="f" for="stFocus">อยากให้โฟกัสเรื่องไหนเป็นพิเศษ (ไม่บังคับ)</label><input type="text" id="stFocus" placeholder="เช่น งานลูกค้าที่ต้องส่งเดือนนี้">
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ทีมจะอ่านโปรเจกต์ งานค้าง งาน AI ของทุกแผนกใน 7 วัน และยอดบัญชีเดือนนี้ แล้วสรุปเป็นรายงานสำหรับผู้บริหาร</p>`; }
+  if(d==="pm"&&mode==="qa"){ const n=pending().length;
+    body=`<p style="margin:0 0 4px">งาน AI ที่เสร็จแล้วแต่ยังไม่ได้ตรวจ <b class="num">${n}</b> ชิ้น</p>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis||(!n?"disabled":"")}>ตรวจงาน ${Math.min(n,6)} ชิ้นล่าสุด</button>
+    <p class="hint">พี่ตรวจจะดูว่าตัวเลขตรงกับข้อมูลไหม หมวดบัญชีสมเหตุสมผลไหม และคอนเทนต์อ้างข้อมูลที่ไม่มีที่มาหรือเปล่า ผลจะแสดงใต้การ์ดงานในห้องของแต่ละแผนก หรือกด “ให้ PM ตรวจงานนี้” ที่การ์ดงานทีละชิ้นก็ได้</p>`; }
+  if(d==="it"){ const fs=S.files.itimgs||[]; const max=S.imgMax||5;
+    const shots=S.imgMax?`<label class="f">ภาพหน้าจอ (ไม่บังคับ)</label><div class="drop" id="drop" tabindex="0" role="button">${fs.length?`<b>${fs.length} รูป</b>: ${esc(fs.map(f=>f.name).join(", "))}<br>คลิกเพื่อเลือกใหม่`:`<b>เลือกภาพหน้าจอ</b> ได้สูงสุด ${max} รูป`}</div><input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp" multiple hidden>`:"";
+    if(mode==="page") body=`<label class="f" for="itUrl">ลิงก์หน้าเว็บ</label><input type="text" id="itUrl" inputmode="url" placeholder="https://www.example.co.th">
+    <label class="f" for="itHtml">โค้ดหน้าเว็บ (view source)</label><textarea id="itHtml" placeholder="เปิดหน้าเว็บใน Chrome กด Ctrl+U (Mac: Option+Cmd+U) แล้วคัดลอกทั้งหมดมาวางที่นี่" style="font-family:var(--f-num);font-size:12px"></textarea>
+    ${shots}
+    <label class="f" for="itNote">อยากให้ดูเรื่องไหนเป็นพิเศษ (ไม่บังคับ)</label><input type="text" id="itNote" placeholder="เช่น หน้านี้ขึ้น Google ช้า / ลูกค้าบอกกรอกฟอร์มไม่ได้">
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ทีม AI เปิดเว็บเองไม่ได้ จึงตรวจจากโค้ดและภาพที่วางให้ การตรวจโค้ด 18 จุดเป็นการตรวจอัตโนมัติที่ผลแน่นอน</p>`;
+    if(mode==="bug") body=`<label class="f" for="bugDesc">เกิดปัญหาอะไร</label><textarea id="bugDesc" placeholder="เช่น เปิดเว็บแล้วขึ้น 500 Internal Server Error ตั้งแต่เช้า / ลูกค้ากดชำระเงินแล้วหน้าค้าง (วางข้อความ error มาด้วยได้)"></textarea>
+    <label class="f" for="bugUrl">ลิงก์ที่เกิดปัญหา (ถ้ามี)</label><input type="text" id="bugUrl" inputmode="url">
+    ${shots}
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>`; }
+  if(d==="finance"&&mode==="report"){ const ms=monthsAvail();
+    body=`<label class="f" for="rMonth">เดือนที่ต้องการสรุป</label><select id="rMonth">${ms.map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join("")}</select>
+    <button class="go" style="background:${o.color}" id="goBtn" ${dis}>ส่งงานให้ทีม AI</button>
+    <p class="hint">ใช้เฉพาะรายการที่บันทึกในระบบนี้ ไม่ได้ดึงจาก FlowAccount</p>`; }
+  return `<div class="panel">${modes}${body}</div>`;
+}
+function monthsAvail(){ const s=new Set([thisMonth()]); S.ledger.forEach(l=>l.date&&s.add(monthKey(l.date))); return [...s].sort().reverse(); }
+
+function taskHtml(t){
+  const st = t.status==="done"?`<span class="st st-done">เสร็จแล้ว</span>`: t.status==="error"?`<span class="st st-err">ทำไม่สำเร็จ</span>`: stale(t)?`<span class="st st-err">งานค้าง</span>`:`<span class="st st-run">กำลังทำ</span>`;
+  const by=t.byId&&S.names[t.byId]?` · โดย ${esc(S.names[t.byId])}`:"";
+  const steps=(t.steps||[]).map(s=>`<li>${chip(s.agent)}<span>${esc(s.text)}</span></li>`).join("");
+  const running=t.status==="running"&&!stale(t);
+  let out="";
+  if(running){ out = S.live[t.id] ? `<div class="out" id="live-${t.id}">${md(S.live[t.id])}</div>` : `<div class="out" id="live-${t.id}"><span class="dots"><i></i><i></i><i></i></span></div>`; }
+  else if(t.status==="error") out=`<div class="out">${esc(t.error||"เกิดข้อผิดพลาด")}</div>`;
+  else if(t.result) out=resultHtml(t);
+  return `<article class="task" data-id="${t.id}"><div class="task-h"><div style="flex:1;min-width:0"><h4>${esc(t.title)}</h4><div class="meta">${esc(ago(t.createdAt))}${by}</div></div>${st}<button type="button" class="x" data-del="${t.id}">${S.confirmDel===t.id?"ยืนยันลบ":"ลบ"}</button></div>
+    <ul class="steps">${steps}</ul>${out}${reviewHtml(t)}</article>`;
+}
+function reviewHtml(t){
+  if(t.dept==="pm"||t.status!=="done"||!t.result) return "";
+  if(S.reviewing[t.id]) return `<div class="review"><span class="meta">พี่ตรวจ (PM) กำลังตรวจงานนี้</span> <span class="dots"><i></i><i></i><i></i></span></div>`;
+  const rv=t.review;
+  if(!rv) return S.sample?`<button type="button" class="btn rv-btn" data-review="${t.id}">ให้ PM ตรวจงานนี้</button>`:"";
+  return `<div class="review ${rv.verdict==="fix"?"fix":"pass"}"><b>PM ตรวจแล้ว: ${rv.verdict==="fix"?"มีจุดควรแก้":"ผ่าน"}</b>${rv.note?` · ${esc(rv.note)}`:""}
+    ${(rv.issues||[]).length?`<ul>${rv.issues.map(i=>`<li><span class="lv lv-${esc(i.level)}">${LVL[i.level]||""}</span>${esc(i.text)}</li>`).join("")}</ul>`:""}
+    <div class="meta">${esc(ago(rv.at))}${S.sample?` · <button type="button" class="x" data-review="${t.id}" style="padding:0">ตรวจใหม่</button>`:""}</div></div>`;
+}
+function resultHtml(t){
+  const r=t.result;
+  if(r.kind==="ads"){
+    const head=`<tr><th>แคมเปญ</th>${r.rows.some(x=>x.p)?"<th>แพลตฟอร์ม</th>":""}<th class="n">ใช้เงิน</th>${r.hasRev?`<th class="n">ยอดขาย</th><th class="n">ROAS</th>`:""}${r.hasConv?`<th class="n">ผลลัพธ์</th><th class="n">CPA</th>`:""}<th></th></tr>`;
+    const hasP=r.rows.some(x=>x.p);
+    const rows=r.rows.map(x=>`<tr class="${x.f?"flag":""}"><td>${esc(x.n)}</td>${hasP?`<td>${esc(x.p)}</td>`:""}<td class="n">${fmt(x.s,0)}</td>${r.hasRev?`<td class="n">${fmt(x.r,0)}</td><td class="n">${fmt(x.ro)}</td>`:""}${r.hasConv?`<td class="n">${fmt(x.c,0)}</td><td class="n">${fmt(x.cpa,0)}</td>`:""}<td>${x.f?`<span class="tag">${esc(x.f)}</span>`:""}</td></tr>`).join("");
+    return `<div class="out"><div class="tbl"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>${r.more?`<p class="meta">และอีก ${r.more} แคมเปญที่ใช้เงินน้อยกว่า</p>`:""}<hr>${md(r.md)}</div>`;
+  }
+  if(r.kind==="report") return `<div class="out">${md(r.figures)}<hr>${md(r.md)}</div>`;
+  if(r.kind==="breakdown"){
+    const sk=S.skip[t.id]||{}, p=r.project; const n=r.tasks.filter((_,i)=>!sk[i]).length;
+    const rows=r.tasks.map((x,i)=>`<tr class="${!r.saved&&sk[i]?"skip":""}">${r.saved?"":`<td><input type="checkbox" id="bx-${t.id}-${i}" data-nr data-skip="${t.id}" data-i="${i}" ${sk[i]?"":"checked"} aria-label="เลือกงาน ${i+1}"></td>`}
+      <td>${esc(x.title)}${(x.flags||[]).map(f=>` <span class="tag w">${esc(f)}</span>`).join("")}</td><td>${x.dept==="team"?"ทีมงาน":esc(DEPTS[x.dept]?.name||"")}</td><td class="n">${thDate(x.due)}</td><td>${PRI[x.priority]||""}</td></tr>`).join("");
+    return `<div class="out"><p><b>${esc(p.name)}</b> · ${p.type==="client"?`งานลูกค้า${p.client?" "+esc(p.client):""}`:"งานภายใน"} · ส่ง ${thDate(p.due)}</p>${r.summary?`<p>${esc(r.summary)}</p>`:""}${r.risks?.length?`<p class="meta">ความเสี่ยง: ${r.risks.map(esc).join(" · ")}</p>`:""}
+      <div class="stmt-wrap" data-t="${t.id}"><table><thead><tr>${r.saved?"":"<th></th>"}<th>งาน</th><th>ผู้รับผิดชอบ</th><th class="n">กำหนดส่ง</th><th>ความด่วน</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${r.saved?`<p class="meta" style="margin-top:10px">สร้างโปรเจกต์แล้ว ดูและอัปเดตงานได้ในส่วนโปรเจกต์ด้านบน</p>`:`<div class="tools"><button type="button" class="btn btn-solid" data-mkproj="${t.id}" ${n?"":"disabled"}>สร้างโปรเจกต์พร้อม ${n} งาน</button></div>`}</div>`;
+  }
+  if(r.kind==="audit"){
+    const ord={high:0,medium:1,low:2,ok:3}; const cs=[...(r.checks||[])].sort((a,b)=>ord[a.level]-ord[b.level]);
+    const tbl=cs.length?`<div class="tbl"><table><thead><tr><th>ระดับ</th><th>ด้าน</th><th>ผลตรวจจากโค้ด</th></tr></thead><tbody>${cs.map(c=>`<tr><td><span class="lv lv-${esc(c.level)}">${LVL[c.level]}</span></td><td style="white-space:nowrap">${esc(c.area)}</td><td>${esc(c.text)}</td></tr>`).join("")}</tbody></table></div><hr>`:"";
+    return `<div class="out">${tbl}${md(r.md)}</div><button type="button" class="btn copy" data-copy="${t.id}">คัดลอกรายงาน</button>`;
+  }
+  if(r.kind==="slips"){
+    const ed=S.slipEdit[t.id]||{};
+    const rows=r.items.map((it,i)=>{ const cur=ed[i]??it.category; const k=kindOf(cur,it.kind);
+      return `<div class="slip"><div style="min-width:0"><b>${esc(it.merchant)}</b> <span class="meta">${it.date?esc(it.date):"ไม่มีวันที่"} · ${k==="income"?"รายรับ":"รายจ่าย"}</span>${it.note?`<div class="meta">${esc(it.note)}</div>`:""}${(it.flags||[]).map(f=>`<span class="tag w">${esc(f)}</span> `).join("")}</div>
+      ${r.saved?`<span class="meta">${esc(cur)}</span>`:catSelect(`sc-${t.id}-${i}`,cur,`data-slip="${t.id}" data-i="${i}" aria-label="หมวดของ ${esc(it.merchant)}"`)}
+      <span class="num" style="text-align:right">${baht(it.amount)}</span></div>`; }).join("");
+    const n=pickItems(t).length;
+    return `<div class="out">${rows}${r.saved?`<p class="meta" style="margin-top:10px">บันทึกลงบัญชีแล้ว ${r.savedCount??0} รายการ</p>`:`<button type="button" class="btn btn-solid" style="margin-top:10px" data-save="${t.id}" ${n?"":"disabled"}>บันทึกลงบัญชี ${n} รายการ</button>${n<r.items.length?`<p class="meta">รายการที่ไม่มียอด ไม่มีวันที่ หรือซ้ำกับบัญชีเดิม จะไม่ถูกบันทึก</p>`:""}`}</div>`;
+  }
+  if(r.kind==="stmt"){
+    const ed=S.slipEdit[t.id]||{}, sk=S.skip[t.id]||{};
+    const rows=r.items.map((it,i)=>{ const cur=ed[i]??it.category; const k=kindOf(cur,it.kind); const off=r.saved?false:(sk[i]??it.dup);
+      return `<tr class="${off?"skip":""} ${(it.flags||[]).includes("ยอดคงเหลือไม่ต่อเนื่อง")?"flag":""}">
+        ${r.saved?"":`<td><input type="checkbox" id="sx-${t.id}-${i}" data-nr data-skip="${t.id}" data-i="${i}" ${off?"":"checked"} aria-label="เลือกรายการ ${i+1}"></td>`}
+        <td class="n">${esc((it.date||"–").slice(2))}</td>
+        <td class="desc">${esc(it.desc)}${(it.flags||[]).map(f=>` <span class="tag ${f==="มีในบัญชีแล้ว"?"w":""}">${esc(f)}</span>`).join("")}${it.remembered&&ed[i]==null?` <span class="meta">· จำจากครั้งก่อน</span>`:""}</td>
+        <td>${r.saved?esc(cur):catSelect(`sc-${t.id}-${i}`,cur,`data-slip="${t.id}" data-i="${i}" aria-label="หมวดรายการ ${i+1}"`)}</td>
+        <td class="n amt-in">${k==="income"?fmt(it.amount):""}</td><td class="n">${k!=="income"?fmt(it.amount):""}</td>
+        <td class="n" style="color:var(--ink-3)">${it.balance!=null?fmt(it.balance):""}</td></tr>`; }).join("");
+    const n=pickItems(t).length;
+    return `<div class="out"><div class="sumline">${r.bank?`<span>${esc(r.bank)}${r.account?" · "+esc(r.account):""}</span>`:""}<span>${r.items.length} รายการ</span><span>เงินเข้า <b class="amt-in">${baht(r.tin)}</b></span><span>เงินออก <b>${baht(r.tout)}</b></span>${r.chain?`<span>ยอดคงเหลือต่อเนื่อง <b>${r.chainOk}/${r.chain}</b></span>`:""}</div>
+      <div class="stmt-wrap" data-t="${t.id}"><table><thead><tr>${r.saved?"":"<th></th>"}<th class="n">วันที่</th><th>รายการ</th><th>หมวด</th><th class="n">เข้า</th><th class="n">ออก</th><th class="n">คงเหลือ</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${r.saved?`<p class="meta" style="margin-top:10px">บันทึกลงบัญชีแล้ว ${r.savedCount??0} รายการ แก้หมวดย้อนหลังได้ในสมุดบัญชี</p>`:`<div class="tools"><button type="button" class="btn btn-solid" data-save="${t.id}" ${n?"":"disabled"}>บันทึกลงบัญชี ${n} รายการ</button><button type="button" class="btn" data-all="${t.id}">เลือกทั้งหมด</button><button type="button" class="btn" data-none="${t.id}">ไม่เลือกเลย</button></div>`}</div>`;
+  }
+  return `<div class="out">${md(r.md)}</div>${r.copy?`<button type="button" class="btn copy" data-copy="${t.id}">คัดลอกข้อความ</button>`:""}`;
+}
+
+function pickItems(t){
+  const r=t.result, ed=S.slipEdit[t.id]||{}, sk=S.skip[t.id]||{};
+  return r.items.map((it,i)=>({it,i})).filter(({it,i})=>it.amount>0&&it.date&&!(sk[i]??it.dup))
+    .map(({it,i})=>{ const cat=ed[i]??it.category; return {...it,category:cat,kind:kindOf(cat,it.kind),_i:i}; });
+}
+function ledgerHtml(){
+  const ms=monthsAvail(); if(!S.ledgerMonth||!ms.includes(S.ledgerMonth)) S.ledgerMonth=ms[0];
+  const m=S.ledgerMonth, f=monthFigures(m); const maxC=f.expCat[0]?.[1]||1;
+  const today=new Date().toISOString().slice(0,10);
+  return `<div class="panel"><div class="board-head"><h3>สมุดบัญชี</h3><div style="display:flex;gap:6px;align-items:center"><button type="button" class="btn" id="catBtn" style="padding:5px 10px;font-size:13px">จัดการหมวด</button><select id="lMonth" style="width:auto">${ms.map(x=>`<option value="${x}" ${x===m?"selected":""}>${monthLabel(x)}</option>`).join("")}</select></div></div>
+  <div class="totals"><div class="tot"><small>รายรับ</small><b style="color:var(--good)">${baht(f.income)}</b></div><div class="tot"><small>รายจ่าย</small><b>${baht(f.expense)}</b></div><div class="tot"><small>${f.profit>=0?"กำไร":"ขาดทุน"}</small><b style="color:${f.profit>=0?"var(--good)":"var(--bad)"}">${baht(Math.abs(f.profit))}</b></div></div>
+  ${f.expCat.length?`<div class="bars">${f.expCat.slice(0,6).map(([c,v])=>`<div class="bar"><span title="${esc(c)}">${esc(c)}</span><div class="track"><div class="fill" style="width:${Math.max(3,v/maxC*100)}%"></div></div><span class="num">${fmt(v,0)}</span></div>`).join("")}</div>`:""}
+  <div class="ledger-list">${f.rows.length?f.rows.map(r=>`<div class="lrow"><span class="d">${esc((r.date||"").slice(5))}</span><div class="m">${esc(r.merchant)}${r.note?`<small>${esc(r.note)}</small>`:""}${catSelect("lc-"+r.id,r.category,`data-lcat="${r.id}" aria-label="หมวดของ ${esc(r.merchant)}"`)}</div><span class="amt ${r.kind==="income"?"in":""}">${r.kind==="income"?"+":"−"}${fmt(r.amount)}</span><button type="button" class="x" data-ldel="${r.id}">${S.confirmL===r.id?"ยืนยัน":"ลบ"}</button></div>`).join(""):`<div class="empty">ยังไม่มีรายการเดือนนี้ อัปโหลดสลิปให้ทีม AI อ่าน หรือบันทึกเองด้านล่าง</div>`}</div>
+  <details style="margin-top:12px"><summary>บันทึกรายการเอง</summary>
+    <div class="row2"><div><label class="f" for="mDate">วันที่</label><input type="date" id="mDate" value="${today}"></div><div><label class="f" for="mAmt">จำนวนเงิน (บาท)</label><input type="number" id="mAmt" min="0" step="0.01" inputmode="decimal"></div></div>
+    <label class="f" for="mCat">หมวด (เลือกหมวดรายรับ ระบบจะนับเป็นรายรับให้)</label>${catSelect("mCat",S.mCat||catsExp()[0]).replace("data-nr","")}
+    <label class="f" for="mMer">ร้าน/ผู้รับ/รายละเอียด</label><input type="text" id="mMer">
+    <button type="button" class="btn btn-solid" id="mAdd" style="margin-top:10px">เพิ่มรายการ</button>
+  </details>
+  ${S.downloads&&f.rows.length?`<button type="button" class="btn" id="csvBtn" style="margin-top:12px">ดาวน์โหลด CSV เดือนนี้</button>`:""}
+  </div>`;
+}
+
+function boardHtml(d,title="งานที่กำลังทำ / เสร็จแล้ว"){ const ts=S.tasks.filter(t=>t.dept===d);
+  return `<div class="panel"><div class="board-head"><h3>${title}</h3><small>${ts.length} งาน</small></div>
+  <div class="tasks">${ts.length?ts.map(taskHtml).join(""):`<div class="empty">ยังไม่มีงานในห้องนี้<br>เลือกประเภทงานทางซ้าย แล้วกด “ส่งงานให้ทีม AI”</div>`}</div></div>`; }
+function renderDept(d){
+  if(d==="pm") return renderPM();
+  const o=DEPTS[d];
+  $("#view").innerHTML=`<div class="dept-bar"><span class="pill" style="background:${o.color}">${o.name}</span><button type="button" class="btn back" data-go="home">← กลับแผนที่</button></div>
+  <div class="work"><div class="col">${teamHtml(d)}${formHtml(d)}${d==="finance"?ledgerHtml():""}${d==="it"?sitesHtml():""}</div>
+  <div class="col">${boardHtml(d)}</div></div>`;
+}
+function sitesHtml(){
+  const list=S.sites||[]; const anyAuto=list.some(s=>S.itstatus[s.id]);
+  const row=s=>{ const st=S.itstatus[s.id]; const cls=!st?"":st.ok?"ok":"bad";
+    const when=st&&st.checkedAt?ago(typeof st.checkedAt==="number"?st.checkedAt:Date.parse(st.checkedAt)):"";
+    return `<div class="site"><span class="dot ${cls}" title="${!st?"ยังไม่เคยตรวจ":st.ok?"ปกติ":"มีปัญหา"}"></span><div style="min-width:0"><b>${esc(s.name||s.url)}</b><small>${esc(s.url)}</small>
+      ${st?`<small>${st.ok?"ปกติ":"<span style=\"color:var(--bad)\">มีปัญหา</span>"}${when?` · ตรวจ ${esc(when)}`:""}${st.summary?` · ${esc(String(st.summary).slice(0,160))}`:""}</small>${Array.isArray(st.issues)&&st.issues.length?`<small>${st.issues.slice(0,3).map(i=>"• "+esc(String(i).slice(0,140))).join("<br>")}</small>`:""}`:`<small>ยังไม่มีผลตรวจอัตโนมัติ</small>`}</div>
+      <button type="button" class="x" data-sdel="${esc(s.id)}">${S.confirmS===s.id?"ยืนยันลบ":"ลบ"}</button></div>`; };
+  return `<div class="panel"><h3>เว็บไซต์ของบริษัท</h3>
+    ${list.length?list.map(row).join(""):`<div class="empty" style="padding:16px">ยังไม่มีรายชื่อเว็บไซต์ เพิ่มเว็บของบริษัทไว้ที่นี่เพื่อใช้ตรวจอัตโนมัติ</div>`}
+    <div class="row2" style="margin-top:8px"><div><label class="f" for="sName">ชื่อ</label><input type="text" id="sName" placeholder="เว็บหลัก"></div><div><label class="f" for="sUrl">ลิงก์</label><input type="text" id="sUrl" inputmode="url" placeholder="https://"></div></div>
+    <button type="button" class="btn btn-solid" id="sAdd" style="margin-top:10px">เพิ่มเว็บไซต์</button>
+    <p class="hint">${anyAuto?"ผลตรวจด้านบนมาจากการตรวจอัตโนมัติรายวัน":"ยังไม่ได้ตั้งการตรวจอัตโนมัติรายวัน ถ้าต้องการ บอก Claude ในแชตให้ตั้งให้ ระบบจะเข้าเว็บทุกเช้าแล้วรายงานผลไว้ตรงนี้"}</p></div>`;
+}
+function ownerOptions(cur){
+  cur=cur||""; const ppl=S.people||[]; const ids=new Set(ppl.map(p=>p.id));
+  const extra=cur.startsWith("u:")&&!ids.has(cur.slice(2))?`<option value="${esc(cur)}" selected>${esc(S.names[cur.slice(2)]||"สมาชิก")}</option>`:"";
+  return `<option value="">ยังไม่กำหนด</option><optgroup label="ทีม AI">${DEPT_KEYS.map(k=>`<option value="dept:${k}" ${cur==="dept:"+k?"selected":""}>${DEPTS[k].name}</option>`).join("")}</optgroup>`
+    +(ppl.length||extra?`<optgroup label="คนในทีม">${extra}${ppl.map(p=>`<option value="u:${esc(p.id)}" ${cur==="u:"+p.id?"selected":""}>${esc(p.name||"สมาชิก")}${p.isMe?" (ฉัน)":""}</option>`).join("")}</optgroup>`:"");
+}
+function ptaskHtml(t){
+  const T=todayISO(); const done=t.status==="done"; const od=!done&&t.due&&t.due<T;
+  return `<div class="ptask ${done?"done":""}">
+    <select id="pts-${t.id}" data-nr data-ptf="status" data-ptid="${t.id}" aria-label="สถานะ">${Object.entries(P_ST).map(([k,v])=>`<option value="${k}" ${t.status===k?"selected":""}>${v}</option>`).join("")}</select>
+    <div class="t">${t.priority==="high"&&!done?`<span class="tag">ด่วน</span> `:""}${esc(t.title)}${od?` <span class="od">· เลยกำหนด</span>`:""}</div>
+    <select class="own" id="pto-${t.id}" data-nr data-ptf="owner" data-ptid="${t.id}" aria-label="ผู้รับผิดชอบ">${ownerOptions(t.owner)}</select>
+    <input class="due" type="date" id="ptd-${t.id}" data-nr data-ptf="due" data-ptid="${t.id}" value="${esc(t.due||"")}" aria-label="กำหนดส่ง">
+    <button type="button" class="x" data-ptdel="${t.id}">${S.confirmPt===t.id?"ยืนยัน":"ลบ"}</button></div>`;
+}
+function projHtml(p){
+  const T=todayISO(); const s=projStats(p); const ts=[...s.ts].sort((a,b)=>(P_ORD[a.status]??9)-(P_ORD[b.status]??9)||(a.due||"9999").localeCompare(b.due||"9999"));
+  const pct=s.total?Math.round(s.done/s.total*100):0;
+  return `<div class="proj"><div class="proj-h"><h4>${esc(p.name)}</h4>
+    <span class="ptag ${p.type==="client"?"client":""}">${p.type==="client"?`ลูกค้า${p.client?": "+esc(p.client):""}`:"ภายใน"}</span>
+    ${p.due?`<span class="ptag" ${p.status!=="done"&&p.due<T?'style="color:var(--bad)"':""}>ส่ง ${thDate(p.due)}</span>`:""}
+    <select id="ps-${p.id}" data-nr data-pstat="${p.id}" style="width:auto;padding:3px 6px;font-size:12.5px" aria-label="สถานะโปรเจกต์"><option value="active" ${p.status==="active"?"selected":""}>กำลังทำ</option><option value="hold" ${p.status==="hold"?"selected":""}>พักไว้</option><option value="done" ${p.status==="done"?"selected":""}>เสร็จแล้ว</option></select>
+    <button type="button" class="x" data-pdel="${p.id}">${S.confirmP===p.id?"ยืนยันลบทั้งโปรเจกต์":"ลบ"}</button></div>
+    <div class="prog"><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num">${s.done}/${s.total} งาน</span>${s.od?`<span class="tag">เลยกำหนด ${s.od}</span>`:""}</div>
+    ${ts.map(ptaskHtml).join("")}
+    <div class="addrow"><input type="text" id="pa-${p.id}" placeholder="เพิ่มงานในโปรเจกต์นี้ แล้วกด Enter" aria-label="ชื่องานใหม่"><button type="button" class="btn" data-padd="${p.id}">เพิ่ม</button></div></div>`;
+}
+function renderPM(){
+  const o=DEPTS.pm, T=todayISO();
+  if(S.people===null&&S.user&&S.user.search){ S.people=[]; S.user.search("").then(r=>{ S.people=Array.isArray(r)?r:[]; scheduleRender(); }).catch(()=>{}); }
+  const act=S.projects.filter(p=>p.status!=="done"), done=S.projects.filter(p=>p.status==="done");
+  const open=S.ptasks.filter(t=>t.status!=="done"&&act.some(p=>p.id===t.projectId));
+  const od=open.filter(t=>t.due&&t.due<T).length, wait=pending().length, fix=S.tasks.filter(t=>t.review?.verdict==="fix").length;
+  const cl=act.filter(p=>p.type==="client").length;
+  const f=S.projFilter; const shown=act.filter(p=>f==="all"||p.type===f);
+  const chipF=(k,l)=>`<button type="button" class="mode" data-pf="${k}" aria-pressed="${f===k}">${l}</button>`;
+  const recent=S.tasks.filter(t=>t.dept!=="pm").slice(0,10);
+  const stOf=t=> t.status==="running"&&!stale(t)?`<span class="st st-run">กำลังทำ</span>`: t.status==="error"||stale(t)?`<span class="st st-err">ไม่สำเร็จ</span>`: t.review?.verdict==="fix"?`<span class="st st-run">ควรแก้</span>`: t.review?`<span class="st st-done">ผ่าน</span>`:`<span class="st st-wait">รอตรวจ</span>`;
+  $("#view").innerHTML=`<div class="dept-bar"><span class="pill" style="background:${o.color}">${o.name}</span><button type="button" class="btn back" data-go="home">← กลับแผนที่</button></div>
+  <div class="kpis" style="margin-bottom:16px">
+    <div class="kpi"><small>โปรเจกต์ที่ทำอยู่</small><b>${act.length}</b><small>ลูกค้า ${cl} · ภายใน ${act.length-cl}</small></div>
+    <div class="kpi"><small>งานค้างทั้งหมด</small><b>${open.length}</b><small>ไม่มีผู้รับผิดชอบ ${open.filter(t=>!t.owner).length}</small></div>
+    <div class="kpi ${od?"hot":""}"><small>เลยกำหนด</small><b>${od}</b><small>${od?"ต้องตามด่วน":"ไม่มีงานค้างเกินกำหนด"}</small></div>
+    <div class="kpi ${fix?"hot":""}"><small>งาน AI รอตรวจ</small><b>${wait}</b><small>ตรวจแล้วควรแก้ ${fix}</small></div>
+  </div>
+  <div class="work"><div class="col">${teamHtml("pm")}${formHtml("pm")}
+    <div class="panel"><h3>งาน AI ล่าสุดจากทุกแผนก</h3><div class="mini">${recent.length?recent.map(t=>`<button type="button" class="mrow" data-go="${t.dept}"><span class="dot" style="background:${DEPTS[t.dept]?.color}"></span><span class="tt">${esc(t.title)}</span>${stOf(t)}</button>`).join(""):`<p class="meta">ยังไม่มีงานจากแผนกอื่น</p>`}</div></div>
+  </div>
+  <div class="col">
+    <div class="panel"><div class="board-head" style="flex-wrap:wrap"><h3>โปรเจกต์</h3><div class="filters">${chipF("all","ทั้งหมด")}${chipF("client","งานลูกค้า")}${chipF("internal","งานภายใน")}</div></div>
+      <div class="projs">${shown.length?shown.map(projHtml).join(""):`<div class="empty">${act.length?"ไม่มีโปรเจกต์ในกลุ่มนี้":"ยังไม่มีโปรเจกต์<br>ใส่บรีฟทางซ้ายให้ทีม AI แตกงาน หรือกด “สร้างโปรเจกต์เปล่า”"}</div>`}</div>
+      ${done.length?`<details style="margin-top:12px"><summary>โปรเจกต์ที่เสร็จแล้ว (${done.length})</summary><div class="projs" style="margin-top:10px">${done.map(projHtml).join("")}</div></details>`:""}
+    </div>
+    ${boardHtml("pm","งานของทีม PM")}
+  </div></div>`;
+}
+
+// ---------- events ----------
+document.addEventListener("click", async e=>{
+  const g=e.target.closest("[data-go]"); if(g){ go(g.dataset.go); return; }
+  if(e.target.closest("#meetRoom")||e.target.closest("#brandBtn")){ openBrand(); return; }
+  const md_=e.target.closest("[data-mode]"); if(md_){ S.mode[S.route]=md_.dataset.mode; render(); return; }
+  if(e.target.closest("#drop")){ $("#fileIn")?.click(); return; }
+  const del=e.target.closest("[data-del]"); if(del){ const id=del.dataset.del; if(S.confirmDel===id){ S.confirmDel=null; await deleteTask(id); toast("ลบงานแล้ว"); } else { S.confirmDel=id; render(); setTimeout(()=>{ if(S.confirmDel===id){S.confirmDel=null;render();} },4000); } return; }
+  const ld=e.target.closest("[data-ldel]"); if(ld){ const id=ld.dataset.ldel; if(S.confirmL===id){ S.confirmL=null; await delLedger(id); toast("ลบรายการแล้ว"); } else { S.confirmL=id; render(); setTimeout(()=>{ if(S.confirmL===id){S.confirmL=null;render();} },4000); } return; }
+  const cp=e.target.closest("[data-copy]"); if(cp){ const t=S.tasks.find(x=>x.id===cp.dataset.copy); try{ await navigator.clipboard.writeText(t.result.md); toast("คัดลอกแล้ว"); }catch{ const el=cp.previousElementSibling; const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("เลือกข้อความไว้แล้ว กด Ctrl/Cmd+C เพื่อคัดลอก"); } return; }
+  const sv=e.target.closest("[data-save]"); if(sv){ await saveImport(sv.dataset.save, sv); return; }
+  const all=e.target.closest("[data-all],[data-none]"); if(all){ const id=all.dataset.all||all.dataset.none; const t=S.tasks.find(x=>x.id===id); if(t){ const v=!!all.dataset.none; S.skip[id]={}; t.result.items.forEach((_,i)=>S.skip[id][i]=v); render(); } return; }
+  if(e.target.closest("#catBtn")){ openCats(); return; }
+  const rv=e.target.closest("[data-review]"); if(rv){ reviewSingle(rv.dataset.review); return; }
+  const mk=e.target.closest("[data-mkproj]"); if(mk){ await makeProject(mk.dataset.mkproj,mk); return; }
+  const pf=e.target.closest("[data-pf]"); if(pf){ S.projFilter=pf.dataset.pf; render(); return; }
+  if(e.target.closest("#pBlank")){ await blankProject(); return; }
+  const pa=e.target.closest("[data-padd]"); if(pa){ await addPtask(pa.dataset.padd); return; }
+  const pd=e.target.closest("[data-pdel]"); if(pd){ const id=pd.dataset.pdel; if(S.confirmP===id){ S.confirmP=null; await delProject(id); } else { S.confirmP=id; render(); setTimeout(()=>{ if(S.confirmP===id){S.confirmP=null;render();} },4000); } return; }
+  const ptd=e.target.closest("[data-ptdel]"); if(ptd){ const id=ptd.dataset.ptdel; if(S.confirmPt===id){ S.confirmPt=null; try{ await rowDel("ptasks",id); toast("ลบงานแล้ว"); }catch{ toast("ลบไม่สำเร็จ"); } } else { S.confirmPt=id; render(); setTimeout(()=>{ if(S.confirmPt===id){S.confirmPt=null;render();} },4000); } return; }
+  if(e.target.closest("#sAdd")){ await addSite(); return; }
+  const sd=e.target.closest("[data-sdel]"); if(sd){ const id=sd.dataset.sdel; if(S.confirmS===id){ S.confirmS=null; try{ await saveSites((S.sites||[]).filter(s=>s.id!==id)); toast("ลบเว็บไซต์แล้ว"); }catch{ toast("ลบไม่สำเร็จ"); } } else { S.confirmS=id; render(); setTimeout(()=>{ if(S.confirmS===id){S.confirmS=null;render();} },4000); } return; }
+  if(e.target.closest("#goBtn")){ await submit(); return; }
+  if(e.target.closest("#mAdd")){ await manualAdd(); return; }
+  if(e.target.closest("#csvBtn")){ await exportCsv(); return; }
+});
+document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.id==="drop"){ e.preventDefault(); $("#fileIn")?.click(); }
+  if(e.key==="Enter"&&!e.isComposing&&e.target.id&&e.target.id.startsWith("pa-")){ e.preventDefault(); addPtask(e.target.id.slice(3)); } });
+document.addEventListener("change",e=>{
+  const ds=e.target.dataset||{};
+  if(ds.pstat){ rowUpd("projects",ds.pstat,{status:e.target.value}).catch(()=>toast("บันทึกไม่สำเร็จ")); return; }
+  if(ds.ptf&&ds.ptid){ const v=e.target.value; rowUpd("ptasks",ds.ptid,{[ds.ptf]:v||(ds.ptf==="due"?null:"")}).then(()=>{ if(ds.ptf==="status"&&v==="done") toast("ปิดงานแล้ว"); }).catch(()=>toast("บันทึกไม่สำเร็จ")); return; }
+  if(e.target.id==="fileIn"&&S.route==="it"){ const max=S.imgMax||5; const fs=[...e.target.files].slice(0,max); S.files.itimgs=fs; render(); return; }
+  if(e.target.id==="fileIn"){ const fs=[...e.target.files]; if(S.route==="marketing") S.files.ads=fs[0]||null; else if(S.mode.finance==="stmt") S.files.stmt=fs[0]||null; else { const max=S.imgMax||5; if(fs.length>max) toast(`เลือกได้ครั้งละ ${max} รูป ใช้ ${max} รูปแรก`); S.files.slips=fs.slice(0,max); } render(); }
+  if(e.target.dataset.slip){ const {slip,i}=e.target.dataset; (S.slipEdit[slip]=S.slipEdit[slip]||{})[i]=e.target.value; render(); }
+  if(e.target.dataset.skip){ const {skip,i}=e.target.dataset; (S.skip[skip]=S.skip[skip]||{})[i]=!e.target.checked; render(); }
+  if(e.target.dataset.lcat){ const id=e.target.dataset.lcat, cat=e.target.value; const row=S.ledger.find(r=>r.id===id); if(row){ learn(row.merchant,cat);
+    updLedger(id,{category:cat,kind:kindOf(cat,row.kind)}).then(()=>{ flushLearn(); toast(`เปลี่ยนเป็น “${cat}” แล้ว`); }).catch(()=>toast("แก้หมวดไม่สำเร็จ ลองอีกครั้ง")); } }
+  if(e.target.id==="lMonth"){ S.ledgerMonth=e.target.value; render(); }
+});
+["dragover","dragleave","drop"].forEach(ev=>document.addEventListener(ev,e=>{ const d=e.target.closest?.("#drop"); if(!d) return; e.preventDefault(); d.classList.toggle("over",ev==="dragover");
+  if(ev==="drop"){ const fs=[...e.dataTransfer.files]; if(S.route==="it"){ S.files.itimgs=fs.filter(f=>/^image\//.test(f.type)).slice(0,S.imgMax||5); render(); return; } if(S.route==="marketing") S.files.ads=fs[0]||null; else if(S.mode.finance==="stmt") S.files.stmt=fs.find(f=>/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name))||null; else S.files.slips=fs.filter(f=>/^image\//.test(f.type)).slice(0,S.imgMax||5); render(); } }));
+
+function go(r){ S.route=r; try{ history.replaceState(null,"",r==="home"?location.pathname:"#"+r); }catch{} render(); window.scrollTo({top:0}); }
+addEventListener("hashchange",()=>{ const h=location.hash.slice(1); S.route=DEPTS[h]?h:"home"; render(); });
+
+async function submit(){
+  const d=S.route, m=S.mode[d]; const v=id=>($("#"+id)?.value||"").trim();
+  if(d==="marketing"&&m==="ads"){ const f=S.files.ads; if(!f) return; S.files.ads=null; render(); return doAds(f,v("adNote")); }
+  if(d==="marketing"&&m==="plan"){ const b=v("mktBrief"); if(!b) return toast("พิมพ์โจทย์ก่อนส่งงาน"); $("#mktBrief").value=""; return doMktPlan(b); }
+  if(d==="content"&&m==="post"){ const t=v("cTopic"); if(!t) return toast("พิมพ์หัวข้อก่อนส่งงาน"); $("#cTopic").value=""; return doPost(t,v("cChan")); }
+  if(d==="content"&&m==="month"){ const g=v("cGoal"); if(!g) return toast("พิมพ์เป้าหมายก่อนส่งงาน"); $("#cGoal").value=""; return doMonth(g,v("cPer")||"5"); }
+  if(d==="finance"&&m==="stmt"){ const f=S.files.stmt; if(!f) return; const pw=$("#pdfPw").value; const img=$("#asImg").checked; S.files.stmt=null; $("#pdfPw").value=""; render(); return doStmt(f,pw,img); }
+  if(d==="finance"&&m==="slips"){ const fs=S.files.slips||[]; if(!fs.length) return; S.files.slips=[]; render(); return doSlips(fs); }
+  if(d==="finance"&&m==="report"){ return doReport(v("rMonth")||thisMonth()); }
+  if(d==="pm"&&m==="plan"){ const name=v("pName"), brief=v("pBrief"); if(!name) return toast("ใส่ชื่อโปรเจกต์ก่อน"); if(!brief) return toast("ใส่บรีฟหรือขอบเขตงานก่อน");
+    const p={name,brief,type:v("pType")||"client",client:v("pClient"),due:v("pDue")||null}; ["pName","pBrief","pClient","pDue"].forEach(id=>$("#"+id).value=""); return doBreakdown(p); }
+  if(d==="pm"&&m==="status"){ const f=v("stFocus"); $("#stFocus").value=""; return doStatus(f); }
+  if(d==="pm"&&m==="qa"){ return doQA(); }
+  if(d==="it"){ const imgs=S.files.itimgs||[];
+    if(m==="page"){ const url=v("itUrl"), html=($("#itHtml")?.value||"").trim(), note=v("itNote");
+      if(!html&&!imgs.length) return toast("วางโค้ดหน้าเว็บ หรือแนบภาพหน้าจออย่างน้อยหนึ่งอย่าง");
+      if(html&&!/<[a-z!][\s\S]*>/i.test(html)) return toast("ข้อความที่วางไม่ใช่โค้ด HTML ลองกด Ctrl+U ที่หน้าเว็บแล้วคัดลอกใหม่");
+      ["itUrl","itHtml","itNote"].forEach(id=>$("#"+id).value=""); S.files.itimgs=[]; render(); return doAudit(url,html.slice(0,3e6),imgs,note); }
+    if(m==="bug"){ const desc=v("bugDesc"); if(!desc&&!imgs.length) return toast("อธิบายปัญหาหรือแนบภาพหน้าจอก่อน"); const url=v("bugUrl");
+      ["bugDesc","bugUrl"].forEach(id=>$("#"+id).value=""); S.files.itimgs=[]; render(); return doBug(desc||"ดูจากภาพหน้าจอที่แนบ",url,imgs); } }
+}
+async function blankProject(){
+  const v=id=>($("#"+id)?.value||"").trim(); const name=v("pName"); if(!name) return toast("ใส่ชื่อโปรเจกต์ก่อน");
+  try{ await rowAdd("projects",{name,type:v("pType")||"client",client:v("pClient"),due:v("pDue")||null,brief:v("pBrief"),status:"active"});
+    ["pName","pBrief","pClient","pDue"].forEach(id=>$("#"+id).value=""); toast("สร้างโปรเจกต์แล้ว เพิ่มงานได้ที่การ์ดโปรเจกต์"); }
+  catch{ toast("สร้างโปรเจกต์ไม่สำเร็จ ลองอีกครั้ง"); }
+}
+async function addPtask(pid){
+  const el=$("#pa-"+pid); const title=(el?.value||"").trim(); if(!title) return;
+  el.value=""; try{ await rowAdd("ptasks",{projectId:pid,title:title.slice(0,160),status:"todo",priority:"normal",due:null,owner:""}); }catch{ el.value=title; toast("เพิ่มงานไม่สำเร็จ ลองอีกครั้ง"); }
+}
+async function delProject(id){
+  try{ for(const t of S.ptasks.filter(t=>t.projectId===id)) await rowDel("ptasks",t.id); await rowDel("projects",id); toast("ลบโปรเจกต์แล้ว"); }
+  catch{ toast("ลบไม่สำเร็จ ลองอีกครั้ง"); }
+}
+async function addSite(){
+  const name=($("#sName").value||"").trim(); let url=($("#sUrl").value||"").trim();
+  if(!url) return toast("ใส่ลิงก์เว็บไซต์ก่อน"); if(!/^https?:\/\//i.test(url)) url="https://"+url;
+  try{ const u=new URL(url); if(!u.hostname.includes(".")) throw 0; url=u.href; }catch{ return toast("ลิงก์ไม่ถูกต้อง ตัวอย่าง: https://www.example.co.th"); }
+  const list=S.sites||[]; if(list.some(s=>s.url===url)) return toast("มีเว็บไซต์นี้ในรายการแล้ว"); if(list.length>=20) return toast("เพิ่มได้สูงสุด 20 เว็บไซต์");
+  try{ await saveSites([...list,{id:"s"+uid().slice(0,10),name:name||new URL(url).hostname,url}]); $("#sName").value=""; $("#sUrl").value=""; toast("เพิ่มเว็บไซต์แล้ว"); }
+  catch{ toast("บันทึกไม่สำเร็จ ลองอีกครั้ง"); }
+}
+const SAVING=new Set();
+async function saveImport(id,btn){
+  const t=S.tasks.find(x=>x.id===id); if(!t||t.result.saved||SAVING.has(id)) return; SAVING.add(id); btn.disabled=true;
+  const r=t.result, ed=S.slipEdit[id]||{}; const pick=pickItems(t);
+  r.items.forEach((it,i)=>{ if(ed[i]!=null&&ed[i]!==it.category) learn(it.merchant||it.desc,ed[i]); });
+  const srcNote = r.bank ? `${r.bank}${r.account?" "+r.account:""}` : "";
+  let n=0;
+  try{
+    for(const it of pick){
+      btn.textContent=`กำลังบันทึก ${n+1}/${pick.length}`;
+      const row={date:it.date,merchant:it.merchant||it.desc,amount:it.amount,kind:it.kind,category:it.category,note:it.note||srcNote,source:r.kind};
+      try{ await addLedger(row); }catch(e){ if(e?.code==="resource_exhausted"||e?.code==="unavailable"){ await new Promise(res=>setTimeout(res,1500+Math.random()*800)); await addLedger(row); } else throw e; }
+      n++;
+    }
+    const items=r.items.map((it,i)=>({...it,category:ed[i]??it.category,kind:kindOf(ed[i]??it.category,it.kind)}));
+    await patchTask(id,{result:{...r,items,saved:true,savedCount:n}});
+    await flushLearn();
+    toast(`บันทึกลงบัญชี ${n} รายการแล้ว`);
+  }catch(e){ toast(e?.code==="quota_exceeded"?`บันทึกได้ ${n} รายการ แล้วพื้นที่เก็บข้อมูลเต็ม`:`บันทึกได้ ${n} รายการ ที่เหลือไม่สำเร็จ ลองกดอีกครั้ง`);
+    if(n){ const sk=S.skip[id]=S.skip[id]||{}; pick.slice(0,n).forEach(it=>sk[it._i]=true); }
+    btn.disabled=false; render();
+  }finally{ SAVING.delete(id); }
+}
+function openCats(){
+  $("#modalRoot").innerHTML=`<div class="overlay" id="ov"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="ct"><h2 id="ct">จัดการหมวดบัญชี</h2>
+  <p>พิมพ์หนึ่งหมวดต่อหนึ่งบรรทัด เพิ่ม ลบ หรือเรียงลำดับใหม่ได้ ทั้งทีม AI และทุกคนในทีมจะใช้รายการนี้</p>
+  <label class="f" for="cExp">หมวดรายจ่าย / เงินออก</label><textarea id="cExp" style="min-height:180px">${esc(catsExp().join("\n"))}</textarea>
+  <label class="f" for="cInc">หมวดรายรับ / เงินเข้า</label><textarea id="cInc" style="min-height:110px">${esc(catsInc().join("\n"))}</textarea>
+  <p class="hint">การเปลี่ยนชื่อหมวดไม่แก้รายการเก่าอัตโนมัติ รายการเก่ายังแสดงชื่อเดิม และเปลี่ยนเป็นหมวดใหม่ได้จากสมุดบัญชี</p>
+  <div class="acts"><button type="button" class="btn" id="cReset">คืนค่าเริ่มต้น</button><span style="flex:1"></span><button type="button" class="btn" id="cCancel">ยกเลิก</button><button type="button" class="btn btn-solid" id="cSave">บันทึก</button></div></div></div>`;
+  const close=()=>$("#modalRoot").innerHTML="";
+  $("#cCancel").onclick=close; $("#ov").onclick=e=>{ if(e.target.id==="ov") close(); };
+  $("#cReset").onclick=()=>{ $("#cExp").value=DEF_EXP.join("\n"); $("#cInc").value=DEF_INC.join("\n"); };
+  $("#cSave").onclick=async()=>{
+    const list=id=>[...new Set($("#"+id).value.split("\n").map(s=>s.trim().slice(0,60)).filter(Boolean))].slice(0,60);
+    const exp=list("cExp"), inc=list("cInc").filter(c=>!exp.includes(c));
+    if(!exp.length||!inc.length) return toast("ต้องมีอย่างน้อย 1 หมวดในแต่ละฝั่ง");
+    try{ await saveCats({exp,inc}); close(); toast("บันทึกหมวดแล้ว"); }catch(e){ toast("บันทึกไม่สำเร็จ ลองอีกครั้ง"); }
+  };
+  $("#cExp").focus();
+}
+async function manualAdd(){
+  const amt=num($("#mAmt").value), date=$("#mDate").value, mer=$("#mMer").value.trim(), cat=$("#mCat").value;
+  if(!(amt>0)) return toast("ใส่จำนวนเงินมากกว่า 0"); if(!date) return toast("เลือกวันที่");
+  try{ await addLedger({date,merchant:mer||"ไม่ระบุ",amount:Math.round(amt*100)/100,kind:kindOf(cat),category:cat,note:"",source:"manual"});
+    $("#mAmt").value=""; $("#mMer").value=""; S.ledgerMonth=monthKey(date); toast("เพิ่มรายการแล้ว"); render(); }
+  catch(e){ toast("บันทึกไม่สำเร็จ ลองอีกครั้ง"); }
+}
+async function exportCsv(){
+  const f=monthFigures(S.ledgerMonth); const q=s=>`"${String(s??"").replace(/"/g,'""')}"`;
+  const csv="\ufeff"+["วันที่,ประเภท,หมวด,ร้าน/ผู้รับ,จำนวนเงิน,หมายเหตุ",...f.rows.map(r=>[r.date,r.kind==="income"?"รายรับ":"รายจ่าย",r.category,r.merchant,r.amount,r.note].map(q).join(","))].join("\n");
+  try{ await S.downloads.save({filename:`บัญชี-${S.ledgerMonth}.csv`,data:new Blob([csv],{type:"text/csv"})}); }catch(e){ if(e?.code!=="cancelled"&&e?.code!=="declined") toast("ดาวน์โหลดไม่สำเร็จ"); }
+}
+function openBrand(){
+  const b=S.brand||{};
+  $("#modalRoot").innerHTML=`<div class="overlay" id="ov"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="bt"><h2 id="bt">ข้อมูลบริษัท</h2><p>ทุกแผนกจะใช้ข้อมูลนี้ทำงาน ยิ่งละเอียด ผลงานยิ่งตรงกับธุรกิจ</p>
+  <label class="f" for="bName">ชื่อบริษัท/แบรนด์</label><input type="text" id="bName" value="${esc(b.name)}">
+  <label class="f" for="bBiz">ทำธุรกิจอะไร</label><input type="text" id="bBiz" value="${esc(b.business)}" placeholder="เช่น สถาบันสอนทักษะออนไลน์สำหรับคนทำงาน">
+  <label class="f" for="bProd">สินค้า/บริการหลัก และช่วงราคา</label><textarea id="bProd" placeholder="เช่น คอร์ส Excel 1,990 บาท, คอร์ส Data 4,900 บาท">${esc(b.products)}</textarea>
+  <label class="f" for="bAud">ลูกค้าเป้าหมาย</label><input type="text" id="bAud" value="${esc(b.audience)}" placeholder="เช่น พนักงานออฟฟิศอายุ 25-40">
+  <label class="f" for="bTone">โทนแบรนด์</label><input type="text" id="bTone" value="${esc(b.tone)}" placeholder="เช่น เป็นกันเอง เข้าใจง่าย ไม่ขายของหนัก">
+  <div class="acts"><button type="button" class="btn" id="bCancel">ยกเลิก</button><button type="button" class="btn btn-solid" id="bSave">บันทึก</button></div></div></div>`;
+  const close=()=>$("#modalRoot").innerHTML="";
+  $("#bCancel").onclick=close; $("#ov").onclick=e=>{ if(e.target.id==="ov") close(); };
+  $("#bSave").onclick=async()=>{ const nb={name:$("#bName").value.trim(),business:$("#bBiz").value.trim(),products:$("#bProd").value.trim(),audience:$("#bAud").value.trim(),tone:$("#bTone").value.trim()};
+    try{ await saveBrand(nb); close(); toast("บันทึกข้อมูลบริษัทแล้ว"); }catch(e){ toast("บันทึกไม่สำเร็จ ลองอีกครั้ง"); } };
+  $("#bName").focus();
+}
+
+async function ensureNames(){
+  if(!S.user||!S.user.profiles) return;
+  const ids=[...new Set([...S.tasks.map(t=>t.byId),...S.ptasks.map(t=>t.owner&&t.owner.startsWith("u:")?t.owner.slice(2):null)].filter(i=>i&&!(i in S.names)))].slice(0,64); if(!ids.length) return;
+  ids.forEach(i=>S.names[i]=""); try{ const ps=await S.user.profiles(ids); ids.forEach(i=>S.names[i]=(ps&&ps[i]&&ps[i].name)||""); render(); }catch{}
+}
+
+// ---------- boot ----------
+const use = n => (window.claude && window.claude.use) ? window.claude.use(n).catch(()=>null) : Promise.resolve(null);
+{ const h=location.hash.slice(1); if(DEPTS[h]) S.route=h; }
+render();
+(async()=>{
+  const [db,sample,user,downloads]=await Promise.all([use("db"),use("sample"),use("user"),use("downloads")]);
+  S.db=db; S.sample=sample; S.user=user; S.downloads=downloads;
+  if(sample&&sample.limits){ try{ const l=await sample.limits(); S.imgMax=l?.images?.maxCount||0; }catch{} }
+  if(user&&user.id){ try{ S.uid=await user.id(); }catch{} }
+  S.ready=true;
+  if(db){
+    db.collection("tasks").orderBy("createdAt","desc").limit(150).onSnapshot(s=>{ S.tasks=s.docs.map(d=>({...d.data(),id:d.id})); scheduleRender(); ensureNames(); },e=>console.warn(e));
+    db.collection("ledger").orderBy("date","desc").limit(1000).onSnapshot(s=>{ S.ledger=s.docs.map(d=>({...d.data(),id:d.id})); scheduleRender(); },e=>console.warn(e));
+    db.doc("settings/brand").onSnapshot(s=>{ S.brand=s.exists?s.data():{}; scheduleRender(); },e=>console.warn(e));
+    db.doc("settings/categories").onSnapshot(s=>{ const c=s.exists?s.data():null; S.cats=(c&&Array.isArray(c.exp)&&c.exp.length&&Array.isArray(c.inc)&&c.inc.length)?{exp:c.exp.map(String),inc:c.inc.map(String)}:{exp:DEF_EXP,inc:DEF_INC}; scheduleRender(); },e=>console.warn(e));
+    db.collection("projects").orderBy("createdAt","desc").limit(300).onSnapshot(s=>{ S.projects=s.docs.map(d=>({...d.data(),id:d.id})); scheduleRender(); },e=>console.warn(e));
+    db.collection("ptasks").limit(1000).onSnapshot(s=>{ S.ptasks=s.docs.map(d=>({...d.data(),id:d.id})); scheduleRender(); ensureNames(); },e=>console.warn(e));
+    db.doc("settings/sites").onSnapshot(s=>{ const l=s.exists?s.data().list:null; S.sites=Array.isArray(l)?l.filter(x=>x&&x.id&&x.url):[]; scheduleRender(); },e=>console.warn(e));
+    db.collection("itstatus").limit(50).onSnapshot(s=>{ const o={}; s.docs.forEach(d=>o[d.id]=d.data()); S.itstatus=o; scheduleRender(); },e=>console.warn(e));
+    db.doc("settings/catmap").onSnapshot(s=>{ const m=s.exists?s.data().map:null; S.catmap=(m&&typeof m==="object")?m:{}; },e=>console.warn(e));
+  }
+  render();
+})();
+})();
+</script>

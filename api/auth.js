@@ -1,5 +1,19 @@
+// Admin auth endpoint. Login, session check, and logout live in one
+// Serverless Function (routed by ?action=) to stay under Vercel Hobby's
+// 12-function cap — see ai-office-handoff/HANDOFF.md.
+//
+//   POST /api/auth?action=login   { username, password }  -> sets session cookie
+//   GET  /api/auth?action=check                           -> 200 if session valid
+//   POST /api/auth?action=logout                          -> clears session cookie
 const crypto = require('crypto');
-const { COOKIE_NAME, SESSION_TTL_SECONDS, createSessionToken, serializeCookie } = require('../lib/auth/session');
+const {
+  COOKIE_NAME,
+  SESSION_TTL_SECONDS,
+  createSessionToken,
+  serializeCookie,
+  clearCookie,
+} = require('../lib/auth/session');
+const { requireSession } = require('../lib/auth/verify-session');
 
 const SUPA_URL = 'https://pzrjboiioplhijzyfdmf.supabase.co';
 const MAX_ATTEMPTS = 5;
@@ -39,16 +53,11 @@ async function recordFailure(key, ip) {
 async function clearFailures(key, ip) {
   await fetch(`${SUPA_URL}/rest/v1/login_attempts?ip=eq.${encodeURIComponent(ip)}`, {
     method: 'DELETE',
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
+    headers: { apikey: key, Authorization: `Bearer ${key}`, Prefer: 'return=minimal' },
   }).catch(() => {});
 }
 
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'method not allowed' });
-    return;
-  }
-
+async function handleLogin(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const ip = getClientIp(req);
 
@@ -90,4 +99,47 @@ module.exports = async function handler(req, res) {
   const token = createSessionToken();
   res.setHeader('Set-Cookie', serializeCookie(COOKIE_NAME, token, req, { maxAgeSeconds: SESSION_TTL_SECONDS }));
   res.status(200).json({ ok: true });
+}
+
+function handleCheck(req, res) {
+  if (!requireSession(req, res)) return;
+  res.status(200).json({ ok: true });
+}
+
+function handleLogout(req, res) {
+  res.setHeader('Set-Cookie', clearCookie(req));
+  res.status(200).json({ ok: true });
+}
+
+module.exports = async function handler(req, res) {
+  const action = (req.query && req.query.action) || 'login';
+
+  if (action === 'check') {
+    if (req.method !== 'GET') {
+      res.status(405).json({ error: 'method not allowed' });
+      return;
+    }
+    handleCheck(req, res);
+    return;
+  }
+
+  if (action === 'logout') {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'method not allowed' });
+      return;
+    }
+    handleLogout(req, res);
+    return;
+  }
+
+  if (action === 'login') {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'method not allowed' });
+      return;
+    }
+    await handleLogin(req, res);
+    return;
+  }
+
+  res.status(400).json({ error: 'unknown action' });
 };
